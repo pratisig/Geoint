@@ -142,6 +142,7 @@
     <div class="stat-badge" id="utc-clock">UTC 00:00:00</div>
     <div class="stat-badge live" id="db-status-badge">SYNC ULTIMATE...</div>
     <div class="stat-badge" id="live-count-badge">0 LIVE</div>
+    <div class="stat-badge" id="api-base-badge" style="cursor:pointer;" onclick="setBackendUrl()" title="Cliquez pour configurer backend">🔧 API</div>
     <div class="mode-switch-group">
       <button id="btn-switch-2d" class="btn-mode active" onclick="switchMapMode('2D')">2D SAT</button>
       <button id="btn-switch-3d" class="btn-mode" onclick="switchMapMode('3D')">3D SAT GLOBE RÉEL</button>
@@ -366,7 +367,46 @@
 </div>
 
 <script>
-  const API_BASE = window.location.origin.includes("http") ? window.location.origin : "http://localhost:8000";
+  // === API BASE CONFIGURABLE POUR GITHUB PAGES + BACKEND EXTERNE ===
+  function getApiBase(){
+    try{
+      const params = new URLSearchParams(window.location.search);
+      const urlParam = params.get('api') || params.get('backend');
+      if(urlParam){
+        localStorage.setItem('HUMAN_OSINT_API_BASE', urlParam);
+        return urlParam.replace(/\/$/, '');
+      }
+      const stored = localStorage.getItem('HUMAN_OSINT_API_BASE');
+      if(stored) return stored.replace(/\/$/, '');
+      // Si on est sur github.io, pas de backend local => mode demo + invite à configurer
+      if(window.location.hostname.includes('github.io')){
+        // Vous pouvez mettre ici votre backend Render/Railway par défaut
+        // Exemple: return 'https://votre-backend.onrender.com'
+        // Laisser vide => mode démo offline avec données statiques
+        const defaultBackend = localStorage.getItem('HUMAN_OSINT_DEFAULT_BACKEND') || '';
+        if(defaultBackend) return defaultBackend;
+        return ''; // mode demo
+      }
+      if(window.location.origin.includes('http')) return window.location.origin;
+    }catch(e){}
+    return 'http://localhost:8000';
+  }
+  const API_BASE = getApiBase();
+  const IS_DEMO_MODE = !API_BASE || API_BASE === '';
+
+  function setBackendUrl(){
+    const url = prompt('Entrez URL backend FastAPI (ex: https://xxx.onrender.com ou http://localhost:8000). Laissez vide pour mode démo offline:', localStorage.getItem('HUMAN_OSINT_API_BASE')||'');
+    if(url===null) return;
+    if(!url.trim()){
+      localStorage.removeItem('HUMAN_OSINT_API_BASE');
+      alert('Mode démo offline activé. Rechargez la page.');
+      location.reload();
+    } else {
+      localStorage.setItem('HUMAN_OSINT_API_BASE', url.trim().replace(/\/$/, ''));
+      alert('Backend configuré: '+url.trim()+' - Rechargement...');
+      location.reload();
+    }
+  }
 
   let leafletMap=null, cesiumViewer=null, drawnItems=null, incidentMarkersLayer=null, savedGeozonesLayer=null, weatherOverlay=null, terrainOverlay=null, activeTileLayer=null;
   let currentBaseLayerKey="sat";
@@ -542,10 +582,39 @@
     });
   }
 
+  // Demo fallback data for GitHub Pages offline mode
+  function getDemoIncidents(){
+    const now = new Date();
+    const iso = now.toISOString();
+    return [
+      {id:1,title:"[DEMO] Conflit actif Donbass/Pokrovsk - Artillerie lourde + drones FPV [LIVE SAT]",link:"https://deepstatemap.live",source:"DeepState OSINT (DEMO)",source_type:"OSINT",category:"conflit",region:"Europe",country:"Ukraine",latitude:48.28,longitude:37.18,risk_level:5,published_at:iso,summary:"DEMO OFFLINE - Percée mécanisée Pokrovsk. En mode GitHub Pages sans backend, configurez backend via ?api=URL ou bouton API.",actors:["AFU","RF"],needs:["Evacuation"]},
+      {id:2,title:"[DEMO] Frappe massive FIRMS Darfour Soudan - Incendies villages [LIVE SAT]",link:"https://firms.modaps.eosdis.nasa.gov/",source:"NASA FIRMS (DEMO)",source_type:"SATELLITE",category:"catastrophe",region:"Afrique",country:"Soudan",latitude:13.62,longitude:25.34,risk_level:5,published_at:iso,summary:"DEMO - Détection satellite incendies El Fasher.",actors:["RSF","Civils"],needs:["Abri"]},
+      {id:3,title:"[DEMO] Séisme M6.8 Mer Rouge - Alerte tsunami mineure [USGS LIVE]",link:"https://earthquake.usgs.gov",source:"USGS (DEMO)",source_type:"SATELLITE",category:"catastrophe",region:"Moyen-Orient",country:"Mer Rouge",latitude:14.5,longitude:42.8,risk_level:4,published_at:iso,summary:"DEMO USGS",actors:["GDACS"],needs:["Secours"]},
+      {id:4,title:"[DEMO] Offensive JNIM Sahel - Embuscade IED + kidnapping [GDELT+Reddit]",link:"https://www.reddit.com/r/OSINT",source:"Reddit OSINT (DEMO)",source_type:"SOCIAL",category:"conflit",region:"Afrique",country:"Mali / Sahel",latitude:16.27,longitude:-0.04,risk_level:5,published_at:iso,summary:"DEMO Sahel",actors:["JNIM","FAMa"],needs:["Sécurité"]},
+      {id:5,title:"[DEMO] Tensions Détroit Taïwan - 38 aéronefs PLA [MND]",link:"https://www.mnd.gov.tw",source:"MND Taïwan (DEMO)",source_type:"OFFICIEL",category:"conflit",region:"Asie-Pacifique",country:"Taïwan",latitude:24.15,longitude:119.5,risk_level:4,published_at:iso,summary:"DEMO Taïwan",actors:["PLA"],needs:["Surveillance"]},
+      {id:6,title:"[DEMO] Epidémie Mpox Clade 1b RDC - Déploiement OMS [WHO LIVE]",link:"https://www.who.int",source:"OMS (DEMO)",source_type:"OFFICIEL",category:"epidemie",region:"Afrique",country:"RDC",latitude:-2.5,longitude:28.85,risk_level:4,published_at:iso,summary:"DEMO santé",actors:["OMS","MSF"],needs:["Médical"]},
+    ];
+  }
+
   async function fetchLiveFeeds(force=false){
     const statusBadge=document.getElementById("db-status-badge");
     const liveCountBadge=document.getElementById("live-count-badge");
     const lastUpdateLabel=document.getElementById("last-update-label");
+    const apiBadge=document.getElementById("api-base-badge");
+    if(apiBadge) apiBadge.textContent = IS_DEMO_MODE ? '🔧 DEMO OFFLINE - CLIC CONFIG API' : `🔧 ${API_BASE.substring(0,30)}`;
+    if(IS_DEMO_MODE){
+      const demo = getDemoIncidents();
+      allIncidents=demo;
+      renderIncidents(demo);
+      renderMapMarkers(demo);
+      if(cesiumViewer) syncCesiumIncidents();
+      statusBadge.textContent=`DEMO OFFLINE - ${demo.length} LIVE (GitHub Pages)`;
+      statusBadge.style.color="var(--neon-orange)";
+      liveCountBadge.textContent=`${demo.length} DEMO`;
+      liveCountBadge.style.color="var(--neon-orange)";
+      lastUpdateLabel.innerHTML=`Mode démo GitHub Pages sans backend. Pour live réel, configurez backend: <button class="cyber-btn btn-xs" onclick="setBackendUrl()">🔧 CONFIG API</button> ou ajoutez ?api=https://votre-backend.onrender.com à l'URL`;
+      return;
+    }
     statusBadge.textContent="SYNC ULTIMATE..."; statusBadge.style.color="var(--neon-orange)";
     if(force){ try{ await fetch(`${API_BASE}/api/live/refresh`,{method:"POST"}); }catch(e){} }
     try{
@@ -561,10 +630,10 @@
       statusBadge.style.color="var(--neon-green)";
       liveCountBadge.textContent=`${incidents.length} LIVE ULTIMATE`;
       liveCountBadge.style.color="var(--neon-green)";
-      lastUpdateLabel.textContent=`Dernière MAJ: ${now.toLocaleTimeString()} | ${incidents.length} évts | Sources: NASA, USGS, GDELT, Reddit, Telegram, 35 RSS`;
+      lastUpdateLabel.textContent=`Dernière MAJ: ${now.toLocaleTimeString()} | ${incidents.length} évts | Sources: NASA, USGS, GDELT, Reddit, Telegram, 35 RSS | Backend: ${API_BASE}`;
       fetch(`${API_BASE}/api/live/combined`).then(r=>r.json()).then(data=>{
         if(data.meta){
-          lastUpdateLabel.textContent=`MAJ: ${new Date(data.meta.last_updated||now).toLocaleTimeString()} | ${data.meta.total} totaux | ${data.meta.total_social||0} social | ${data.meta.total_media||0} media | Refresh ${data.meta.refresh_interval_sec}s | 35+ sources`;
+          lastUpdateLabel.textContent=`MAJ: ${new Date(data.meta.last_updated||now).toLocaleTimeString()} | ${data.meta.total} totaux | ${data.meta.total_social||0} social | ${data.meta.total_media||0} media | Refresh ${data.meta.refresh_interval_sec}s | 35+ sources | ${API_BASE}`;
           if(data.social) allSocial=data.social;
           if(data.media) allMedia=data.media;
         }
@@ -572,11 +641,45 @@
     } catch(error){
       console.warn("Live fetch error:",error);
       statusBadge.textContent="MODE LOCAL ULTIMATE - RETRY 10s"; statusBadge.style.color="var(--neon-red)";
+      // Fallback to demo if backend fails on GitHub Pages
+      if(window.location.hostname.includes('github.io')){
+        const demo = getDemoIncidents();
+        allIncidents=demo;
+        renderIncidents(demo);
+        renderMapMarkers(demo);
+        lastUpdateLabel.innerHTML=`Backend ${API_BASE} inaccessible - Fallback DEMO. <button class="cyber-btn btn-xs" onclick="setBackendUrl()">🔧 CHANGER API</button>`;
+      }
     }
   }
 
   async function fetchSocial(){
     const container=document.getElementById("social-container");
+    if(IS_DEMO_MODE){
+      container.innerHTML=`<div style="color:var(--neon-orange);text-align:center;padding:20px;">Mode démo GitHub Pages - Réseaux sociaux live nécessitent backend FastAPI.<br><button class="cyber-btn btn-xs" onclick="setBackendUrl()">🔧 CONFIGURER BACKEND</button><br><br>En démo: 2 posts simulés</div>`;
+      const demoSocial=[
+        {source:"Reddit r/OSINT (DEMO)",source_type:"SOCIAL",country:"Ukraine",region:"Europe",title:"[DEMO] Thread OSINT Pokrovsk - Vidéos drones FPV",summary:"DEMO Reddit",latitude:48.28,longitude:37.18,published_at:new Date().toISOString(),link:"https://reddit.com/r/OSINT",category:"conflit"},
+        {source:"Telegram OSINTtechnical (DEMO)",source_type:"SOCIAL",country:"Syrie",region:"Moyen-Orient",title:"[DEMO] Canal Telegram - Frappes Idlib",summary:"DEMO Telegram",latitude:35.93,longitude:36.63,published_at:new Date().toISOString(),link:"https://t.me/s/OSINTtechnical",category:"conflit"},
+      ];
+      allSocial=demoSocial;
+      container.innerHTML="";
+      demoSocial.forEach(inc=>{
+        const card=document.createElement("div");
+        card.className=`incident-card live cat-${inc.category}`;
+        card.innerHTML=`
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span class="badge-cat badge-social">📱 ${escapeHtml(inc.source)}</span>
+            <span style="font-size:9px;color:var(--text-muted);">${escapeHtml(inc.source_type)}</span>
+          </div>
+          <div style="font-size:10px;color:#1DA1F2;font-weight:700;">📍 ${escapeHtml(inc.country||'Monde')} // ${escapeHtml(inc.region||'Global')}</div>
+          <div class="incident-title">${escapeHtml(inc.title)}</div>
+          <div style="font-size:10px;color:var(--text-muted);">${escapeHtml((inc.summary||'').substring(0,140))}</div>
+          <div class="incident-meta"><span>📱 SOCIAL ${inc.latitude.toFixed(2)}, ${inc.longitude.toFixed(2)}</span><span>${formatDate(inc.published_at)}</span></div>
+          <div class="incident-actions"><button class="cyber-btn btn-xs" onclick="centerMapOnCoords(${inc.latitude}, ${inc.longitude})">🎯 LOC</button><a href="${inc.link}" target="_blank" class="cyber-btn btn-xs" style="text-decoration:none;">SOURCE SOCIAL ↗</a></div>
+        `;
+        container.appendChild(card);
+      });
+      return;
+    }
     container.innerHTML=`<div style="color:var(--text-muted);text-align:center;padding:20px;">Chargement réseaux sociaux ULTIMATE...</div>`;
     try{
       const res=await fetch(`${API_BASE}/api/osint/social?limit=40`);
@@ -605,6 +708,33 @@
 
   async function fetchMedia(){
     const container=document.getElementById("media-container");
+    if(IS_DEMO_MODE){
+      container.innerHTML=`<div style="color:var(--neon-orange);text-align:center;padding:20px;">Mode démo GitHub Pages - Médias live nécessitent backend.<br><button class="cyber-btn btn-xs" onclick="setBackendUrl()">🔧 CONFIGURER BACKEND</button><br><br>En démo: 3 articles simulés</div>`;
+      const demoMedia=[
+        {source:"BBC World (DEMO)",language:"en",country:"Gaza",region:"Moyen-Orient",title:"[DEMO] BBC Gaza - Situation humanitaire critique",summary:"DEMO BBC",latitude:31.35,longitude:34.30,published_at:new Date().toISOString(),link:"https://bbc.com",category:"conflit"},
+        {source:"Reuters (DEMO)",language:"en",country:"Ukraine",region:"Europe",title:"[DEMO] Reuters - Offensive Pokrovsk",summary:"DEMO Reuters",latitude:48.28,longitude:37.18,published_at:new Date().toISOString(),link:"https://reuters.com",category:"conflit"},
+        {source:"France24 (DEMO)",language:"fr",country:"Mali",region:"Afrique",title:"[DEMO] France24 Sahel - Attaque JNIM",summary:"DEMO France24",latitude:16.27,longitude:-0.04,published_at:new Date().toISOString(),link:"https://france24.com",category:"conflit"},
+      ];
+      allMedia=demoMedia;
+      container.innerHTML="";
+      demoMedia.forEach(inc=>{
+        const card=document.createElement("div");
+        card.className=`incident-card live cat-${inc.category}`;
+        card.innerHTML=`
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span class="badge-cat badge-media">📰 ${escapeHtml(inc.source)}</span>
+            <span style="font-size:9px;color:var(--text-muted);">${inc.language||'en'}</span>
+          </div>
+          <div style="font-size:10px;color:var(--neon-cyan);font-weight:700;">📍 ${escapeHtml(inc.country||'Monde')} // ${escapeHtml(inc.region||'Global')}</div>
+          <div class="incident-title">${escapeHtml(inc.title)}</div>
+          <div style="font-size:10px;color:var(--text-muted);">${escapeHtml((inc.summary||'').substring(0,150))}</div>
+          <div class="incident-meta"><span>📰 MEDIA ${inc.latitude.toFixed(2)}, ${inc.longitude.toFixed(2)}</span><span>${formatDate(inc.published_at)}</span></div>
+          <div class="incident-actions"><button class="cyber-btn btn-xs" onclick="centerMapOnCoords(${inc.latitude}, ${inc.longitude})">🎯 LOC</button><a href="${inc.link}" target="_blank" class="cyber-btn btn-xs" style="text-decoration:none;">ARTICLE ↗</a></div>
+        `;
+        container.appendChild(card);
+      });
+      return;
+    }
     container.innerHTML=`<div style="color:var(--text-muted);text-align:center;padding:20px;">Chargement médias ULTIMATE 35 sources...</div>`;
     try{
       const res=await fetch(`${API_BASE}/api/osint/media?limit=50`);
@@ -642,6 +772,7 @@
     if(autoRefreshEnabled) fetchLiveFeeds();
   }
   function connectSSE(){
+    if(IS_DEMO_MODE){ console.log("DEMO MODE - SSE disabled"); return; }
     try{
       const es=new EventSource(`${API_BASE}/api/live/stream`);
       sseConnection=es;
@@ -753,6 +884,35 @@
 
   async function fetchSecurityAssessment(){
     const container=document.getElementById("security-container");
+    if(IS_DEMO_MODE){
+      container.innerHTML=`<div style="color:var(--neon-orange);padding:10px;text-align:center;">Mode démo GitHub Pages - Analyse sécurité live nécessite backend.<br><button class="cyber-btn btn-xs" onclick="setBackendUrl()">🔧 CONFIGURER BACKEND</button><br><br>Démo: 3 régions à risque</div>`;
+      const demoAssess=[
+        {country:"Ukraine (Donbass)",region:"Europe",max_risk:5,risk_label:"CRITIQUE",incident_count:3,categories:{conflit:2,cyber:1},sources:["NASA","Reddit"],latest_incident:{title:"[DEMO] Pokrovsk",latitude:48.28,longitude:37.18},actors:["AFU","RF"],recommendations:["Éviter zone 20km","Suivi drone"]},
+        {country:"Soudan",region:"Afrique",max_risk:5,risk_label:"CRITIQUE",incident_count:2,categories:{conflit:1,catastrophe:1},sources:["FIRMS","OCHA"],latest_incident:{title:"[DEMO] El Fasher",latitude:13.62,longitude:25.34},actors:["RSF"],recommendations:["Accès humanitaire bloqué"]},
+        {country:"Mali / Sahel",region:"Afrique",max_risk:4,risk_label:"ÉLEVÉ",incident_count:2,categories:{conflit:2},sources:["GDELT"],latest_incident:{title:"[DEMO] Gao",latitude:16.27,longitude:-0.04},actors:["JNIM"],recommendations:["Convoi armé obligatoire"]},
+      ];
+      document.getElementById("risk-regions-count").textContent=demoAssess.length;
+      document.getElementById("risk-critical-count").textContent=`${demoAssess.filter(a=>a.max_risk>=4).length} critiques DEMO`;
+      container.innerHTML="";
+      demoAssess.forEach(a=>{
+        const card=document.createElement("div");
+        card.className=`security-card`;
+        card.style.borderLeftColor=a.max_risk>=4?"var(--neon-red)":"var(--neon-orange)";
+        card.innerHTML=`
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <b style="color:var(--neon-cyan);">📍 ${escapeHtml(a.country)} (${escapeHtml(a.region)})</b>
+            <span style="padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;background:${a.max_risk>=4?'rgba(255,42,95,0.2)':'rgba(255,153,0,0.2)'};color:${a.max_risk>=4?'var(--neon-red)':'var(--neon-orange)'};border:1px solid ${a.max_risk>=4?'var(--neon-red)':'var(--neon-orange)'};">${escapeHtml(a.risk_label)} ${a.max_risk}/5</span>
+          </div>
+          <div style="font-size:10px;color:var(--text-muted);margin-bottom:6px;">${a.incident_count} incidents DEMO | Cat: ${Object.entries(a.categories).map(([k,v])=>`${k}(${v})`).join(', ')} | Sources: ${(a.sources||[]).join(', ')}</div>
+          <div style="font-size:11px;font-weight:600;margin-bottom:4px;">${escapeHtml(a.latest_incident?.title||'')}</div>
+          <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px;">${(a.actors||[]).map(ac=>`<span class="actor-chip">${escapeHtml(ac)}</span>`).join('')}</div>
+          <div style="font-size:10px;color:var(--neon-orange);">${(a.recommendations||[]).map(r=>`<div>• ${escapeHtml(r)}</div>`).join('')}</div>
+          <div style="margin-top:6px;display:flex;gap:4px;"><button class="cyber-btn btn-xs" onclick="centerMapOnCoords(${a.latest_incident?.latitude||0}, ${a.latest_incident?.longitude||0})">🎯 VOIR ZONE SAT RÉEL</button></div>
+        `;
+        container.appendChild(card);
+      });
+      return;
+    }
     try{
       const res=await fetch(`${API_BASE}/api/security/assessment`);
       const data=await res.json();
@@ -777,13 +937,17 @@
         `;
         container.appendChild(card);
       });
-    } catch(e){ container.innerHTML=`<div style="color:var(--neon-red);padding:10px;">Erreur sécurité: ${e.message}</div>`; }
+    } catch(e){ container.innerHTML=`<div style="color:var(--neon-red);padding:10px;">Erreur sécurité: ${e.message} <button class="cyber-btn btn-xs" onclick="setBackendUrl()">🔧 CONFIG API</button></div>`; }
   }
 
   async function fetchActors(){
     const container=document.getElementById("actors-container");
+    if(IS_DEMO_MODE){
+      container.innerHTML=`<div style="color:var(--neon-orange);padding:10px;text-align:center;">Mode démo - Acteurs live nécessitent backend. <button class="cyber-btn btn-xs" onclick="setBackendUrl()">🔧 CONFIGURER</button></div>`;
+    }
     try{
-      const res=await fetch(`${API_BASE}/api/humanitarian/actors`);
+      const res=await fetch(IS_DEMO_MODE ? `${API_BASE}/api/humanitarian/actors` : `${API_BASE}/api/humanitarian/actors`);
+      if(IS_DEMO_MODE) throw new Error("demo");
       const data=await res.json();
       container.innerHTML="";
       (data.clusters||[]).forEach(cluster=>{
@@ -811,7 +975,7 @@
           • <b style="color:var(--neon-violet);">Santé:</b> ${allIncidents.filter(i=>i.category==='epidemie').length} alertes épidémiologiques live (OMS, MSF)<br>
           • <b style="color:var(--neon-cyan);">Climat:</b> ${allIncidents.filter(i=>i.category==='catastrophe').length} catastrophes naturelles satellite (NASA, USGS, GDACS)<br>
           • <b style="color:var(--neon-green);">Info & Désinfo:</b> ${allSocial.length} posts sociaux + ${allMedia.length} articles médias vérifiés via GDELT<br>
-          • <b style="color:var(--neon-yellow);">Données:</b> Sources ULTIMATE temps réel NASA, USGS, ReliefWeb, GDACS, GDELT, Reddit, Telegram, 35 RSS - MAJ 45s
+          • <b style="color:var(--neon-yellow);">Données:</b> Sources ULTIMATE temps réel NASA, USGS, ReliefWeb, GDACS, GDELT, Reddit, Telegram, 35 RSS - MAJ 45s | Backend: ${API_BASE||'DEMO'}
         </div>
       `;
       container.appendChild(enjeuxDiv);
@@ -824,28 +988,90 @@
         </div>
       `;
       container.appendChild(enjeux2);
-    } catch(e){ container.innerHTML=`<div style="color:var(--text-muted);">Erreur acteurs</div>`; }
+    } catch(e){
+      // Fallback demo actors
+      const demoClusters=[
+        {name:"OCHA Coordination",role:"Coordination humanitaire",type:"OFFICIEL",live:true,active_regions:["Global"],contact:"ocha@un.org"},
+        {name:"NASA EONET Satellite",role:"Détection satellite catastrophes",type:"SATELLITE",live:true,active_regions:["Global"],contact:"eonet.gsfc.nasa.gov"},
+        {name:"Reddit OSINT Community",role:"Veille sociale",type:"SOCIAL",live:true,active_regions:["Ukraine","Sahel"],contact:"reddit.com/r/OSINT"},
+        {name:"MSF Logistique",role:"Médical & épidémies",type:"MEDICAL",live:false,active_regions:["Afrique"],contact:"msf.org"},
+      ];
+      if(container.innerHTML.includes("Mode démo")) container.innerHTML="";
+      demoClusters.forEach(cluster=>{
+        const div=document.createElement("div");
+        div.className="security-card";
+        div.style.borderLeftColor=cluster.live?"var(--neon-green)":"var(--neon-cyan)";
+        const typeColor=cluster.type==="SATELLITE"?"var(--neon-green)":cluster.type==="SOCIAL"?"#1DA1F2":cluster.type==="MEDIA"?"#fff":"var(--neon-cyan)";
+        div.innerHTML=`
+          <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px;">
+            <b style="color:${typeColor};">${escapeHtml(cluster.name)} ${cluster.live?'🛰️ LIVE':''} ${IS_DEMO_MODE?'(DEMO)':''}</b>
+            <span style="font-size:10px;color:var(--text-muted);">${escapeHtml(cluster.role)} | ${cluster.type}</span>
+          </div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:4px;">Régions: ${(cluster.active_regions||[]).join(', ')}</div>
+          <div style="font-size:10px;color:var(--neon-cyan);">Contact: ${escapeHtml(cluster.contact)}</div>
+        `;
+        container.appendChild(div);
+      });
+      const enjeuxDiv=document.createElement("div");
+      enjeuxDiv.className="tactical-hud"; enjeuxDiv.style.marginTop="10px"; enjeuxDiv.style.borderColor="var(--neon-green)";
+      enjeuxDiv.innerHTML=`
+        <div class="hud-title" style="color:var(--neon-green);">PROBLÉMATIQUES & ENJEUX ${IS_DEMO_MODE?'DEMO':'ULTIMATE LIVE'}</div>
+        <div style="font-size:11px;line-height:1.6;color:var(--text-bright);">
+          • <b style="color:var(--neon-red);">Sécurité:</b> ${allIncidents.filter(i=>i.category==='conflit').length} conflits actifs<br>
+          • <b style="color:var(--neon-orange);">Logistique:</b> Risques maritimes, routes coupées<br>
+          • <b style="color:var(--neon-violet);">Santé:</b> ${allIncidents.filter(i=>i.category==='epidemie').length} alertes<br>
+          • <b style="color:var(--neon-cyan);">Climat:</b> ${allIncidents.filter(i=>i.category==='catastrophe').length} catastrophes satellite<br>
+          • <b style="color:var(--neon-green);">Backend:</b> ${IS_DEMO_MODE?'DEMO OFFLINE - Configurez API via bouton 🔧':'LIVE '+API_BASE}
+        </div>
+      `;
+      container.appendChild(enjeuxDiv);
+    }
+  }
+
+  function getDemoDorks(){
+    return [
+      {id:1,category:"documents",severity:"critical",title:"Documents CONFIDENTIEL / RESTRICTED",query:'filetype:pdf "CONFIDENTIAL" OR "RESTRICTED" OR "INTERNAL USE ONLY"',description:"PDF classifiés exposés",tags:["pdf","confidentiel"]},
+      {id:2,category:"documents",severity:"high",title:"Documents gouvernementaux sensibles",query:'site:gov OR site:gouv.fr filetype:pdf "confidentiel" OR "secret défense"',description:"Docs gouvernementaux",tags:["gov","pdf"]},
+      {id:6,category:"credentials",severity:"critical",title:"Mots de passe & API keys Pastebin",query:'site:pastebin.com OR site:ghostbin.com "password" OR "api_key" OR "secret"',description:"Fuites credentials",tags:["pastebin","password"]},
+      {id:7,category:"credentials",severity:"critical",title:"Clés privées RSA / SSH",query:'"BEGIN RSA PRIVATE KEY" OR "BEGIN OPENSSH PRIVATE KEY"',description:"Clés privées exposées",tags:["rsa","ssh"]},
+      {id:11,category:"database",severity:"critical",title:"Dumps SQL exposés",query:'intitle:"index of" "database.sql" OR "dump.sql"',description:"Bases SQL",tags:["sql"]},
+      {id:15,category:"iot",severity:"high",title:"Caméras IP ouvertes",query:'inurl:"/view.shtml" "Network Camera" OR "IP Camera"',description:"Caméras",tags:["camera"]},
+      {id:19,category:"geospatial",severity:"high",title:"Fichiers KML/KMZ militaires",query:'filetype:kml OR filetype:kmz "military" OR "base"',description:"Tracés militaires",tags:["kml","militaire"]},
+      {id:20,category:"geospatial",severity:"high",title:"Shapefiles SIG exposés",query:'filetype:shp OR filetype:shx "confidential"',description:"Shapefiles",tags:["gis"]},
+      {id:27,category:"social",severity:"medium",title:"Telegram OSINT",query:'site:t.me "OSINT" OR "Ukraine" OR "Sahel"',description:"Telegram",tags:["telegram"]},
+      {id:28,category:"social",severity:"medium",title:"Reddit OSINT",query:'site:reddit.com/r/OSINT OR r/UkraineConflict',description:"Reddit",tags:["reddit"]},
+      {id:35,category:"humanitarian",severity:"medium",title:"Rapports OCHA",query:'site:reliefweb.int OR site:unocha.org filetype:pdf "situation report"',description:"OCHA",tags:["ocha"]},
+      {id:39,category:"sahel",severity:"high",title:"JNIM / Sahel docs",query:'"JNIM" OR "GSIM" OR "AQMI" filetype:pdf',description:"Sahel terrorisme",tags:["sahel","jnim"]},
+      {id:42,category:"ukraine",severity:"high",title:"Ukraine DeepState maps",query:'site:deepstatemap.live OR site:liveuamap.com',description:"Cartes Ukraine",tags:["ukraine"]},
+      {id:45,category:"satellite",severity:"medium",title:"NASA EONET satellite",query:'site:eonet.gsfc.nasa.gov OR site:earthdata.nasa.gov',description:"Satellite NASA",tags:["satellite","nasa"]},
+      {id:49,category:"advanced",severity:"high",title:"GitHub secrets",query:'site:github.com "password" OR "api_key" "confidential"',description:"GitHub",tags:["github"]},
+      {id:54,category:"advanced",severity:"critical",title:"Exposed .env files",query:'filetype:env "DB_PASSWORD" OR "API_KEY"',description:".env",tags:["env"]},
+    ];
   }
 
   // DORKS ULTIMATE
   async function fetchDorks(){
     const container=document.getElementById("dork-container");
     container.innerHTML=`<div style="color:var(--text-muted);text-align:center;padding:20px;">Chargement base dorks ULTIMATE 60+...</div>`;
+    if(IS_DEMO_MODE){
+      allDorks=getDemoDorks();
+      filteredDorks=[...allDorks];
+      renderDorks(filteredDorks);
+      document.getElementById("dork-count-label").textContent=`${allDorks.length} dorks DEMO OFFLINE (60 en backend) | Mode démo GitHub Pages`;
+      return;
+    }
     try{
       const res=await fetch(`${API_BASE}/api/dorks/all`);
       const data=await res.json();
       allDorks=data.dorks||[];
       filteredDorks=[...allDorks];
       renderDorks(filteredDorks);
-      document.getElementById("dork-count-label").textContent=`${allDorks.length} / ${data.total_database} dorks ULTIMATE | Catégories: ${Object.keys(data.by_category||{}).length}`;
+      document.getElementById("dork-count-label").textContent=`${allDorks.length} / ${data.total_database} dorks ULTIMATE | Catégories: ${Object.keys(data.by_category||{}).length} | Backend: ${API_BASE}`;
     } catch(e){
-      // Fallback static dorks if API fails
-      allDorks=[
-        {id:1,category:"documents",severity:"critical",title:"Documents CONFIDENTIEL",query:'filetype:pdf "CONFIDENTIAL" OR "RESTRICTED"',description:"PDF classifiés",tags:["pdf"]},
-        {id:2,category:"credentials",severity:"critical",title:"Pastebin passwords",query:'site:pastebin.com "password" OR "api_key"',description:"Fuites",tags:["pastebin"]},
-        {id:19,category:"geospatial",severity:"high",title:"KML/KMZ militaires",query:'filetype:kml OR filetype:kmz "military"',description:"Tracés",tags:["kml"]},
-      ];
-      renderDorks(allDorks);
+      allDorks=getDemoDorks();
+      filteredDorks=[...allDorks];
+      renderDorks(filteredDorks);
+      document.getElementById("dork-count-label").textContent=`${allDorks.length} dorks DEMO (backend ${API_BASE} inaccessible)`;
     }
   }
 
@@ -898,6 +1124,23 @@
     document.getElementById("dork-count-label").textContent=`${filteredDorks.length} / ${allDorks.length} dorks filtrés ULTIMATE`;
   }
 
+  function buildLocalDork(keywords,country,site,filetype,exclude){
+    let dork = `"${keywords}"`;
+    if(country) dork += ` "${country}"`;
+    if(site){
+      const sites = site.split(',').map(s=>s.trim()).filter(Boolean);
+      if(sites.length>1) dork += ` (site:${sites.join(' OR site:')})`;
+      else dork += ` site:${sites[0]}`;
+    }
+    if(filetype){
+      const fts = filetype.split(',').map(f=>f.trim()).filter(Boolean);
+      if(fts.length>1) dork += ` (filetype:${fts.join(' OR filetype:')})`;
+      else dork += ` filetype:${fts[0]}`;
+    }
+    if(exclude) dork += ` ${exclude}`;
+    return dork;
+  }
+
   async function generateCustomDork(){
     const keywords=document.getElementById("dork-keywords")?.value||"";
     const country=document.getElementById("dork-country")?.value||"";
@@ -909,6 +1152,41 @@
     const container=document.getElementById("dork-generated-container");
     container.style.display="flex";
     container.innerHTML=`<div style="color:var(--text-muted);text-align:center;padding:10px;">Génération dork ULTIMATE...</div>`;
+
+    if(IS_DEMO_MODE){
+      const localDork = buildLocalDork(keywords,country,site,filetype,exclude);
+      const variants = {
+        basic: localDork,
+        exact_phrase: `"${keywords}" ${site?`site:${site}`:''} ${filetype?`filetype:${filetype}`:''}`.trim(),
+        with_location: `${localDork} "Ukraine" OR "Gaza" OR "Sahel"`,
+        filetype_focus: `"${keywords}" filetype:pdf OR filetype:doc OR filetype:xls`,
+        social_focus: `"${keywords}" (site:twitter.com OR site:t.me OR site:reddit.com)`,
+        pastebin: `"${keywords}" (site:pastebin.com OR site:ghostbin.com)`,
+        github: `"${keywords}" site:github.com`,
+        gov: `"${keywords}" site:gov OR site:gouv.fr`,
+        satellite: `"${keywords}" (site:eonet.gsfc.nasa.gov OR site:earthdata.nasa.gov)`,
+      };
+      container.innerHTML=`
+        <div class="dork-generated">
+          <div style="font-weight:700;color:var(--neon-orange);">⚠️ MODE DEMO OFFLINE - DORK LOCAL GÉNÉRÉ (backend non configuré)</div>
+          <div class="dork-query" style="border-color:var(--neon-orange);color:var(--neon-orange);">${escapeHtml(localDork)}</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button class="cyber-btn cyber-btn-orange btn-xs" onclick="openDork('${escapeHtml(localDork).replace(/'/g,"\\'")}')">🚀 LANCER GOOGLE</button>
+            <button class="cyber-btn btn-xs" onclick="copyDork('${escapeHtml(localDork).replace(/'/g,"\\'")}')">📋 COPIER</button>
+            <button class="cyber-btn btn-xs" onclick="setBackendUrl()">🔧 CONFIG API POUR 9 VARIANTES BACKEND</button>
+          </div>
+          <div style="font-size:11px;font-weight:700;color:var(--neon-orange);margin-top:8px;">VARIANTES LOCALES (${Object.keys(variants).length}) :</div>
+          ${Object.entries(variants).map(([k,v])=>`
+            <div style="background:rgba(0,0,0,0.3);border:1px solid var(--border);padding:6px 8px;border-radius:3px;display:flex;flex-direction:column;gap:4px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;"><b style="color:var(--neon-cyan);font-size:10px;">${k.toUpperCase()}</b><div style="display:flex;gap:4px;"><button class="cyber-btn btn-xs" onclick="openDork('${escapeHtml(v).replace(/'/g,"\\'")}')">LANCER</button><button class="cyber-btn btn-xs" onclick="copyDork('${escapeHtml(v).replace(/'/g,"\\'")}')">COPIER</button></div></div>
+              <div style="font-size:10px;color:var(--text-muted);word-break:break-all;">${escapeHtml(v)}</div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+      return;
+    }
+
     try{
       const res=await fetch(`${API_BASE}/api/dorks/generate`,{
         method:"POST",
@@ -918,7 +1196,7 @@
       const data=await res.json();
       container.innerHTML=`
         <div class="dork-generated">
-          <div style="font-weight:700;color:var(--neon-green);">✅ DORK ULTIME GÉNÉRÉ</div>
+          <div style="font-weight:700;color:var(--neon-green);">✅ DORK ULTIME GÉNÉRÉ - BACKEND ${API_BASE}</div>
           <div class="dork-query" style="border-color:var(--neon-green);color:var(--neon-green);">${escapeHtml(data.generated_dork)}</div>
           <div style="display:flex;gap:6px;flex-wrap:wrap;">
             <button class="cyber-btn cyber-btn-primary btn-xs" onclick="openDork('${escapeHtml(data.generated_dork).replace(/'/g,"\\'")}')">🚀 LANCER GOOGLE</button>
@@ -935,9 +1213,11 @@
         </div>
       `;
     } catch(e){
-      container.innerHTML=`<div style="color:var(--neon-red);padding:10px;">Erreur génération: ${e.message} - Mode local</div>
-        <div class="dork-query">${escapeHtml(keywords)} ${site?`site:${site}`:''} ${filetype?`filetype:${filetype}`:''} ${country?`"${country}"`:''}</div>
-        <button class="cyber-btn cyber-btn-orange btn-xs" onclick="openDork('${escapeHtml(keywords)} ${site?`site:${site}`:''}')">LANCER GOOGLE</button>
+      const localDork = buildLocalDork(keywords,country,site,filetype,exclude);
+      container.innerHTML=`<div style="color:var(--neon-red);padding:10px;">Erreur backend: ${e.message} - Fallback local</div>
+        <div class="dork-query">${escapeHtml(localDork)}</div>
+        <button class="cyber-btn cyber-btn-orange btn-xs" onclick="openDork('${escapeHtml(localDork).replace(/'/g,"\\'")}')">LANCER GOOGLE</button>
+        <button class="cyber-btn btn-xs" onclick="setBackendUrl()">🔧 CONFIG API</button>
       `;
     }
   }
@@ -954,9 +1234,20 @@
   function editDorkBuilder(query){ document.getElementById("dork-keywords").value=query; switchTab('tab-dorks'); document.getElementById("dork-keywords").scrollIntoView({behavior:"smooth"}); }
   function copyDork(query){ navigator.clipboard.writeText(query).then(()=>{ alert("Dork copié: "+query.substring(0,80)+"..."); }).catch(()=>{ prompt("Copiez ce dork:",query); }); }
 
-  // Geozones
+  // Geozones - support demo localStorage
   async function loadSavedGeozones(){
+    if(IS_DEMO_MODE){
+      try{
+        const stored = localStorage.getItem('HUMAN_OSINT_GEOZONES');
+        savedGeozones = stored ? JSON.parse(stored) : [];
+      } catch(e){ savedGeozones=[]; }
+      renderSavedGeozonesUI(); displaySavedGeozonesOnMap();
+      return;
+    }
     try{ const res=await fetch(`${API_BASE}/api/geozones`); savedGeozones=await res.json(); renderSavedGeozonesUI(); displaySavedGeozonesOnMap(); }catch(err){ console.warn(err); }
+  }
+  function saveGeozonesLocal(){
+    try{ localStorage.setItem('HUMAN_OSINT_GEOZONES', JSON.stringify(savedGeozones)); }catch(e){}
   }
   function renderSavedGeozonesUI(){
     const container=document.getElementById("geozone-container");
@@ -992,6 +1283,14 @@
     const defaultName="Zone-SAT-ULTIMATE-"+new Date().toLocaleTimeString().replace(/:/g,"");
     const name=prompt("Nom zone tactique satellite réel:",defaultName);
     if(!name) return;
+    if(IS_DEMO_MODE){
+      const newZone={id:Date.now(),name:name,geometry_type:currentDrawingGeoJSON.geometry?.type||"Polygon",geojson_data:currentDrawingGeoJSON,area_sqkm:parseFloat(currentDrawingArea)||0.0};
+      savedGeozones.push(newZone);
+      saveGeozonesLocal();
+      document.getElementById("measure-overlay").style.display="none"; currentDrawingGeoJSON=null; drawnItems.clearLayers(); renderSavedGeozonesUI(); displaySavedGeozonesOnMap();
+      alert(`Zone "${name}" sauvegardée localement DEMO (localStorage) !`);
+      return;
+    }
     const payload={name:name,geometry_type:currentDrawingGeoJSON.geometry?.type||"Polygon",geojson_data:currentDrawingGeoJSON,area_sqkm:parseFloat(currentDrawingArea)||0.0};
     try{
       const response=await fetch(`${API_BASE}/api/geozones`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
@@ -1000,7 +1299,16 @@
     }catch(err){ alert("Erreur: "+err.message); }
   }
   async function saveActiveMeasurement(){ promptSaveCurrentDrawn(); }
-  async function deleteGeozone(zoneId){ if(!confirm(`Supprimer zone ${zoneId} ?`)) return; try{ await fetch(`${API_BASE}/api/geozones/${zoneId}`,{method:"DELETE"}); await loadSavedGeozones(); }catch(err){ alert(err.message); } }
+  async function deleteGeozone(zoneId){
+    if(!confirm(`Supprimer zone ${zoneId} ?`)) return;
+    if(IS_DEMO_MODE){
+      savedGeozones=savedGeozones.filter(z=>z.id!==zoneId);
+      saveGeozonesLocal();
+      renderSavedGeozonesUI(); displaySavedGeozonesOnMap();
+      return;
+    }
+    try{ await fetch(`${API_BASE}/api/geozones/${zoneId}`,{method:"DELETE"}); await loadSavedGeozones(); }catch(err){ alert(err.message); }
+  }
   function zoomToZone(zoneId){ const zone=savedGeozones.find(z=>z.id===zoneId); if(!zone) return; try{ const geo=typeof zone.geojson_data==="string"?JSON.parse(zone.geojson_data):zone.geojson_data; const tempLayer=L.geoJSON(geo); leafletMap.fitBounds(tempLayer.getBounds(),{padding:[50,50]}); }catch(e){} }
   function exportGeoJSON(){
     if(savedGeozones.length===0){ alert("Aucune zone"); return; }

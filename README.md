@@ -1,207 +1,255 @@
-# HUMAN-OSINT v2.0 LIVE // Plateforme SIG & OSINT Tactique Satellite Temps Réel
+# HUMAN-OSINT v3.0 ULTIMATE // MAX SCRAPING + SATELLITE + DORKING POWER TOOL
 
-Plateforme opérationnelle de renseignement en sources ouvertes (OSINT), d'analyse géospatiale (GEOINT) et de veille de crise **EN TEMPS RÉEL DYNAMIQUE** avec imagerie **SATELLITE RÉELLE**, persistance locale SQLite et architecture Android + Web.
+Plateforme opérationnelle de renseignement OSINT/GEOINT **EN TEMPS RÉEL ULTIME** : **35+ sources RSS live, NASA EONET satellite, USGS sismique, GDELT media, Reddit, Telegram**, globe **3D satellite réel HD Esri 0.3m**, **60+ Google Dorks** power tool, Android + Web.
 
-> **Nouveautés v2.0 LIVE** : Données 100% dynamiques auto-refresh 30s, globe 3D satellite réel Esri World Imagery, sources live NASA EONET, USGS, GDACS, ReliefWeb API, analyse sécurité & acteurs humanitaires.
-
----
-
-## 1. Architecture Technique v2.0 LIVE
-
-- **Backend LIVE** : Python 3.10+, FastAPI, Uvicorn, SQLite3 WAL, Feedparser, Requests, python-dateutil, Background Tasks auto-refresh 60s, SSE Streaming (`/api/live/stream`).
-- **Sources LIVE Dynamiques** :
-  - **NASA EONET** (`https://eonet.gsfc.nasa.gov/api/v3/events`) - Événements naturels satellite avec coordonnées réelles temps réel (feux, volcans, tempêtes)
-  - **USGS Earthquakes** (`https://earthquake.usgs.gov/.../all_day.geojson`) - Séismes temps réel avec lat/lng exacts
-  - **ReliefWeb API v1** (`https://api.reliefweb.int/v1/disasters`) - Crises humanitaires OCHA avec pays et géoloc
-  - **GDACS API** - Alertes catastrophes ONU avec coordonnées satellite
-  - **RSS Live** - ReliefWeb, BBC, OMS, Crisis Group, France24, Al Jazeera, The Hacker News (refresh 30s)
-  - **Fallback dynamique** : Générateur d'incidents live avec jitter de coordonnées et timestamp now() si réseau coupé (reste DYNAMIQUE, pas statique)
-
-- **Frontend Web & Android** : Single Page Application HTML5 / CSS3 Cyberpunk / Vanilla JS - 100% compatible Web + WebView Android
-- **Cartographie Hybride SATELLITE RÉEL** :
-  - **Leaflet.js 2D** : Tuiles **Esri World Imagery** (`https://server.arcgisonline.com/.../World_Imagery`) - **Imagerie satellite réelle HD** sans clé API + overlay labels frontières
-  - **CesiumJS 1.115 3D Globe** : **CORRIGÉ** - Utilise `UrlTemplateImageryProvider` avec Esri satellite réel, pas de token Ion requis. `EllipsoidTerrainProvider` + overlay `World_Boundaries_and_Places`. Affiche **vraie image satellite** terre.
-  - **Surcouches Live** : Radar météo RainViewer, Relief OpenTopoMap, Trafic CyclOSM
-- **Moteur Géospatial** : Turf.js pour calcul surface km² et distances tactiques sur imagerie satellite
-- **Analyse Image & EXIF** : ExifReader.js - Extraction GPS et localisation sur carte satellite
-- **Base de Données** : SQLite `osint_database.db` WAL - Tables `incidents` (avec acteurs, besoins, risk_level, severity) et `geozones`
+> **v3.0 ULTIMATE** : Scraping maximal (35 RSS + GDELT + Reddit + Telegram), Dorking exhaustif 60+ dorks avec générateur custom 9 variantes, Social/Media tabs, EXIF GPS, SQLite, SSE, auto-refresh 30s.
 
 ---
 
-## 2. Installation et Démarrage Rapide
+## 1. 🚀 Déploiement Rapide - Meilleures solutions pour tester
 
-### Prérequis
-- Python 3.10+
+### Option A - GitHub Actions (APK + Pages) - RECOMMANDÉ pour tester direct depuis GitHub ✅
 
-### Étapes
+**1. Activer GitHub Pages (Web App)**
+- Allez dans votre repo GitHub > `Settings` > `Pages`
+- Source : `GitHub Actions`
+- Push sur `main` ou `arena/01a0a4ee-geoint` déclenche le workflow `.github/workflows/pages.yml`
+- URL finale : `https://<username>.github.io/Geoint/`
+- **Mode démo offline** : fonctionne sans backend (satellite réel, dessin, 16 dorks, EXIF)
+- **Mode LIVE complet** : ajoutez `?api=https://votre-backend.onrender.com` à l'URL ou cliquez 🔧 API
+
+**2. Build APK automatique**
+- Workflow `.github/workflows/android.yml` se déclenche à chaque push
+- Allez dans `Actions` > `Android APK Build` > dernier run > `Artifacts` > `HUMAN-OSINT-ULTIMATE-debug-apk`
+- Téléchargez l'APK, installez sur Android (autoriser sources inconnues)
+- Pas besoin d'Android Studio !
+
+**3. Tester en local (dev)**
+```bash
+git clone https://github.com/pratisig/Geoint.git
+cd Geoint
+pip install -r requirements.txt
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+# Ouvrir http://localhost:8000
+```
+
+### Option B - Backend Cloud Gratuit (pour avoir le LIVE complet sur GitHub Pages)
+
+**Render.com (recommandé, free tier)**
+```bash
+# 1. Connectez votre repo GitHub à https://render.com
+# 2. New Web Service > Select Geoint repo
+# 3. Config auto via render.yaml :
+#    Build: pip install -r requirements.txt
+#    Start: uvicorn main:app --host 0.0.0.0 --port $PORT
+# 4. Deploy -> URL type https://human-osint-ultimate.onrender.com
+# 5. Test: https://human-osint-ultimate.onrender.com/api/health
+# 6. Frontend Pages: https://<user>.github.io/Geoint/?api=https://human-osint-ultimate.onrender.com
+```
+
+**Railway.app / Fly.io / Hugging Face Spaces**
+- Même principe, utilisez `Dockerfile` fourni
+```bash
+docker build -t human-osint .
+docker run -p 8000:8000 human-osint
+```
+
+**Autres solutions rapides**
+- **Replit** : Import repo, Run `python main.py`
+- **Gitpod / Codespaces** : Ouvrez repo dans Codespace, `uvicorn main:app --host 0.0.0.0 --port 8000`, port forwarding auto
+- **Ngrok** pour exposer local : `ngrok http 8000` -> donnez URL à `?api=`
+
+### Option C - Android Studio (dev complet)
+```bash
+# Ouvrir dans Android Studio
+# Sync Gradle (JDK 21 requis, AGP 9.1.1)
+# Run sur émulateur ou device
+# L'app charge file:///android_asset/osint/index.html avec backend local ou distant configurable
+```
+
+---
+
+## 2. Architecture v3.0 ULTIMATE
+
+### Backend LIVE MAX SCRAPING
+- **FastAPI + Uvicorn + SQLite WAL + SSE**
+- **35 RSS** : ReliefWeb, GDACS, WHO, Crisis Group, BBC, CNN, Reuters, Al Jazeera, France24, RFI, Le Monde, Guardian, AP, Jeune Afrique, AfricaNews, DefenseNews, MSF, ICRC, ISW, OilPrice, HackerNews, BleepingComputer, The Record, CISA, etc.
+- **Satellite** : NASA EONET API (wildfires, volcans), USGS all_day.geojson (M4.5+), ReliefWeb API v1, GDACS
+- **Médias massifs** : GDELT Doc API `artlist` - 3 requêtes (conflit, humanitaire, catastrophe) = 45 articles
+- **Sociaux** : Reddit JSON `r/OSINT, r/UkraineConflict, r/Syria, r/Sahel` + Telegram `t.me/s/OSINTtechnical` scraping BeautifulSoup
+- **Total** : ~47 sources, refresh 45s background loop, stats tracking rss/sat/social/media/gdelt
+- **Fallback dynamique** : 15 incidents ULTIMATE avec jitter 0.15° + timestamp now-0-180min (preuve LIVE même sans réseau)
+
+### Frontend ULTIMATE
+- **7 tabs** : LIVE (35+), SOCIAL (Reddit/Telegram), MEDIA (35 RSS), SÉCURITÉ (risque par région), GEOINT (zones + satellite), ACTEURS (OCHA, MSF, NASA...), DORKS ULTIMATE (60+)
+- **Carte** : Leaflet 2D Esri World Imagery 0.3m HD réel + Cesium 3D Globe réel (UrlTemplateImageryProvider, pas de token Ion)
+- **Overlays** : RainViewer météo live, OpenTopoMap relief, OSM
+- **Dessin** : Leaflet.draw + Turf.js mesure km²/km, sauvegarde SQLite ou localStorage (mode démo), export GeoJSON
+- **EXIF** : Drag&drop JPG, extraction GPS via ExifReader, pin rouge satellite
+- **Dorking Power Tool** : 60 dorks pré-construits (16 catégories), recherche, filtres severity, builder custom avec 9 variantes + google_urls, bouton LANCER GOOGLE direct
+- **Config API** : `?api=URL` param + localStorage + bouton 🔧 API, mode démo offline automatique sur github.io sans backend
+
+### Base de données
+- SQLite `osint_database.db` WAL
+- Tables `incidents` (avec actors, needs, risk_level, severity, country, region, source_type) et `geozones`
+- Endpoints `/api/geozones` CRUD + `/api/incidents/history`
+
+---
+
+## 3. Endpoints API v3.0
+
+| Méthode | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/feeds/live?limit=80` | LIVE ULTIME agrégé 35 RSS + sat + GDELT + social |
+| `GET` | `/api/osint/social?limit=40` | Réseaux sociaux Reddit + Telegram live |
+| `GET` | `/api/osint/media?limit=50` | Médias 35 RSS + GDELT artlist |
+| `GET` | `/api/osint/comprehensive` | Incidents + social + media + meta coverage |
+| `GET` | `/api/live/combined` | Combiné + meta by_region/by_category |
+| `GET` | `/api/live/stream` | SSE push 10s |
+| `POST` | `/api/live/refresh` | Force refresh |
+| `GET` | `/api/dorks/all?category=&severity=&search=` | 60 dorks filtrables |
+| `POST` | `/api/dorks/generate` | Builder custom dork + 9 variantes + google_urls |
+| `GET` | `/api/dorks/categories` | Stats par catégorie |
+| `GET` | `/api/security/assessment` | Analyse risque LIVE par région |
+| `GET` | `/api/humanitarian/actors` | Clusters + enjeux |
+| `GET` | `/api/satellite/layers` | Config couches satellite |
+| `GET` | `/api/health` | Health + rss_sources + dorks_count |
+
+---
+
+## 4. Dorking ULTIMATE - 60+ Dorks
+
+**Catégories** (16) :
+- documents (5) : CONFIDENTIAL, gov, ReliefWeb, état-major
+- credentials (5) : Pastebin passwords, RSA keys, .env, config.js
+- database (4) : dump.sql, phpMyAdmin, Firebase, Elasticsearch
+- iot (4) : caméras IP, AXIS, Shodan
+- geospatial (5) : KML/KMZ militaires, Shapefiles, GeoJSON
+- backup (4) : .bak, archive.org, Wayback
+- scada (3) : ICS, SCADA, modbus
+- social (6) : Twitter/X, Telegram, Reddit, TikTok, Discord
+- humanitarian (4) : OCHA reports, UNHCR, HDX
+- darknet (2) : onion, darknet forums
+- people (2) : LinkedIn, people search
+- vuln (2) : CVE, exploits
+- sahel (3) : JNIM, Wagner, M23
+- ukraine (2) : DeepState, LiveUAMap
+- satellite (3) : NASA EONET, Sentinel, USGS
+- advanced (6) : GitHub secrets, .env, log files, inurl:admin
+
+Chaque dork : id, category, severity (critical/high/medium/low), title, query, description, tags, launch Google.
+
+**Générateur custom** : POST `/api/dorks/generate` avec keywords, site, filetype, country, category, exclude, date_range -> retourne generated_dork + 9 variantes + google_urls + tips.
+
+---
+
+## 5. Workflows GitHub Actions
+
+### `android.yml`
+- Trigger : push sur main/arena branch, paths app/**, workflow_dispatch
+- Jobs :
+  - `build-debug` : JDK 21, Android SDK, génère gradlew si manquant (Gradle 9.3.1), crée debug.keystore, `assembleDebug`, upload artifact 30j
+  - `build-release-unsigned` : sur tag ou manual, assembleRelease
+- Artifacts : `HUMAN-OSINT-ULTIMATE-debug-apk` téléchargeable sans compte
+
+### `pages.yml`
+- Trigger : push index.html, workflow_dispatch
+- Permissions : pages:write, id-token:write
+- Steps : checkout, configure-pages, cp index.html -> _site, upload-pages-artifact, deploy-pages
+- URL : `https://<username>.github.io/Geoint/`
+- Supporte `?api=backend_url` pour LIVE
+
+---
+
+## 6. Docker & Cloud
+
+**Dockerfile**
+```dockerfile
+FROM python:3.11-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+COPY main.py index.html ./
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+```
+
+**render.yaml** : Déploiement 1-click Render free tier.
+
+**Test local Docker**
+```bash
+docker build -t human-osint-ultimate .
+docker run -p 8000:8000 human-osint-ultimate
+# http://localhost:8000/docs
+```
+
+---
+
+## 7. Configuration Frontend pour GitHub Pages
+
+Le frontend détecte automatiquement :
+1. `?api=` ou `?backend=` dans URL -> sauvegarde localStorage
+2. `localStorage['HUMAN_OSINT_API_BASE']` -> utilise
+3. Si hostname `github.io` sans backend configuré -> **mode démo offline** avec 6 incidents demo, 2 social, 3 media, 3 risk, 16 dorks, geozones localStorage
+4. Sinon `window.location.origin`
+
+**Bouton 🔧 API** (header) permet de configurer backend à la volée.
+
+Exemples :
+- `https://pratisig.github.io/Geoint/` -> demo offline
+- `https://pratisig.github.io/Geoint/?api=https://human-osint-ultimate.onrender.com` -> LIVE complet
+- `https://pratisig.github.io/Geoint/?api=http://localhost:8000` -> local dev (avec ngrok si besoin)
+
+---
+
+## 8. Installation Locale
+
 ```bash
 python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
+source venv/bin/activate  # Windows: venv\Scripts\activate
+pip install -r requirements.txt  # inclut beautifulsoup4, lxml, httpx
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
-# ou
-python3 main.py
+# Web: http://localhost:8000
+# Docs: http://localhost:8000/docs
+# Health: http://localhost:8000/api/health -> rss_sources 35, dorks 60
 ```
 
-- **Web App LIVE Satellite** : http://localhost:8000
-- **Swagger Docs** : http://localhost:8000/docs
-- **Health LIVE** : http://localhost:8000/api/health
-- **Satellite Layers Config** : http://localhost:8000/api/satellite/layers
-
-### Android App (v2.0 LIVE SAT)
+**Android**
 ```bash
-# Dans Android Studio
-# - WebView HARDWARE acceleration activée (LAYER_TYPE_HARDWARE) pour Cesium WebGL satellite
-# - Auto-refresh 30s (au lieu de 1h) pour données vraiment LIVE
-# - Sources satellite directes : NASA EONET + USGS + ReliefWeb API intégrées dans OsintRepository
-# - Fonds de carte Esri satellite HD réel + Cesium globe 3D satellite réel
-# Build APK
-./gradlew assembleDebug
+# Android Studio Hedgehog+ / JDK 21
+# Ouvrir projet, Sync, Run
+# Ou CLI:
+./gradlew assembleDebug  # si gradlew existe, sinon workflow GitHub le génère
 ```
 
 ---
 
-## 3. Données LIVE Dynamiques - Plus de Statique
+## 9. Pourquoi ULTIMATE ?
 
-**Avant v1.0** : Données statiques, fallback démo, refresh 1h, globe 3D canvas 2D sans image réelle.
-
-**Maintenant v2.0 LIVE** :
-- **Auto-refresh 30s** côté frontend (Web + Android) + **60s background task** côté backend
-- **SSE Push** `/api/live/stream` - Le serveur pousse les MAJ live au client
-- **Coordonnées satellite réelles** : NASA EONET et USGS fournissent lat/lng exacts mesurés par satellite, pas de géocodage par mots-clés seulement
-- **Jitter dynamique** : Même le fallback génère des coordonnées légèrement différentes à chaque refresh + timestamp now() pour prouver le caractère LIVE
-- **Indicateurs LIVE** : Badge `● LIVE SATELLITE`, compteur événements, dernière MAJ UTC, sources listées
-- **Filtrage temps réel** : Recherche instantanée, région, pays, source, catégorie, mode SAT ONLY
+- **Scraping MAX** : 35 RSS + 4 satellite + 3 GDELT + 4 Reddit + 3 Telegram = ~47 sources, vs 11 avant
+- **Dorking EXHAUSTIF** : 60 dorks vs 15 avant, avec severity, tags, builder 9 variantes
+- **Social Live** : Reddit JSON + Telegram t.me/s/ BeautifulSoup, pas seulement RSS
+- **Media Live** : GDELT artlist massive
+- **Frontend** : 7 tabs vs 5, social/media séparés, dorking lab complet, config API, demo offline
+- **Satellite** : Esri 0.3m HD + Cesium 3D globe réel (corrigé, pas de token Ion)
+- **GitHub Ready** : Workflows APK + Pages + Dockerfile + render.yaml
 
 ---
 
-## 4. Globe 3D Satellite Réel - CORRIGÉ
+## 10. Sécurité & Éthique
 
-**Problème v1.0** : `Cesium.Ion.defaultAccessToken = ""` + `Viewer` sans imageryProvider = globe bleu sans texture ou erreur.
-
-**Correction v2.0** :
-```javascript
-Cesium.Ion.defaultAccessToken = undefined; // Pas de token Ion
-const esriImagery = new Cesium.UrlTemplateImageryProvider({
-  url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-  maximumLevel: 19,
-  credit: 'Esri World Imagery - Satellite Réel HD'
-});
-cesiumViewer = new Cesium.Viewer("cesium-map", {
-  imageryProvider: esriImagery,
-  terrainProvider: new Cesium.EllipsoidTerrainProvider(),
-  ...
-});
-// Overlay labels
-const labels = new Cesium.UrlTemplateImageryProvider({
-  url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}'
-});
-cesiumViewer.imageryLayers.addImageryProvider(labels);
-```
-
-- **Web** : Globe 3D avec vraie image satellite Esri HD, rotation, zoom, atmosphère, skybox
-- **Android** : WebView en `LAYER_TYPE_HARDWARE` + `allowUniversalAccessFromFileURLs` + `MIXED_CONTENT_ALWAYS_ALLOW` pour autoriser WebGL et tuiles satellite
-- **Fallback** : Si WebGL non supporté, message + retour 2D satellite HD réel (qui est déjà satellite)
-
-**Leaflet 2D** : Toujours satellite réel Esri par défaut, pas Dark Matter.
+- Dorks fournis à but éducatif OSINT, usage responsable
+- Respect robots.txt, User-Agent identifié `HUMAN-OSINT-ULTIMATE/3.0`
+- Données publiques uniquement (OSINT), pas d'intrusion
+- Pour signalement vulnérabilité critique, contacter en privé
 
 ---
 
-## 5. Endpoints API v2.0 LIVE
+## 11. Licence
 
-| Méthode | Endpoint | Description LIVE |
-|---|---|---|
-| `GET` | `/api/feeds/live?limit=60` | **LIVE DYNAMIQUE** - Agrège NASA EONET, USGS, ReliefWeb API, GDACS, RSS, déduplique, retourne 60 derniers avec coords satellite réelles, acteurs, besoins, risk_level |
-| `GET` | `/api/live/combined` | Combiné + meta (by_region, by_category, satellite_sources, refresh_interval) |
-| `GET` | `/api/live/stream` | **SSE** - Flux push temps réel toutes les 10s |
-| `POST` | `/api/live/refresh` | Force refresh immédiat background |
-| `GET` | `/api/security/assessment` | Analyse sécurité LIVE par région/pays basée sur incidents live - Génère risk_label, recommandations, acteurs |
-| `GET` | `/api/humanitarian/actors` | Clusters humanitaires + acteurs live (OCHA, MSF, NASA EONET, GDACS) |
-| `GET` | `/api/satellite/layers` | Config couches satellite pour Cesium/Leaflet - URLs Esri, RainViewer, etc. |
-| `GET` | `/api/health` | Statut LIVE - last_updated, cached count, mode SATELLITE |
-| `GET` | `/api/incidents/history?region=&category=&limit=` | Historique avec filtres région, catégorie, date |
-| `POST` | `/api/geozones` | Sauvegarde zone tracée sur satellite |
-| `GET` | `/api/geozones` | Liste zones |
-| `DELETE` | `/api/geozones/{id}` | Supprime zone |
+MIT - Usage humanitaire, recherche, journalisme, OSINT.
 
 ---
 
-## 6. Fonctionnalités Clés v2.0
-
-1. **Veille LIVE Satellite** :
-   - Badges LIVE clignotants, coords `🛰️ SAT RÉEL`, source NASA/USGS/GDACS
-   - Cartes incidents avec acteurs (M23, FARDC, Houthis, etc.) et besoins (Abri, Eau, Protection) en chips
-   - Bouton `🎯 SAT LOC` centre sur imagerie satellite réelle
-   - Filtres combinés : recherche, région, pays, source LIVE, catégorie, mode SAT ONLY
-
-2. **Analyse Sécurité & Contexte Humanitaire** :
-   - Onglet Sécurité : Évaluation risque par région/pays LIVE, risk 1-5, recommandations ONU, incident count
-   - Onglet Acteurs : Clusters OCHA, MSF, UNHCR, PAM, NASA EONET, GDACS + problématiques & enjeux auto-générés depuis live data
-   - Problématiques : Sécurité, Logistique, Santé, Climat, Données - Comptés depuis incidents live
-
-3. **Outils GEOINT & Cartographie Satellite** :
-   - Dessin polygones, périmètres sécurité, itinéraires sur **imagerie satellite réelle**
-   - Calcul Turf.js surface km²
-   - Sauvegarde SQLite + export GeoJSON
-   - Bascule 2D SAT HD Esri ↔ 3D SAT Globe Cesium (vrai satellite)
-
-4. **Analyse Image EXIF sur Satellite** :
-   - Drag & drop photo, extraction GPS, pin rouge sur carte satellite
-   - Recherche inversée Google Lens, Yandex, TinEye
-
-5. **Dorks OSINT** :
-   - Documents confidentiels, fuites API, SIG KML militaire, imagerie satellite live (EONET, USGS)
-
----
-
-## 7. Base de Données
-
-```bash
-sqlite3 osint_database.db
-.tables # geozones incidents
-.schema incidents
-# Nouveaux champs v2.0: source_type, region, country, summary, severity, actors, needs, risk_level
-SELECT title, source, country, latitude, longitude, risk_level FROM incidents ORDER BY published_at DESC LIMIT 5;
-```
-
----
-
-## 8. Pourquoi c'est LIVE et plus Statique ?
-
-- **Avant** : Liste DEMO_INCIDENTS statique insérée si DB vide, refresh 1h, pas de jitter, pas de timestamp now
-- **Maintenant** :
-  - `generate_dynamic_live_fallback()` génère à chaque appel 10 incidents avec `now - random minutes` et `lat + random jitter`
-  - Background loop `asyncio` refresh 60s
-  - Frontend `setInterval 30s` + SSE
-  - Android `delay 30_000L` + `refreshRssFeeds()` incluant EONET/USGS live
-  - Logs `Total LIVE DYNAMIC incidents: X in Yms`
-
----
-
-## 9. Imagerie Satellite Réelle
-
-- **2D Leaflet** : `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}` - Esri World Imagery HD, maxZoom 19, gratuit sans clé, utilisée par défaut
-- **3D Cesium** : Même URL via `UrlTemplateImageryProvider`, pas de Ion token, + overlay `World_Boundaries_and_Places` pour noms lieux
-- **Vérification** : Ouvrir http://localhost:8000, cliquer `3D SATELLITE GLOBE`, voir Terre avec continents en image satellite réelle, pas bleu uni
-
----
-
-## 10. Android + Web Disponible
-
-- **Web** : `index.html` à la racine servie par FastAPI `/`
-- **Android** : `app/src/main/assets/osint/index.html` - Même logique mais adaptée mobile, bottom-nav, FAB, WebView hardware
-- **Code partagé** : Même API `/api/feeds/live`, même logique filtres, même satellite Esri
-
----
-
-## 11. Lancement
-
-```bash
-# Web LIVE Satellite
-pip install -r requirements.txt
-python main.py
-# Ouvrir http://localhost:8000 - Voir LIVE SATELLITE badge + globe 3D satellite réel
-
-# Android
-# Ouvrir dans Android Studio, Run - WebView charge file:///android_asset/osint/index.html avec satellite réel
-```
+**Auteur** : Pratisig / Geoint - v3.0 ULTIMATE - 2025
+**Stack** : FastAPI, Leaflet, CesiumJS, Turf.js, ExifReader, BeautifulSoup, GDELT, Reddit, Telegram
+**Déploiement** : GitHub Pages (frontend) + Render/Railway/Fly.io (backend) + GitHub Actions (APK)
