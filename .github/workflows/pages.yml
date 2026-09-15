@@ -1,4 +1,4 @@
-name: Deploy Web to GitHub Pages
+name: Deploy Web to GitHub Pages - FIXED
 
 on:
   push:
@@ -27,13 +27,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Pages
+      - name: Setup Pages - FIXED with enablement
         uses: actions/configure-pages@v5
+        with:
+          enablement: true
+          static_site_generator: static
 
       - name: Prepare static site
         run: |
           mkdir -p _site
           cp index.html _site/index.html
+          # Optional: add 404 page for SPA routing
+          cp index.html _site/404.html || true
           ls -lh _site/
 
       - name: Upload artifact
