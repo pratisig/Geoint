@@ -1,4 +1,4 @@
-name: Android APK Build
+name: Android APK Build - FIXED
 
 on:
   push:
@@ -27,31 +27,24 @@ jobs:
           java-version: '21'
           cache: gradle
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Accept Android SDK Licenses
+      - name: Setup Android SDK - Manual FIX (no obsolete tools)
         run: |
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          ls -lh $ANDROID_HOME/cmdline-tools/ || true
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "platform-tools" "platforms;android-35" "platforms;android-36" "build-tools;35.0.0" "build-tools;36.0.0" || true
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --list_installed
 
-      - name: Install Android SDK Components
+      - name: Generate Gradle Wrapper if missing
         run: |
-          echo "Installing Android SDK components..."
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-34" || true
-
-      - name: Generate Gradle Wrapper (if missing)
-        run: |
-          if [ ! -f "./gradlew" ]; then
-            echo "gradlew missing - generating wrapper"
-            curl -s "https://get.sdkman.io" | bash
-            source "$HOME/.sdkman/bin/sdkman-init.sh"
-            sdk install gradle 9.3.1
-            gradle wrapper --gradle-version 9.3.1
-            chmod +x gradlew
-          else
-            chmod +x gradlew
+          if [ ! -f "./gradlew" ] || [ ! -f "./gradle/wrapper/gradle-wrapper.jar" ]; then
+            echo "Generating gradle wrapper 9.3.1"
+            wget -q https://services.gradle.org/distributions/gradle-9.3.1-bin.zip -O /tmp/gradle.zip
+            unzip -q /tmp/gradle.zip -d /tmp/
+            /tmp/gradle-9.3.1/bin/gradle wrapper --gradle-version 9.3.1
           fi
-          ls -la gradlew
+          chmod +x gradlew
+          ls -lh gradlew gradle/wrapper/
 
       - name: Create debug keystore if missing
         run: |
@@ -66,8 +59,7 @@ jobs:
           cat local.properties
 
       - name: Build Debug APK
-        run: |
-          ./gradlew :app:assembleDebug --stacktrace --no-daemon
+        run: ./gradlew :app:assembleDebug --stacktrace --no-daemon
         env:
           GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g -Dfile.encoding=UTF-8"
 
@@ -79,5 +71,4 @@ jobs:
           retention-days: 30
 
       - name: List APKs
-        run: |
-          find app/build/outputs -name "*.apk" -type f -exec ls -lh {} \;
+        run: find app/build/outputs -name "*.apk" -type f -exec ls -lh {} \;
