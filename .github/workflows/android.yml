@@ -30,6 +30,15 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Accept Android SDK Licenses
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+
+      - name: Install Android SDK Components
+        run: |
+          echo "Installing Android SDK components..."
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-34" || true
+
       - name: Generate Gradle Wrapper (if missing)
         run: |
           if [ ! -f "./gradlew" ]; then
