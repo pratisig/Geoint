@@ -1,4 +1,4 @@
-name: Deploy Web to GitHub Pages - FIXED
+name: Deploy Web to GitHub Pages - FIXED v2
 
 on:
   push:
@@ -27,19 +27,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Pages - FIXED with enablement
-        uses: actions/configure-pages@v5
+      - name: Setup Pages - FIXED v4 (v5 bug TypeError)
+        uses: actions/configure-pages@v4
         with:
           enablement: true
-          static_site_generator: static
 
       - name: Prepare static site
         run: |
           mkdir -p _site
           cp index.html _site/index.html
-          # Optional: add 404 page for SPA routing
           cp index.html _site/404.html || true
+          echo "Site ready:"
           ls -lh _site/
+          echo "Size: $(du -h _site/index.html)"
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
