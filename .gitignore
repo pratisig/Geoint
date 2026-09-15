@@ -16,3 +16,10 @@
 local.properties
 .env
 debug.keystore
+*.db
+__pycache__/
+osint_database.db
+osint_database.db-wal
+osint_database.db-shm
+.venv/
+venv/
