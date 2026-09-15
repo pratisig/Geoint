@@ -2,7 +2,7 @@ name: Deploy Web to GitHub Pages
 
 on:
   push:
-    branches: [ main, arena/01a0a4ee-geoint ]
+    branches: [ main, arena/01a0a4ee-geoint, arena/01a0a621-geoint ]
     paths:
       - 'index.html'
       - '.github/workflows/pages.yml'

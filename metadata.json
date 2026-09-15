@@ -1,6 +1,11 @@
 {
-  "name": "HUMAN-OSINT",
-  "description": "Plateforme OSINT/GEOINT de renseignement en sources ouvertes, cartographie tactique 2D/3D et veille de crise",
+  "name": "HUMAN-OSINT V4 POWER",
+  "description": "Plateforme OSINT/GEOINT v4.0 POWER - 70+ sources live, satellite HD 0.3m Esri+Google, 80+ dorks, 40+ moteurs OSINT spécialisés, reverse image search 7 moteurs, advanced search multi-engines, report generator, AI agent avec clés utilisateur",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"],
+  "version": "4.0.0",
+  "sources": 76,
+  "dorks": 80,
+  "engines": 40,
+  "features": ["live 70+", "social", "media", "reverse image", "advanced search", "osint engines", "dorks 80+", "geoint satellite HD", "report generator", "security", "actors", "ai agent"]
 }

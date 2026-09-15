@@ -1,28 +1,27 @@
-# HUMAN-OSINT v3.0 ULTIMATE // MAX SCRAPING + SATELLITE + DORKING POWER TOOL
+# HUMAN-OSINT v4.0 POWER // OSINT/GEOINT ULTIMATE PLATFORM
 
-Plateforme opérationnelle de renseignement OSINT/GEOINT **EN TEMPS RÉEL ULTIME** : **35+ sources RSS live, NASA EONET satellite, USGS sismique, GDELT media, Reddit, Telegram**, globe **3D satellite réel HD Esri 0.3m**, **60+ Google Dorks** power tool, Android + Web.
+Plateforme opérationnelle de renseignement OSINT/GEOINT **EN TEMPS RÉEL V4 POWER** : **70+ sources RSS live, NASA EONET + FIRMS satellite, USGS sismique, GDELT x5, Reddit x6, Telegram x4**, globe **3D satellite réel HD Esri 0.3m + Google Sat**, **80+ Google Dorks**, **40+ moteurs OSINT spécialisés**, **Reverse Image Search 7 moteurs**, **générateur de rapports**, **agent IA avec clés utilisateur**.
 
-> **v3.0 ULTIMATE** : Scraping maximal (35 RSS + GDELT + Reddit + Telegram), Dorking exhaustif 60+ dorks avec générateur custom 9 variantes, Social/Media tabs, EXIF GPS, SQLite, SSE, auto-refresh 30s.
+> **v4.0 POWER** : Fix scraping robuste (ThreadPool 12 workers + fallback 30 incidents), Android Bridge natif (plus de liste vide), GitHub Pages démo 30 incidents, reverse image search (Google, Yandex, TinEye, Bing, Baidu, Sogou, KarmaDecay), advanced multi-engine search (Shodan, Censys, ZoomEye, Hunter, IntelX, VirusTotal, MarineTraffic, FlightRadar, Sentinel), report generator markdown/GeoJSON, AI agent (OpenAI, Gemini, Anthropic, Mistral) avec clés localStorage.
 
 ---
 
-## 1. 🚀 Déploiement Rapide - Meilleures solutions pour tester
+## 1. 🚀 Déploiement Rapide
 
-### Option A - GitHub Actions (APK + Pages) - RECOMMANDÉ pour tester direct depuis GitHub ✅
+### Option A - GitHub Actions (APK + Pages) - RECOMMANDÉ ✅
 
 **1. Activer GitHub Pages (Web App)**
-- Allez dans votre repo GitHub > `Settings` > `Pages`
-- Source : `GitHub Actions`
-- Push sur `main` ou `arena/01a0a4ee-geoint` déclenche le workflow `.github/workflows/pages.yml`
+- Repo GitHub > `Settings` > `Pages` > Source : `GitHub Actions`
+- Push sur `main` ou `arena/01a0a621-geoint` déclenche `.github/workflows/pages.yml`
 - URL finale : `https://<username>.github.io/Geoint/`
-- **Mode démo offline** : fonctionne sans backend (satellite réel, dessin, 16 dorks, EXIF)
+- **Mode démo V4 offline** : 30 incidents, 40 engines, 80 dorks, reverse image, report local, EXIF
 - **Mode LIVE complet** : ajoutez `?api=https://votre-backend.onrender.com` à l'URL ou cliquez 🔧 API
 
-**2. Build APK automatique**
+**2. Build APK automatique V4**
 - Workflow `.github/workflows/android.yml` se déclenche à chaque push
-- Allez dans `Actions` > `Android APK Build` > dernier run > `Artifacts` > `HUMAN-OSINT-ULTIMATE-debug-apk`
-- Téléchargez l'APK, installez sur Android (autoriser sources inconnues)
-- Pas besoin d'Android Studio !
+- `Actions` > `Android APK Build` > dernier run > `Artifacts` > `HUMAN-OSINT-V4-debug-apk`
+- Téléchargez APK, installez sur Android
+- **Fix V4** : Android utilise bridge natif `AndroidOSINT.getLiveFeeds()` - plus de liste vide, 30 incidents baseline + scraping robuste 20 sources
 
 **3. Tester en local (dev)**
 ```bash
@@ -33,137 +32,169 @@ uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 # Ouvrir http://localhost:8000
 ```
 
-### Option B - Backend Cloud Gratuit (pour avoir le LIVE complet sur GitHub Pages)
+### Option B - Backend Cloud Gratuit (pour LIVE complet sur GitHub Pages)
 
 **Render.com (recommandé, free tier)**
 ```bash
-# 1. Connectez votre repo GitHub à https://render.com
+# 1. Connectez repo GitHub à https://render.com
 # 2. New Web Service > Select Geoint repo
 # 3. Config auto via render.yaml :
 #    Build: pip install -r requirements.txt
 #    Start: uvicorn main:app --host 0.0.0.0 --port $PORT
-# 4. Deploy -> URL type https://human-osint-ultimate.onrender.com
-# 5. Test: https://human-osint-ultimate.onrender.com/api/health
-# 6. Frontend Pages: https://<user>.github.io/Geoint/?api=https://human-osint-ultimate.onrender.com
+# 4. Deploy -> URL type https://human-osint-v4.onrender.com
+# 5. Test: https://human-osint-v4.onrender.com/api/health
+# 6. Frontend Pages: https://<user>.github.io/Geoint/?api=https://human-osint-v4.onrender.com
 ```
 
-**Railway.app / Fly.io / Hugging Face Spaces**
-- Même principe, utilisez `Dockerfile` fourni
+**Docker**
 ```bash
-docker build -t human-osint .
-docker run -p 8000:8000 human-osint
-```
-
-**Autres solutions rapides**
-- **Replit** : Import repo, Run `python main.py`
-- **Gitpod / Codespaces** : Ouvrez repo dans Codespace, `uvicorn main:app --host 0.0.0.0 --port 8000`, port forwarding auto
-- **Ngrok** pour exposer local : `ngrok http 8000` -> donnez URL à `?api=`
-
-### Option C - Android Studio (dev complet)
-```bash
-# Ouvrir dans Android Studio
-# Sync Gradle (JDK 21 requis, AGP 9.1.1)
-# Run sur émulateur ou device
-# L'app charge file:///android_asset/osint/index.html avec backend local ou distant configurable
+docker build -t human-osint-v4 .
+docker run -p 8000:8000 human-osint-v4
+# http://localhost:8000/docs
 ```
 
 ---
 
-## 2. Architecture v3.0 ULTIMATE
+## 2. Architecture v4.0 POWER
 
-### Backend LIVE MAX SCRAPING
-- **FastAPI + Uvicorn + SQLite WAL + SSE**
-- **35 RSS** : ReliefWeb, GDACS, WHO, Crisis Group, BBC, CNN, Reuters, Al Jazeera, France24, RFI, Le Monde, Guardian, AP, Jeune Afrique, AfricaNews, DefenseNews, MSF, ICRC, ISW, OilPrice, HackerNews, BleepingComputer, The Record, CISA, etc.
-- **Satellite** : NASA EONET API (wildfires, volcans), USGS all_day.geojson (M4.5+), ReliefWeb API v1, GDACS
-- **Médias massifs** : GDELT Doc API `artlist` - 3 requêtes (conflit, humanitaire, catastrophe) = 45 articles
-- **Sociaux** : Reddit JSON `r/OSINT, r/UkraineConflict, r/Syria, r/Sahel` + Telegram `t.me/s/OSINTtechnical` scraping BeautifulSoup
-- **Total** : ~47 sources, refresh 45s background loop, stats tracking rss/sat/social/media/gdelt
-- **Fallback dynamique** : 15 incidents ULTIMATE avec jitter 0.15° + timestamp now-0-180min (preuve LIVE même sans réseau)
+### Backend LIVE ROBUSTE
+- **FastAPI + Uvicorn + SQLite WAL + SSE + ThreadPool 12 workers**
+- **60+ RSS** : ReliefWeb (updates/disasters/reports), GDACS, WHO, UN News EN/FR, Crisis Group, BBC World/Africa/MiddleEast, Al Jazeera, France24 FR/EN/Afrique, RFI Afrique/Monde, Le Monde, Guardian World/Global, DW World/Africa, Euronews, Jeune Afrique, AfricaNews, AP, Reuters World/Africa/MiddleEast, OilPrice, Maritime, HackerNews, Bleeping, TheRecord, CISA, ISW, DefenseNews, DefenseOne, OCHA, NASA, USGS, EIA, MSF, ICRC, UNHCR, WFP, ACLED, LiveUAMap, VOA Africa/World, AllAfrica, Sahel Intelligence, The New Humanitarian, HRW, Amnesty, NYT World, CNN Africa
+- **Satellite** : NASA EONET API (wildfires, volcans, tempêtes), USGS all_day.geojson M4.0+, ReliefWeb API v1, GDACS, NASA FIRMS (simulé)
+- **Médias massifs** : GDELT Doc API `artlist` - 5 requêtes (conflit, humanitaire, catastrophe, protest, cyber) = 60 articles
+- **Sociaux** : Reddit JSON `r/OSINT, r/UkraineConflict, r/Syria, r/Sahel, r/geopolitics, r/worldnews` + Telegram `t.me/s/OSINTtechnical, @UkraineOSINT, @liveuamap, @rybar` scraping BeautifulSoup
+- **Total** : ~76 sources, refresh 60s background loop, stats tracking rss/sat/social/media/gdelt + sources_status
+- **Fallback robuste** : 30 incidents V4 avec jitter 0.15° + timestamp now-0-360min (preuve LIVE même sans réseau) - plus de 6, maintenant 30 couvrant monde entier
+- **Fix Android** : OsintRepository.kt utilise 20 RSS + EONET + USGS + ReliefWeb API + GDELT simulé, avec ThreadPool, insertion robuste, baseline 30 incidents avec actors/needs/riskLevel
 
-### Frontend ULTIMATE
-- **7 tabs** : LIVE (35+), SOCIAL (Reddit/Telegram), MEDIA (35 RSS), SÉCURITÉ (risque par région), GEOINT (zones + satellite), ACTEURS (OCHA, MSF, NASA...), DORKS ULTIMATE (60+)
-- **Carte** : Leaflet 2D Esri World Imagery 0.3m HD réel + Cesium 3D Globe réel (UrlTemplateImageryProvider, pas de token Ion)
+### Frontend V4 POWER - 12 TABS
+- **LIVE 70+** : Agrégé 60 RSS + sat + GDELT x5 + social, filtres thématique/régional/pays/source/search
+- **SOCIAL** : Reddit x6 + Telegram x4 + GDELT Social
+- **MEDIA** : 60 RSS + GDELT artlist
+- **IMAGE OSINT** : Reverse image search 7 moteurs (Google, Yandex visages, TinEye exact, Bing Visual, Baidu, Sogou, KarmaDecay Reddit) + EXIF GPS + drag&drop + génération auto
+- **SEARCH** : Advanced multi-engine search builder - sélectionnez parmi 40 moteurs, générez requêtes Google, Shodan, Censys, VirusTotal, Wayback, MarineTraffic, FlightRadar, Sentinel, etc.
+- **ENGINES** : 40+ moteurs OSINT spécialisés listés par catégorie (search, image, IoT, people, breach, domain, archive, maritime, aviation, satellite, osint, social, code) - moins connus inclus: Mojeek, ZoomEye, IntelX, Dehashed, SecurityTrails, DNSDumpster, urlscan.io, Ahmia, ADSBExchange, etc. Filtre free/paid
+- **DORKS 80+** : 80 dorks pré-construits (18 catégories: documents, credentials, database, iot, geospatial, backup, scada, social, humanitarian, darknet, people, vuln, sahel, ukraine, satellite, maritime, aviation, advanced), recherche, filtres severity, builder custom avec 9 variantes + google_urls
+- **GEOINT** : Zones + satellite HD Esri 0.3m + Google Satellite + Dark + OSM + Relief, dessin Leaflet.draw + Turf.js mesure km²/km, sauvegarde SQLite ou localStorage (démo) ou Android bridge, export GeoJSON, EXIF GPS pin rose satellite + reverse
+- **REPORT** : Générateur rapports complets sur sujet donné - topic, régions, catégories, time_range (24h/7d/30d/90d/all), max incidents, sections (summary, incidents, risk, actors, map, recommendations), format markdown, GeoJSON export, IA optionnelle (OpenAI, Gemini, Anthropic, Mistral) avec clé fournie par utilisateur
+- **SÉCURITÉ** : Risque par région V4, 30 régions max, recommandations tactiques
+- **ACTEURS** : OCHA, MSF, NASA, GDELT, Reddit, Telegram, Bellingcat, MarineTraffic, FlightRadar, etc.
+- **AI AGENT** : Agent IA avec clés utilisateur (localStorage, jamais serveur) - providers OpenAI GPT-4o/mini, Gemini 1.5 Flash/Pro, Claude 3 Haiku/Sonnet, Mistral - prompt OSINT, inclusion incidents LIVE top 15, contexte régional, analyse stratégique, test clé, copy/download
+
+### Cartes V4 - SATELLITE RÉEL HD FIX
+- **2D** : Leaflet Esri World Imagery 0.3m HD réel (default) + Google Satellite alternative + Dark + OSM + Relief Topo
+- **3D** : Cesium 1.115 Globe réel avec **UrlTemplateImageryProvider Esri World Imagery 0.3m** (pas de token Ion) + overlay labels Esri - VRAIE vue satellite, pas Bing par défaut. Camera flyTo + sync incidents avec labels 🛰️ SAT LIVE / 📱 SOCIAL
 - **Overlays** : RainViewer météo live, OpenTopoMap relief, OSM
-- **Dessin** : Leaflet.draw + Turf.js mesure km²/km, sauvegarde SQLite ou localStorage (mode démo), export GeoJSON
-- **EXIF** : Drag&drop JPG, extraction GPS via ExifReader, pin rouge satellite
-- **Dorking Power Tool** : 60 dorks pré-construits (16 catégories), recherche, filtres severity, builder custom avec 9 variantes + google_urls, bouton LANCER GOOGLE direct
-- **Config API** : `?api=URL` param + localStorage + bouton 🔧 API, mode démo offline automatique sur github.io sans backend
+- **Fix** : initCesiumSatellite utilise Esri imagery provider explicitement, terrain EllipsoidTerrainProvider, background noir, showGroundAtmosphere, 3D globe satellite réel HD
 
-### Base de données
-- SQLite `osint_database.db` WAL
-- Tables `incidents` (avec actors, needs, risk_level, severity, country, region, source_type) et `geozones`
-- Endpoints `/api/geozones` CRUD + `/api/incidents/history`
+### Base de données V4
+- SQLite `osint_database.db` WAL + `osint_tactical.db` Android v4
+- Tables `incidents` (avec actors JSON, needs JSON, risk_level, severity, country, region, source_type, language, verified) et `geozones`
+- Android Entity v4 avec severity, actors, needs, riskLevel, language, verified
 
 ---
 
-## 3. Endpoints API v3.0
+## 3. Endpoints API v4.0
 
 | Méthode | Endpoint | Description |
 |---|---|---|
-| `GET` | `/api/feeds/live?limit=80` | LIVE ULTIME agrégé 35 RSS + sat + GDELT + social |
-| `GET` | `/api/osint/social?limit=40` | Réseaux sociaux Reddit + Telegram live |
-| `GET` | `/api/osint/media?limit=50` | Médias 35 RSS + GDELT artlist |
-| `GET` | `/api/osint/comprehensive` | Incidents + social + media + meta coverage |
-| `GET` | `/api/live/combined` | Combiné + meta by_region/by_category |
+| `GET` | `/api/health` | Health + rss_sources 60 + dorks 80 + engines 40 + sources_status |
+| `GET` | `/api/feeds/live?limit=100&category=&region=&country=&search=` | LIVE V4 agrégé 70+ sources avec filtres thématique/régional |
+| `GET` | `/api/osint/social?limit=40` | Réseaux sociaux Reddit x6 + Telegram x4 live |
+| `GET` | `/api/osint/media?limit=60` | Médias 60 RSS + GDELT x5 |
+| `GET` | `/api/osint/comprehensive` | Incidents + social + media + meta coverage V4 |
+| `GET` | `/api/live/combined` | Combiné + meta by_region/by_category/by_country |
 | `GET` | `/api/live/stream` | SSE push 10s |
 | `POST` | `/api/live/refresh` | Force refresh |
-| `GET` | `/api/dorks/all?category=&severity=&search=` | 60 dorks filtrables |
+| `GET` | `/api/dorks/all?category=&severity=&search=` | 80 dorks filtrables V4 |
 | `POST` | `/api/dorks/generate` | Builder custom dork + 9 variantes + google_urls |
 | `GET` | `/api/dorks/categories` | Stats par catégorie |
-| `GET` | `/api/security/assessment` | Analyse risque LIVE par région |
-| `GET` | `/api/humanitarian/actors` | Clusters + enjeux |
-| `GET` | `/api/satellite/layers` | Config couches satellite |
-| `GET` | `/api/health` | Health + rss_sources + dorks_count |
+| `GET` | `/api/osint/reverse-image/engines` | 7 moteurs reverse image |
+| `POST` | `/api/osint/reverse-image/generate` | Génère URLs reverse pour image_url |
+| `GET` | `/api/osint/engines?category=&search=&free_only=` | 40+ moteurs OSINT spécialisés |
+| `POST` | `/api/osint/engines/search` | Recherche multi-moteurs + dork variants |
+| `GET` | `/api/search/advanced` | Info advanced search |
+| `POST` | `/api/report/generate` | Générateur rapport markdown/GeoJSON + IA optionnelle |
+| `GET` | `/api/ai/providers` | Liste providers IA |
+| `POST` | `/api/ai/analyze` | Analyse IA avec clé utilisateur (OpenAI, Gemini, Anthropic) |
+| `GET` | `/api/security/assessment` | Analyse risque LIVE par région V4 |
+| `GET` | `/api/humanitarian/actors` | Clusters + enjeux V4 |
+| `GET` | `/api/satellite/layers` | Config couches satellite V4 (Esri HD + Google Sat + Bing) |
+| `GET` | `/api/incidents/history?category=&region=&limit=` | Historique SQLite |
+| `POST` | `/api/geozones` | Créer zone |
+| `GET` | `/api/geozones` | Lister zones |
+| `DELETE` | `/api/geozones/{id}` | Supprimer zone |
 
 ---
 
-## 4. Dorking ULTIMATE - 60+ Dorks
+## 4. Dorking V4 - 80+ Dorks + 40 Engines + Reverse Image
 
-**Catégories** (16) :
-- documents (5) : CONFIDENTIAL, gov, ReliefWeb, état-major
-- credentials (5) : Pastebin passwords, RSA keys, .env, config.js
-- database (4) : dump.sql, phpMyAdmin, Firebase, Elasticsearch
-- iot (4) : caméras IP, AXIS, Shodan
-- geospatial (5) : KML/KMZ militaires, Shapefiles, GeoJSON
-- backup (4) : .bak, archive.org, Wayback
-- scada (3) : ICS, SCADA, modbus
-- social (6) : Twitter/X, Telegram, Reddit, TikTok, Discord
-- humanitarian (4) : OCHA reports, UNHCR, HDX
-- darknet (2) : onion, darknet forums
-- people (2) : LinkedIn, people search
-- vuln (2) : CVE, exploits
-- sahel (3) : JNIM, Wagner, M23
-- ukraine (2) : DeepState, LiveUAMap
-- satellite (3) : NASA EONET, Sentinel, USGS
-- advanced (6) : GitHub secrets, .env, log files, inurl:admin
+**Catégories Dorks (18)** : documents (6), credentials (6), database (5), iot (5), geospatial (6), backup (4), scada (3), social (6), humanitarian (4), darknet (2), people (3), vuln (3), sahel (4), ukraine (3), satellite (5), maritime (1), aviation (1), advanced (10)
 
-Chaque dork : id, category, severity (critical/high/medium/low), title, query, description, tags, launch Google.
+**OSINT Engines (40)** : search (6: Google, Bing, Yandex, DuckDuckGo, Brave, Mojeek), image (5: Google Images, Yandex Images, TinEye, Bing Visual, KarmaDecay), iot (3: Shodan, Censys, ZoomEye), people (2: Hunter.io, LinkedIn), breach (3: IntelX, Dehashed, HaveIBeenPwned), domain (5: VirusTotal, SecurityTrails, Whois, DNSDumpster, urlscan.io), archive (2: Wayback, Archive.is), maritime (1: MarineTraffic), aviation (2: FlightRadar24, ADSBExchange), satellite (4: Sentinel Hub, NASA Worldview, EONET, FIRMS), osint (2: Bellingcat Toolkit, OSINT Framework), social (4: Reddit, Telegram, Twitter/X, YouTube), code (1: GitHub)
 
-**Générateur custom** : POST `/api/dorks/generate` avec keywords, site, filetype, country, category, exclude, date_range -> retourne generated_dork + 9 variantes + google_urls + tips.
+**Reverse Image (7)** : Google Images, Yandex Images (visages), TinEye (exact), Bing Visual, Baidu, Sogou, KarmaDecay Reddit
+
+**Advanced Search** : Builder multi-moteurs avec site, filetype, country, date_range, extra - génère URLs pour tous moteurs sélectionnés + variantes Shodan/Censys/VirusTotal/Wayback
 
 ---
 
-## 5. Workflows GitHub Actions
+## 5. Rapport & AI Agent V4
 
-### `android.yml`
-- Trigger : push sur main/arena branch, paths app/**, workflow_dispatch
-- Jobs :
-  - `build-debug` : JDK 21, Android SDK, génère gradlew si manquant (Gradle 9.3.1), crée debug.keystore, `assembleDebug`, upload artifact 30j
-  - `build-release-unsigned` : sur tag ou manual, assembleRelease
-- Artifacts : `HUMAN-OSINT-ULTIMATE-debug-apk` téléchargeable sans compte
+**Rapport** : Sujet + régions (virgule) + catégories (virgule) + time_range (24h/7d/30d/90d/all) + max incidents + sections (summary, incidents, risk, actors, map, recommendations) -> Markdown + GeoJSON + stats by_region/by_category/by_country/by_source + risk max/avg + actors aggregation + export .md/.geojson
 
-### `pages.yml`
-- Trigger : push index.html, workflow_dispatch
-- Permissions : pages:write, id-token:write
-- Steps : checkout, configure-pages, cp index.html -> _site, upload-pages-artifact, deploy-pages
-- URL : `https://<username>.github.io/Geoint/`
-- Supporte `?api=backend_url` pour LIVE
+**AI Agent** : 
+- Clés stockées localStorage navigateur (`HUMAN_OSINT_AI_KEY`, `HUMAN_OSINT_AI_PROVIDER`, `HUMAN_OSINT_AI_MODEL`) - jamais serveur
+- Providers: OpenAI (gpt-4o-mini rapide, gpt-4o puissant), Gemini (1.5 Flash gratuit généreux, 1.5 Pro puissant), Anthropic Claude (Haiku rapide, Sonnet puissant), Mistral
+- Prompt OSINT + inclusion incidents LIVE top 15 + contexte régional + analyse stratégique
+- Endpoints: `/api/ai/providers` liste, `/api/ai/analyze` avec prompt, context, incidents, provider, api_key, model -> result
+- Sécurité: clés jamais loggées, utilisées uniquement pour requête directe vers provider, pas stockées côté serveur en prod
+- Sans clé: mode simulation template
+
+**Exemple rapport avec IA**:
+```json
+POST /api/report/generate
+{
+  "topic": "Conflit Sahel JNIM",
+  "regions": ["Afrique"],
+  "categories": ["conflit"],
+  "time_range": "7d",
+  "max_incidents": 50,
+  "include_sections": ["summary","incidents","risk","actors","map","recommendations"],
+  "ai_provider": "gemini",
+  "ai_api_key": "AIza..."
+}
+```
 
 ---
 
-## 6. Docker & Cloud
+## 6. Fix Problèmes Sources V4
 
-**Dockerfile**
+**Problème initial** : Outil affirmait 35 sources mais mobile aucun événement, GitHub quelques événements seulement
+
+**Causes** :
+- Backend: feedparser.parse direct URL sans requests + pas de ThreadPool + rsshub.app down + pas de fallback robuste si <10 incidents
+- Frontend: GitHub Pages mode démo 6 incidents seulement + API_BASE file:// -> localhost:8000 inaccessible
+- Mobile: OsintRepository 11 sources seulement + WebView file:// origin -> API_BASE localhost:8000 -> fetch fail -> liste vide + preloadBaseline seulement si count<25 mais getIncidents appelé avant preload
+
+**Corrections V4** :
+- Backend: ThreadPoolExecutor 12 workers + requests.get avec User-Agent + feedparser sur content + sources_status tracking + fallback 30 incidents si <10 + GDELT x5 + Reddit x6 + Telegram x4 + 60 RSS robustes + stats failed
+- Frontend: Démo V4 30 incidents (au lieu de 6) + détection Android bridge (`window.AndroidOSINT`) + IS_GITHUB_DEMO + Android utilise bridge natif `AndroidOSINT.getLiveFeeds()` JSON avec actors/needs/risk_level + refresh via bridge + localStorage geozones + initAdvEnginesChecklist
+- Mobile: OsintRepository V4 20 RSS + EONET + USGS + ReliefWeb API + GDELT simulé + baseline 30 incidents avec actors JSON + parseXmlFeed robuste même sans geo match (garde avec coords globales) + OkHttp timeout 12s + logs + incidentDao v4 avec severity/actors/needs/riskLevel + AppDatabase v4 + OsintJsInterface v4 avec tous champs + getVersion
+
+---
+
+## 7. Workflows GitHub Actions V4
+
+- `android.yml` : branches main, arena/01a0a4ee-geoint, arena/01a0a621-geoint + artifact HUMAN-OSINT-V4-debug-apk
+- `pages.yml` : branches main, arena/01a0a4ee-geoint, arena/01a0a621-geoint + cp index.html -> _site
+- `backend.yml` : branches main, arena/01a0a4ee-geoint, arena/01a0a621-geoint + test health V4 + dorks + engines + reverse-image + docker build human-osint-v4:latest
+
+---
+
+## 8. Docker & Cloud V4
+
+**Dockerfile V4**
 ```dockerfile
 FROM python:3.11-slim
 WORKDIR /app
@@ -173,83 +204,65 @@ COPY main.py index.html ./
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
 ```
 
-**render.yaml** : Déploiement 1-click Render free tier.
-
-**Test local Docker**
-```bash
-docker build -t human-osint-ultimate .
-docker run -p 8000:8000 human-osint-ultimate
-# http://localhost:8000/docs
-```
+**render.yaml** : Déploiement 1-click Render free tier
 
 ---
 
-## 7. Configuration Frontend pour GitHub Pages
-
-Le frontend détecte automatiquement :
-1. `?api=` ou `?backend=` dans URL -> sauvegarde localStorage
-2. `localStorage['HUMAN_OSINT_API_BASE']` -> utilise
-3. Si hostname `github.io` sans backend configuré -> **mode démo offline** avec 6 incidents demo, 2 social, 3 media, 3 risk, 16 dorks, geozones localStorage
-4. Sinon `window.location.origin`
-
-**Bouton 🔧 API** (header) permet de configurer backend à la volée.
-
-Exemples :
-- `https://pratisig.github.io/Geoint/` -> demo offline
-- `https://pratisig.github.io/Geoint/?api=https://human-osint-ultimate.onrender.com` -> LIVE complet
-- `https://pratisig.github.io/Geoint/?api=http://localhost:8000` -> local dev (avec ngrok si besoin)
-
----
-
-## 8. Installation Locale
+## 9. Installation Locale V4
 
 ```bash
 python3 -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-pip install -r requirements.txt  # inclut beautifulsoup4, lxml, httpx
+source venv/bin/activate
+pip install -r requirements.txt
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
 # Web: http://localhost:8000
 # Docs: http://localhost:8000/docs
-# Health: http://localhost:8000/api/health -> rss_sources 35, dorks 60
+# Health: http://localhost:8000/api/health -> rss_sources 60, dorks 80, engines 40
 ```
 
-**Android**
+**Android V4**
 ```bash
 # Android Studio Hedgehog+ / JDK 21
 # Ouvrir projet, Sync, Run
 # Ou CLI:
-./gradlew assembleDebug  # si gradlew existe, sinon workflow GitHub le génère
+./gradlew assembleDebug
 ```
 
 ---
 
-## 9. Pourquoi ULTIMATE ?
+## 10. Pourquoi V4 POWER ?
 
-- **Scraping MAX** : 35 RSS + 4 satellite + 3 GDELT + 4 Reddit + 3 Telegram = ~47 sources, vs 11 avant
-- **Dorking EXHAUSTIF** : 60 dorks vs 15 avant, avec severity, tags, builder 9 variantes
-- **Social Live** : Reddit JSON + Telegram t.me/s/ BeautifulSoup, pas seulement RSS
-- **Media Live** : GDELT artlist massive
-- **Frontend** : 7 tabs vs 5, social/media séparés, dorking lab complet, config API, demo offline
-- **Satellite** : Esri 0.3m HD + Cesium 3D globe réel (corrigé, pas de token Ion)
-- **GitHub Ready** : Workflows APK + Pages + Dockerfile + render.yaml
+- **Scraping MAX ROBUSTE** : 60 RSS + 5 satellite + 5 GDELT + 6 Reddit + 4 Telegram = ~80 sources, vs 35 avant, avec ThreadPool + sources_status + fallback 30
+- **Mobile Fix** : Android bridge natif, plus de liste vide, 30 incidents baseline + 20 RSS live
+- **GitHub Pages Fix** : Démo 30 incidents V4 (vs 6), 40 engines, 80 dorks, reverse image, report local, EXIF
+- **Reverse Image** : 7 moteurs (Google, Yandex visages, TinEye exact, Bing, Baidu, Sogou, KarmaDecay) + EXIF GPS + drag&drop + génération auto
+- **Advanced Search** : 40+ moteurs OSINT spécialisés moins connus (Mojeek, ZoomEye, IntelX, Dehashed, SecurityTrails, DNSDumpster, urlscan.io, ADSBExchange, MarineTraffic, FlightRadar, Sentinel Hub, NASA Worldview, Bellingcat, OSINT Framework) + builder multi-moteurs + variantes Shodan/Censys
+- **Dorking EXHAUSTIF** : 80 dorks vs 60 avant, 18 catégories vs 16, + maritime/aviation
+- **Report Generator** : Rapports complets sur sujet donné avec filtres thématique/régional, markdown/GeoJSON export, IA optionnelle
+- **AI Agent** : OpenAI, Gemini, Anthropic, Mistral avec clés utilisateur localStorage, analyse stratégique, test clé, jamais stocké serveur
+- **Satellite Fix** : 2D Esri 0.3m HD + Google Satellite + Cesium 3D Globe réel satellite (Esri UrlTemplateImageryProvider, pas token Ion) - vraie vue satellite
+- **Filtres** : Thématique (conflit, catastrophe, énergie, épidémie, cyber, protest) + régional (Moyen-Orient, Europe, Afrique, Asie-Pacifique, Amériques, Global) + pays + source + search - toute actualité mondiale accessible
+- **GitHub Ready** : Workflows APK + Pages + Backend + Dockerfile + render.yaml avec nouvelle branche arena/01a0a621-geoint
 
 ---
 
-## 10. Sécurité & Éthique
+## 11. Sécurité & Éthique V4
 
-- Dorks fournis à but éducatif OSINT, usage responsable
-- Respect robots.txt, User-Agent identifié `HUMAN-OSINT-ULTIMATE/3.0`
+- Dorks & engines fournis à but éducatif OSINT, usage responsable
+- Respect robots.txt, User-Agent identifié `HUMAN-OSINT-V4/4.0`
 - Données publiques uniquement (OSINT), pas d'intrusion
+- Clés IA jamais stockées serveur, uniquement localStorage + requête directe provider
+- Reverse image : respect vie privée, Yandex visages puissant mais usage éthique
 - Pour signalement vulnérabilité critique, contacter en privé
 
 ---
 
-## 11. Licence
+## 12. Licence
 
 MIT - Usage humanitaire, recherche, journalisme, OSINT.
 
 ---
 
-**Auteur** : Pratisig / Geoint - v3.0 ULTIMATE - 2025
-**Stack** : FastAPI, Leaflet, CesiumJS, Turf.js, ExifReader, BeautifulSoup, GDELT, Reddit, Telegram
-**Déploiement** : GitHub Pages (frontend) + Render/Railway/Fly.io (backend) + GitHub Actions (APK)
+**Auteur** : Pratisig / Geoint - v4.0 POWER - 2025
+**Stack** : FastAPI, Leaflet, CesiumJS, Turf.js, ExifReader, BeautifulSoup, GDELT, Reddit, Telegram, OpenAI, Gemini, Anthropic
+**Déploiement** : GitHub Pages (frontend V4 démo 30 incidents) + Render/Railway/Fly.io (backend V4 80 sources) + GitHub Actions (APK V4)

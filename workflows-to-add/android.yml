@@ -2,7 +2,7 @@ name: Android APK Build
 
 on:
   push:
-    branches: [ main, arena/01a0a4ee-geoint ]
+    branches: [ main, arena/01a0a4ee-geoint, arena/01a0a621-geoint ]
     paths:
       - 'app/**'
       - 'gradle/**'
@@ -65,7 +65,7 @@ jobs:
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: HUMAN-OSINT-ULTIMATE-debug-apk
+          name: HUMAN-OSINT-V4-debug-apk
           path: app/build/outputs/apk/debug/*.apk
           retention-days: 30
 
