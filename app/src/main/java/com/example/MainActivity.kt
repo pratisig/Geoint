@@ -105,7 +105,7 @@ fun OsintAppScreen(modifier: Modifier = Modifier) {
         }
 
         while (isActive) {
-            delay(3600_000L) // Refresh every 1 hour
+            delay(30_000L) // LIVE REFRESH every 30 seconds - dynamic satellite data
             withContext(Dispatchers.IO) {
                 try {
                     repository.refreshRssFeeds()
@@ -134,13 +134,19 @@ fun OsintAppScreen(modifier: Modifier = Modifier) {
                         ViewGroup.LayoutParams.MATCH_PARENT
                     )
                     setBackgroundColor(AndroidColor.parseColor("#070A0F"))
-                    setLayerType(View.LAYER_TYPE_SOFTWARE, null)
+                    // HARDWARE acceleration required for CesiumJS REAL SATELLITE globe (WebGL)
+                    setLayerType(View.LAYER_TYPE_HARDWARE, null)
                     settings.javaScriptEnabled = true
                     settings.domStorageEnabled = true
                     settings.allowFileAccess = true
                     settings.allowContentAccess = true
+                    settings.allowFileAccessFromFileURLs = true
+                    settings.allowUniversalAccessFromFileURLs = true
                     settings.useWideViewPort = true
                     settings.loadWithOverviewMode = true
+                    settings.mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+                    settings.databaseEnabled = true
+                    settings.cacheMode = android.webkit.WebSettings.LOAD_DEFAULT
 
                     addJavascriptInterface(
                         OsintJsInterface(ctx, repository) {

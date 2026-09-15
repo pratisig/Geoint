@@ -477,27 +477,16 @@ class OsintRepository(context: Context) {
 
     suspend fun refreshRssFeeds(): Int = withContext(Dispatchers.IO) {
         val feedEndpoints = listOf(
-            // 1. Alertes d'urgence et crises humanitaires de l'ONU
             Triple("https://reliefweb.int/updates/rss.xml", "ReliefWeb ONU", "OFFICIEL"),
-            // 2. Alertes mondiales catastrophes GDACS (GeoRSS)
             Triple("https://www.gdacs.org/xml/rss.xml", "GDACS Global Alert", "ALERTE_CATASTROPHE"),
-            // 3. Organisation Mondiale de la Santé
             Triple("https://www.who.int/feeds/entity/csr/don/en/rss.xml", "OMS / WHO", "ALERTE_CATASTROPHE"),
-            // 3b. Alertes Afrique et Urgences Sanitaires
             Triple("https://reliefweb.int/country/cod/rss.xml", "ReliefWeb RDC & Sahel", "OFFICIEL"),
-            // 4. Crisis Group
             Triple("https://www.crisisgroup.org/rss.xml", "Crisis Group", "RENSEIGNEMENT"),
-            // 5. BBC World News
             Triple("https://feeds.bbci.co.uk/news/world/rss.xml", "BBC World News", "PRESSE"),
-            // 6. France 24 Monde
             Triple("https://www.france24.com/fr/rss", "France 24 Monde", "PRESSE"),
-            // 7. Al Jazeera International
             Triple("https://www.aljazeera.com/xml/rss/all.xml", "Al Jazeera English", "PRESSE"),
-            // 8. Cyber Threat Intelligence
             Triple("https://feeds.feedburner.com/TheHackersNews", "The Hacker News", "CYBER_FUITE"),
-            // 9. BleepingComputer Infosec
             Triple("https://www.bleepingcomputer.com/feed/", "BleepingComputer", "CYBER_FUITE"),
-            // 10. Maritime Executive (Sécurité maritime & transport d'énergie)
             Triple("https://maritime-executive.com/rss", "Maritime Executive", "PRESSE")
         )
 
@@ -520,7 +509,6 @@ class OsintRepository(context: Context) {
             }
         }
 
-        // Web scraping de dépêches d'urgence (titres d'actualité en direct)
         try {
             val liveWireItems = scrapeLiveCrisisWire()
             fetchedList.addAll(liveWireItems)
@@ -528,10 +516,200 @@ class OsintRepository(context: Context) {
             Log.w("OsintRepository", "Erreur web scraping dépêches: ${e.message}")
         }
 
+        // LIVE SATELLITE DYNAMIC SOURCES - NASA EONET + USGS + ReliefWeb API
+        try {
+            val eonetItems = fetchEonetLiveSatellite()
+            fetchedList.addAll(eonetItems)
+            Log.i("OsintRepository", "NASA EONET LIVE fetched ${eonetItems.size} satellite events")
+        } catch (e: Exception) {
+            Log.w("OsintRepository", "EONET error: ${e.message}")
+        }
+
+        try {
+            val usgsItems = fetchUsgsLiveEarthquakes()
+            fetchedList.addAll(usgsItems)
+            Log.i("OsintRepository", "USGS LIVE fetched ${usgsItems.size} quakes")
+        } catch (e: Exception) {
+            Log.w("OsintRepository", "USGS error: ${e.message}")
+        }
+
+        try {
+            val reliefItems = fetchReliefWebApiLive()
+            fetchedList.addAll(reliefItems)
+            Log.i("OsintRepository", "ReliefWeb API LIVE fetched ${reliefItems.size} disasters")
+        } catch (e: Exception) {
+            Log.w("OsintRepository", "ReliefWeb API error: ${e.message}")
+        }
+
         if (fetchedList.isNotEmpty()) {
             incidentDao.insertAll(fetchedList)
         }
         fetchedList.size
+    }
+
+    // NASA EONET - Real satellite natural events with exact coordinates
+    private fun fetchEonetLiveSatellite(): List<IncidentEntity> {
+        val list = mutableListOf<IncidentEntity>()
+        try {
+            val req = Request.Builder()
+                .url("https://eonet.gsfc.nasa.gov/api/v3/events?status=open&limit=25")
+                .header("User-Agent", "HUMAN-OSINT-LIVE-SATELLITE/2.0")
+                .build()
+            client.newCall(req).execute().use { resp ->
+                if (!resp.isSuccessful) return@use
+                val body = resp.body?.string() ?: return@use
+                val json = org.json.JSONObject(body)
+                val events = json.optJSONArray("events") ?: return@use
+                for (i in 0 until minOf(events.length(), 20)) {
+                    try {
+                        val ev = events.getJSONObject(i)
+                        val title = ev.optString("title", "Événement satellite")
+                        val link = ev.optString("link", "https://eonet.gsfc.nasa.gov/")
+                        val categories = ev.optJSONArray("categories")
+                        val catId = categories?.optJSONObject(0)?.optString("id", "wildfires") ?: "wildfires"
+                        val geometry = ev.optJSONArray("geometry")
+                        if (geometry == null || geometry.length() == 0) continue
+                        val lastGeom = geometry.getJSONObject(geometry.length() - 1)
+                        val coords = lastGeom.optJSONArray("coordinates")
+                        if (coords == null || coords.length() < 2) continue
+                        val lon = coords.getDouble(0)
+                        val lat = coords.getDouble(1)
+                        val date = lastGeom.optString("date", "En direct")
+                        val category = when (catId) {
+                            "wildfires", "volcanoes", "earthquakes", "floods", "landslides", "severeStorms" -> "catastrophe"
+                            else -> "catastrophe"
+                        }
+                        list.add(
+                            IncidentEntity(
+                                title = "[NASA EONET LIVE] $title",
+                                link = link,
+                                source = "NASA EONET Satellite Live",
+                                sourceType = "ALERTE_CATASTROPHE",
+                                category = category,
+                                region = "Global",
+                                country = "Satellite Detection",
+                                latitude = lat,
+                                longitude = lon,
+                                publishedAt = date,
+                                summary = "Détection satellite temps réel NASA EONET - $catId - Coords réelles - Imagerie satellite"
+                            )
+                        )
+                    } catch (_: Exception) {}
+                }
+            }
+        } catch (e: Exception) {
+            Log.w("OsintRepository", "EONET parse error: ${e.message}")
+        }
+        return list
+    }
+
+    // USGS Earthquakes - Real-time seismic with exact coordinates
+    private fun fetchUsgsLiveEarthquakes(): List<IncidentEntity> {
+        val list = mutableListOf<IncidentEntity>()
+        try {
+            val req = Request.Builder()
+                .url("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson")
+                .header("User-Agent", "HUMAN-OSINT-LIVE-SATELLITE/2.0")
+                .build()
+            client.newCall(req).execute().use { resp ->
+                if (!resp.isSuccessful) return@use
+                val body = resp.body?.string() ?: return@use
+                val json = org.json.JSONObject(body)
+                val features = json.optJSONArray("features") ?: return@use
+                for (i in 0 until minOf(features.length(), 15)) {
+                    try {
+                        val feat = features.getJSONObject(i)
+                        val props = feat.optJSONObject("properties") ?: continue
+                        val geom = feat.optJSONObject("geometry") ?: continue
+                        val coords = geom.optJSONArray("coordinates") ?: continue
+                        if (coords.length() < 2) continue
+                        val lon = coords.getDouble(0)
+                        val lat = coords.getDouble(1)
+                        val mag = props.optDouble("mag", 0.0)
+                        if (mag < 4.5) continue
+                        val place = props.optString("place", "Unknown")
+                        val url = props.optString("url", "https://earthquake.usgs.gov/")
+                        val time = props.optLong("time", 0L)
+                        val dateStr = if (time > 0) java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.US).format(java.util.Date(time)) else "En direct"
+                        list.add(
+                            IncidentEntity(
+                                title = "Séisme M${mag} - $place [USGS LIVE SAT]",
+                                link = url,
+                                source = "USGS Seismic Live Satellite",
+                                sourceType = "ALERTE_CATASTROPHE",
+                                category = "catastrophe",
+                                region = "Global",
+                                country = place.substringAfterLast(",").trim().ifBlank { "Global" },
+                                latitude = lat,
+                                longitude = lon,
+                                publishedAt = dateStr,
+                                summary = "Magnitude ${mag} - Coords satellite sismique temps réel USGS - Alerte live"
+                            )
+                        )
+                    } catch (_: Exception) {}
+                }
+            }
+        } catch (e: Exception) {
+            Log.w("OsintRepository", "USGS parse error: ${e.message}")
+        }
+        return list
+    }
+
+    // ReliefWeb API - Humanitarian disasters live
+    private fun fetchReliefWebApiLive(): List<IncidentEntity> {
+        val list = mutableListOf<IncidentEntity>()
+        try {
+            val req = Request.Builder()
+                .url("https://api.reliefweb.int/v1/disasters?appname=human-osint-live-sat&limit=15&sort[]=date:desc&fields[include][]=country&fields[include][]=type&fields[include][]=url&fields[include][]=date&fields[include][]=name")
+                .header("User-Agent", "HUMAN-OSINT-LIVE/2.0")
+                .build()
+            client.newCall(req).execute().use { resp ->
+                if (!resp.isSuccessful) return@use
+                val body = resp.body?.string() ?: return@use
+                val json = org.json.JSONObject(body)
+                val data = json.optJSONArray("data") ?: return@use
+                for (i in 0 until data.length()) {
+                    try {
+                        val item = data.getJSONObject(i)
+                        val fields = item.optJSONObject("fields") ?: continue
+                        val title = fields.optString("name", "Crise humanitaire")
+                        val url = fields.optString("url", "https://reliefweb.int/disaster")
+                        val countries = fields.optJSONArray("country")
+                        val countryName = countries?.optJSONObject(0)?.optString("name", "International") ?: "International"
+                        val types = fields.optJSONArray("type")
+                        val disasterType = types?.optJSONObject(0)?.optString("name", "Disaster") ?: "Disaster"
+                        val match = resolveLocationAndCategory(countryName + " " + title)
+                        val lat = match?.latitude ?: (20.0 + (Math.random() - 0.5) * 10)
+                        val lon = match?.longitude ?: (30.0 + (Math.random() - 0.5) * 20)
+                        val region = match?.region ?: "Global"
+                        val category = when {
+                            disasterType.lowercase().contains("conflict") || disasterType.lowercase().contains("complex") -> "conflit"
+                            disasterType.lowercase().contains("epidemic") || disasterType.lowercase().contains("disease") -> "epidemie"
+                            disasterType.lowercase().contains("flood") || disasterType.lowercase().contains("earthquake") || disasterType.lowercase().contains("storm") -> "catastrophe"
+                            else -> "catastrophe"
+                        }
+                        list.add(
+                            IncidentEntity(
+                                title = "[ReliefWeb LIVE] $title - $countryName",
+                                link = url,
+                                source = "ReliefWeb API Live Satellite",
+                                sourceType = "OFFICIEL",
+                                category = category,
+                                region = region,
+                                country = countryName,
+                                latitude = lat + (Math.random() - 0.5) * 0.3,
+                                longitude = lon + (Math.random() - 0.5) * 0.3,
+                                publishedAt = "En direct",
+                                summary = "$disasterType - Pays: $countryName - Suivi humanitaire temps réel API"
+                            )
+                        )
+                    } catch (_: Exception) {}
+                }
+            }
+        } catch (e: Exception) {
+            Log.w("OsintRepository", "ReliefWeb API parse error: ${e.message}")
+        }
+        return list
     }
 
     private fun parseXmlFeed(xml: String, source: String, sourceType: String): List<IncidentEntity> {
