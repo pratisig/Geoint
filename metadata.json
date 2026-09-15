@@ -1,0 +1,6 @@
+{
+  "name": "HUMAN-OSINT",
+  "description": "Plateforme OSINT/GEOINT de renseignement en sources ouvertes, cartographie tactique 2D/3D et veille de crise",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

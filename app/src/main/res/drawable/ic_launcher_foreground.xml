@@ -1,0 +1,36 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Outer tactical radar circle -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#00FF9D"
+        android:strokeWidth="2.5"
+        android:pathData="M 54,20 A 34,34 0 1,0 54,88 A 34,34 0 1,0 54,20 Z" />
+    <!-- Inner radar circle -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#00E5FF"
+        android:strokeWidth="1.8"
+        android:pathData="M 54,34 A 20,20 0 1,0 54,74 A 20,20 0 1,0 54,34 Z" />
+    <!-- Crosshairs -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#00FF9D"
+        android:strokeWidth="2"
+        android:pathData="M 54,14 L 54,30 M 54,78 L 54,94 M 14,54 L 30,54 M 78,54 L 94,54" />
+    <!-- Center target point -->
+    <path
+        android:fillColor="#FF2A5F"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1"
+        android:pathData="M 54,50 A 4,4 0 1,0 54,58 A 4,4 0 1,0 54,50 Z" />
+    <!-- Tactical geo scan arc -->
+    <path
+        android:fillColor="#1500FF9D"
+        android:strokeColor="#00FF9D"
+        android:strokeWidth="1"
+        android:pathData="M 54,54 L 78,30 A 34,34 0 0,1 88,54 Z" />
+</vector>

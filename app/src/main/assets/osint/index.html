@@ -1,0 +1,2671 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>HUMAN-OSINT v1.0 // Tactical GEOINT Platform</title>
+
+  <!-- Bibliothèques CDN requises -->
+  <!-- 1. Leaflet.js (2D) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- 2. Leaflet.Draw (Outils de dessin géospatial) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+
+  <!-- 3. Turf.js (Calculs spatiaux avancés : surfaces et distances) -->
+  <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6.5.0/turf.min.js"></script>
+
+  <!-- 4. ExifReader.js (Extraction de métadonnées et coordonnées GPS d'images) -->
+  <script src="https://cdn.jsdelivr.net/npm/exifreader@4.23.3/dist/exif-reader.min.js"></script>
+
+  <style>
+    /* ==========================================================================
+       THÈME DARK CYBER-OSINT & STYLES TACTIQUES
+       ========================================================================== */
+    :root {
+      --bg-dark: #070a0f;
+      --bg-panel: #0d131f;
+      --bg-card: #131b29;
+      --bg-card-hover: #1b263b;
+      --border-color: #1e2c42;
+      --border-glow: #00ff9d44;
+      
+      --neon-green: #00ff9d;
+      --neon-red: #ff2a5f;
+      --neon-orange: #ff9900;
+      --neon-violet: #bd34fe;
+      --neon-cyan: #00e5ff;
+      --neon-yellow: #ffd600;
+      --text-muted: #8292ab;
+      --text-bright: #edf2f7;
+      
+      --font-mono: -apple-system, BlinkMacSystemFont, "SF Mono", "Fira Code", "Roboto Mono", Consolas, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-bright);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Barre supérieure de contrôle tactique */
+    header {
+      height: 48px;
+      min-height: 48px;
+      background: linear-gradient(90deg, #090e17 0%, #111827 100%);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      z-index: 1000;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+    }
+
+    .header-branding {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-pulse {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--neon-green);
+      box-shadow: 0 0 8px var(--neon-green);
+      animation: pulseAnim 2s infinite ease-in-out;
+    }
+
+    @keyframes pulseAnim {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.3); opacity: 0.5; }
+    }
+
+    .brand-title {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: var(--neon-green);
+      text-transform: uppercase;
+      text-shadow: 0 0 10px rgba(0, 255, 157, 0.4);
+      white-space: nowrap;
+    }
+
+    .header-stats {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .stat-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 6px;
+      border-radius: 3px;
+      background: rgba(0, 229, 255, 0.08);
+      border: 1px solid rgba(0, 229, 255, 0.3);
+      color: var(--neon-cyan);
+      font-size: 10px;
+      white-space: nowrap;
+    }
+
+    .mode-switch-group {
+      display: flex;
+      background: #090e17;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .btn-mode {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 4px 8px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-mode.active {
+      background: var(--neon-cyan);
+      color: #070a0f;
+    }
+
+    /* Conteneur d'affichage principal */
+    .app-workspace {
+      display: flex;
+      flex: 1;
+      height: calc(100vh - 48px - 48px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Panneau latéral rétractable */
+    .sidebar {
+      width: 440px;
+      max-width: 100vw;
+      background-color: var(--bg-panel);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      z-index: 900;
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .sidebar-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border-color);
+      background: #090e17;
+    }
+
+    .tab-btn {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 10px 4px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+      white-space: nowrap;
+      text-align: center;
+    }
+
+    .tab-btn.active {
+      color: var(--neon-cyan);
+      border-bottom-color: var(--neon-cyan);
+      background: rgba(0, 229, 255, 0.05);
+    }
+
+    .sidebar-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .tab-pane {
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      height: 100%;
+    }
+
+    .tab-pane.active {
+      display: flex;
+    }
+
+    /* Entêtes de sections */
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .panel-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--neon-cyan);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Panneau d'automatisation et sync */
+    .sync-banner {
+      background: rgba(0, 255, 157, 0.05);
+      border: 1px solid rgba(0, 255, 157, 0.3);
+      padding: 6px 10px;
+      border-radius: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 10px;
+    }
+
+    /* Barre de recherche instantanée */
+    .search-bar-wrap {
+      display: flex;
+      position: relative;
+    }
+
+    .search-input {
+      width: 100%;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-bright);
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      outline: none;
+    }
+
+    .search-input:focus {
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 6px rgba(0, 229, 255, 0.3);
+    }
+
+    /* Ligne de sélection Région & Pays */
+    .filter-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    .filter-select {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--neon-cyan);
+      padding: 5px 8px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      outline: none;
+    }
+
+    .filter-select option {
+      background: var(--bg-panel);
+      color: var(--text-bright);
+    }
+
+    /* Puces de filtres thématiques */
+    .category-filters {
+      display: flex;
+      gap: 4px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+      scrollbar-width: none;
+    }
+
+    .category-filters::-webkit-scrollbar {
+      display: none;
+    }
+
+    .filter-chip {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      padding: 3px 8px;
+      border-radius: 3px;
+      font-family: var(--font-mono);
+      font-size: 9px;
+      font-weight: 700;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .filter-chip.active {
+      background: var(--neon-green);
+      color: #070a0f;
+      border-color: var(--neon-green);
+    }
+
+    /* Cartes d'incidents OSINT */
+    .incident-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      overflow-y: auto;
+      flex: 1;
+      padding-right: 2px;
+    }
+
+    .incident-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-left: 3px solid var(--neon-cyan);
+      padding: 9px 10px;
+      border-radius: 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: background-color 0.2s, border-color 0.2s;
+    }
+
+    .incident-card:hover {
+      background: var(--bg-card-hover);
+    }
+
+    .incident-card.cat-conflit { border-left-color: var(--neon-red); }
+    .incident-card.cat-cyber { border-left-color: var(--neon-cyan); }
+    .incident-card.cat-energie { border-left-color: var(--neon-orange); }
+    .incident-card.cat-epidemie { border-left-color: var(--neon-violet); }
+    .incident-card.cat-protest { border-left-color: var(--neon-yellow); }
+    .incident-card.cat-catastrophe { border-left-color: #38ef7d; }
+
+    .incident-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .badge-cat {
+      font-size: 9px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 2px;
+      text-transform: uppercase;
+    }
+
+    .badge-conflit { background: rgba(255, 42, 95, 0.15); color: var(--neon-red); border: 1px solid var(--neon-red); }
+    .badge-cyber { background: rgba(0, 229, 255, 0.15); color: var(--neon-cyan); border: 1px solid var(--neon-cyan); }
+    .badge-energie { background: rgba(255, 153, 0, 0.15); color: var(--neon-orange); border: 1px solid var(--neon-orange); }
+    .badge-epidemie { background: rgba(189, 52, 254, 0.15); color: var(--neon-violet); border: 1px solid var(--neon-violet); }
+    .badge-protest { background: rgba(255, 214, 0, 0.15); color: var(--neon-yellow); border: 1px solid var(--neon-yellow); }
+    .badge-catastrophe { background: rgba(56, 239, 125, 0.15); color: #38ef7d; border: 1px solid #38ef7d; }
+
+    .badge-sourcetype {
+      font-size: 9px;
+      color: #cbd5e1;
+      background: #1e293b;
+      padding: 1px 5px;
+      border-radius: 2px;
+    }
+
+    .incident-location-line {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+      color: var(--neon-cyan);
+      font-weight: 600;
+    }
+
+    .incident-title {
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1.35;
+      color: #fff;
+    }
+
+    .incident-summary {
+      font-size: 10px;
+      color: var(--text-muted);
+      line-height: 1.35;
+    }
+
+    .incident-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 9px;
+      color: var(--text-muted);
+    }
+
+    .incident-actions {
+      display: flex;
+      gap: 6px;
+      margin-top: 2px;
+    }
+
+    .cyber-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-bright);
+      padding: 5px 10px;
+      border-radius: 3px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+
+    .cyber-btn:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--neon-cyan);
+      color: var(--neon-cyan);
+    }
+
+    .cyber-btn-primary {
+      background: rgba(0, 255, 157, 0.12);
+      border-color: var(--neon-green);
+      color: var(--neon-green);
+    }
+
+    .cyber-btn-primary:hover {
+      background: var(--neon-green);
+      color: #070a0f;
+    }
+
+    .cyber-btn-danger {
+      background: rgba(255, 42, 95, 0.12);
+      border-color: var(--neon-red);
+      color: var(--neon-red);
+    }
+
+    .cyber-btn-danger:hover {
+      background: var(--neon-red);
+      color: #fff;
+    }
+
+    .btn-xs {
+      padding: 3px 6px;
+      font-size: 9px;
+    }
+
+    /* Cartographie principale */
+    .map-container {
+      flex: 1;
+      position: relative;
+      height: 100%;
+      background: #040609;
+    }
+
+    #leaflet-map {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    #tactical-globe-container {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      display: none;
+      background: radial-gradient(circle at 50% 50%, #0d1629 0%, #060911 65%, #020408 100%);
+      overflow: hidden;
+      touch-action: none;
+    }
+
+    #tactical-3d-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      cursor: grab;
+    }
+
+    #tactical-3d-canvas:active {
+      cursor: grabbing;
+    }
+
+    .globe-hud-overlay {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      background: rgba(9, 14, 23, 0.9);
+      border: 1px solid var(--border-color);
+      border-left: 3px solid var(--neon-cyan);
+      backdrop-filter: blur(8px);
+      padding: 8px 12px;
+      border-radius: 4px;
+      pointer-events: auto;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+    }
+
+    .globe-hud-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--neon-cyan);
+      letter-spacing: 0.5px;
+    }
+
+    .globe-hud-coords {
+      font-size: 10px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    .globe-controls {
+      display: flex;
+      gap: 4px;
+      margin-top: 2px;
+    }
+
+    .globe-incident-tooltip {
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      max-width: 380px;
+      width: calc(100% - 32px);
+      background: rgba(13, 19, 31, 0.96);
+      border: 1px solid var(--neon-cyan);
+      box-shadow: 0 4px 25px rgba(0, 229, 255, 0.25);
+      backdrop-filter: blur(10px);
+      border-radius: 6px;
+      padding: 10px 14px;
+      display: none;
+      flex-direction: column;
+      gap: 6px;
+      z-index: 1000;
+      pointer-events: auto;
+    }
+
+    .globe-tooltip-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.35;
+    }
+
+    .globe-tooltip-meta {
+      font-size: 10px;
+      color: var(--text-muted);
+      line-height: 1.3;
+    }
+
+    .globe-tooltip-actions {
+      display: flex;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    /* Sélecteur de couches de fond de carte (100% SANS CLEF API) */
+    .map-layer-selector {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      z-index: 1000;
+      display: flex;
+      background: rgba(13, 19, 31, 0.95);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      overflow: visible;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.7);
+    }
+
+    .btn-layer-opt {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 6px 10px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .btn-layer-opt:hover {
+      color: var(--text-bright);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .btn-layer-opt.active {
+      background: rgba(0, 229, 255, 0.2);
+      color: var(--neon-cyan);
+      border-bottom: 2px solid var(--neon-cyan);
+    }
+
+    .btn-layer-opt.overlay-active {
+      background: rgba(0, 255, 157, 0.18);
+      color: var(--neon-green);
+      border-bottom: 2px solid var(--neon-green);
+    }
+
+    .map-overlay-dropdown {
+      position: relative;
+      display: inline-block;
+      border-left: 1px solid var(--border-color);
+    }
+
+    .map-overlay-menu {
+      position: absolute;
+      top: calc(100% + 4px);
+      right: 0;
+      min-width: 220px;
+      background: rgba(11, 16, 26, 0.98);
+      border: 1px solid var(--neon-cyan);
+      border-radius: 4px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(10px);
+      padding: 6px 0;
+      display: none;
+      flex-direction: column;
+      z-index: 1010;
+    }
+
+    .map-overlay-menu.show {
+      display: flex;
+    }
+
+    .map-overlay-menu-header {
+      padding: 6px 12px;
+      font-size: 9px;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: var(--neon-cyan);
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .overlay-opt-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      cursor: pointer;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      transition: background 0.15s;
+    }
+
+    .overlay-opt-row:hover {
+      background: rgba(0, 229, 255, 0.1);
+    }
+
+    .overlay-opt-row.active {
+      background: rgba(0, 255, 157, 0.12);
+    }
+
+    .overlay-opt-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .overlay-opt-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-bright);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .overlay-opt-desc {
+      font-size: 9px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    .overlay-opt-status {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: var(--font-mono);
+    }
+
+    .overlay-status-on {
+      color: var(--neon-green);
+      background: rgba(0, 255, 157, 0.15);
+      border: 1px solid var(--neon-green);
+    }
+
+    .overlay-status-off {
+      color: var(--text-muted);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Overlay interactif de mesure tactique */
+    .map-measurement-overlay {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      right: 20px;
+      max-width: 380px;
+      background: rgba(13, 19, 31, 0.92);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--neon-cyan);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.7);
+      padding: 10px 14px;
+      border-radius: 4px;
+      z-index: 1000;
+      display: none;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    /* Bouton tactique flottant pour mobile */
+    .fab-toggle-panel {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      z-index: 1000;
+      background: var(--bg-card);
+      border: 1px solid var(--neon-cyan);
+      color: var(--neon-cyan);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      display: none;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.8);
+      cursor: pointer;
+    }
+
+    /* Barre de navigation inférieure */
+    .bottom-nav {
+      height: 48px;
+      background: #090e17;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      z-index: 1000;
+    }
+
+    .bottom-nav-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 700;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      cursor: pointer;
+      padding: 4px 8px;
+    }
+
+    .bottom-nav-btn.active {
+      color: var(--neon-green);
+    }
+
+    /* Tuiles sombres sans clé API via filtre CSS */
+    .cyber-dark-tiles {
+      filter: brightness(0.65) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3);
+    }
+
+    .leaflet-bar a {
+      background-color: var(--bg-card) !important;
+      color: var(--neon-cyan) !important;
+      border-bottom: 1px solid var(--border-color) !important;
+    }
+    .leaflet-bar a:hover {
+      background-color: var(--bg-card-hover) !important;
+      color: #fff !important;
+    }
+    .leaflet-popup-content-wrapper, .leaflet-popup-tip {
+      background: var(--bg-panel) !important;
+      color: var(--text-bright) !important;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
+      font-family: var(--font-mono);
+    }
+
+    .tactical-hud {
+      background: #090e17;
+      border: 1px solid var(--border-color);
+      padding: 8px 10px;
+      border-radius: 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .hud-title {
+      font-size: 9px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .hud-stat-value {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--neon-cyan);
+    }
+
+    .geozone-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      overflow-y: auto;
+      max-height: 250px;
+    }
+
+    .geozone-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      padding: 8px;
+      border-radius: 3px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .drop-zone {
+      border: 2px dashed var(--border-color);
+      border-radius: 6px;
+      padding: 20px;
+      text-align: center;
+      background: var(--bg-card);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .drop-zone:hover, .drop-zone.drag-over {
+      border-color: var(--neon-green);
+      background: rgba(0, 255, 157, 0.04);
+    }
+
+    .exif-result-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      padding: 12px;
+      border-radius: 4px;
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .dork-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .dork-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      padding: 8px 10px;
+      border-radius: 3px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .dork-query {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--neon-cyan);
+      word-break: break-all;
+    }
+
+    @media (max-width: 820px) {
+      .sidebar {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        width: 100%;
+        transform: translateX(-100%);
+        z-index: 999;
+      }
+
+      .sidebar.open {
+        transform: translateX(0);
+      }
+
+      .fab-toggle-panel {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .map-layer-selector {
+        top: 8px;
+        right: 8px;
+        max-width: calc(100% - 16px);
+      }
+
+      .btn-layer-opt {
+        padding: 5px 6px;
+        font-size: 9px;
+      }
+
+      .map-overlay-menu {
+        max-width: 250px;
+        right: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- BARRE SUPÉRIEURE -->
+  <header>
+    <div class="header-branding">
+      <div class="status-pulse"></div>
+      <div class="brand-title">HUMAN-OSINT v1.0</div>
+    </div>
+
+    <div class="header-stats">
+      <div class="stat-badge" id="db-status-badge">SQLITE ROOM</div>
+      
+      <!-- Bascule Cartographie Hybride 2D/3D -->
+      <div class="mode-switch-group">
+        <button id="btn-switch-2d" class="btn-mode active" onclick="switchMapMode('2D')">2D</button>
+        <button id="btn-switch-3d" class="btn-mode" onclick="switchMapMode('3D')">3D</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ESPACE DE TRAVAIL PRINCIPAL -->
+  <div class="app-workspace">
+    
+    <!-- Panneau Latéral Modulaire -->
+    <aside class="sidebar" id="app-sidebar">
+      
+      <!-- Onglets de Navigation -->
+      <div class="sidebar-tabs">
+        <button class="tab-btn active" id="tab-btn-live" onclick="switchTab('tab-live')">FLUX LIVE</button>
+        <button class="tab-btn" id="tab-btn-geoint" onclick="switchTab('tab-geoint')">GEOINT</button>
+        <button class="tab-btn" id="tab-btn-exif" onclick="switchTab('tab-exif')">EXIF & IMG</button>
+        <button class="tab-btn" id="tab-btn-dorks" onclick="switchTab('tab-dorks')">DORKS</button>
+      </div>
+
+      <div class="sidebar-content">
+        
+        <!-- ONGLET 1 : VEILLE OSINT / FLUX EN TEMPS RÉEL MULTI-CRITÈRES -->
+        <div id="tab-live" class="tab-pane active">
+          
+          <!-- Bandeau synchro automatique 1 heure & Scraping Web -->
+          <div class="sync-banner">
+            <div>
+              <span style="color:var(--neon-green); font-weight:700;">🔄 CYCLE 1H ACTIF</span>
+              <span id="sync-timer-label" style="color:var(--text-muted); margin-left:4px;">| À jour</span>
+            </div>
+            <button class="cyber-btn cyber-btn-primary btn-xs" onclick="fetchLiveFeeds(true)">
+              ⚡ SCRAPER LE WEB
+            </button>
+          </div>
+
+          <!-- Champ de recherche textuelle instantanée -->
+          <div class="search-bar-wrap">
+            <input type="text" id="filter-search-input" class="search-input" placeholder="🔍 Rechercher : ville, armée, navire, malware..." oninput="applyAllFilters()" />
+          </div>
+
+          <!-- Sélecteurs Région & Pays -->
+          <div class="filter-row">
+            <select id="filter-region-select" class="filter-select" onchange="onRegionChanged()">
+              <option value="all">🌍 Toutes les Régions</option>
+              <option value="Moyen-Orient">Moyen-Orient</option>
+              <option value="Europe">Europe de l'Est & Russie</option>
+              <option value="Afrique">Afrique & Sahel</option>
+              <option value="Asie-Pacifique">Asie-Pacifique</option>
+              <option value="Amériques">Amériques & Caraïbes</option>
+              <option value="Global">International / Global</option>
+            </select>
+
+            <select id="filter-country-select" class="filter-select" onchange="applyAllFilters()">
+              <option value="all">🏳️ Tous les Pays</option>
+            </select>
+          </div>
+
+          <!-- Filtre par Source -->
+          <select id="filter-sourcetype-select" class="filter-select" onchange="applyAllFilters()">
+            <option value="all">📡 Toutes les Sources & Réseaux</option>
+            <option value="OFFICIEL">Communiqués Officiels / ONU</option>
+            <option value="OSINT_DEPÊCHE">Réseaux Sociaux / Dépêches OSINT</option>
+            <option value="RENSEIGNEMENT">Renseignement Tactique (ISW / DeepState)</option>
+            <option value="CYBER_FUITE">Cyber Threat Intel / Fuites Darknet</option>
+            <option value="ALERTE_CATASTROPHE">Alertes GDACS / OMS / Séismes</option>
+            <option value="PRESSE">Presse Internationale (BBC, F24, AJ)</option>
+          </select>
+
+          <!-- Filtres de Catégories / Thématiques -->
+          <div class="category-filters">
+            <button class="filter-chip active" data-cat="all" onclick="filterByTheme('all', this)">TOUTES</button>
+            <button class="filter-chip" data-cat="conflit" onclick="filterByTheme('conflit', this)">⚔️ CONFLITS</button>
+            <button class="filter-chip" data-cat="cyber" onclick="filterByTheme('cyber', this)">💻 CYBER</button>
+            <button class="filter-chip" data-cat="energie" onclick="filterByTheme('energie', this)">⛽ ÉNERGIE / MER</button>
+            <button class="filter-chip" data-cat="epidemie" onclick="filterByTheme('epidemie', this)">☣️ ÉPIDÉMIE</button>
+            <button class="filter-chip" data-cat="catastrophe" onclick="filterByTheme('catastrophe', this)">🌋 CATASTROPHE</button>
+            <button class="filter-chip" data-cat="protest" onclick="filterByTheme('protest', this)">📢 DISSIDENCE</button>
+          </div>
+
+          <!-- Compteur de résultats -->
+          <div style="display:flex; justify-content:space-between; align-items:center; font-size:10px; color:var(--text-muted); padding:0 2px;">
+            <span id="filtered-count-label">0 événements répertoriés</span>
+            <span style="color:var(--neon-green); font-weight:700;">LIVE BDD</span>
+          </div>
+
+          <!-- Liste des incidents -->
+          <div class="incident-list" id="incident-container">
+            <div style="color: var(--text-muted); text-align: center; padding: 20px;">
+              Chargement des flux tactiques mondiaux...
+            </div>
+          </div>
+        </div>
+
+        <!-- ONGLET 2 : OUTILS GEOINT ET GÉOZONES SAUVEGARDÉES -->
+        <div id="tab-geoint" class="tab-pane">
+          <div class="panel-header">
+            <span class="panel-title">ZONES TACTIQUES & SÉCURITÉ</span>
+            <button class="cyber-btn btn-xs" onclick="exportGeoJSON()">
+              <span>EXPORT GEOJSON</span>
+            </button>
+          </div>
+
+          <div class="tactical-hud">
+            <div class="hud-title">ZONES EN BASE SQLITE (ROOM)</div>
+            <div style="display: flex; justify-content: space-between; align-items: baseline;">
+              <span class="hud-stat-value" id="total-zones-count">0</span>
+              <span style="font-size: 11px; color: var(--neon-green);" id="total-area-sum">0 km² cumulés</span>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 8px;">
+            <button class="cyber-btn cyber-btn-primary" style="flex: 1;" onclick="promptSaveCurrentDrawn()">
+              💾 SAUVEGARDER LE TRACÉ ACTIF
+            </button>
+          </div>
+
+          <div class="panel-title" style="margin-top: 8px;">HISTORIQUE DES ZONES ENREGISTRÉES</div>
+          <div class="geozone-list" id="geozone-container">
+            <div style="color: var(--text-muted); text-align: center; padding: 10px;">
+              Aucune zone enregistrée.
+            </div>
+          </div>
+        </div>
+
+        <!-- ONGLET 3 : ANALYSE D'IMAGE & EXTRACTION EXIF -->
+        <div id="tab-exif" class="tab-pane">
+          <div class="panel-header">
+            <span class="panel-title">MÉTADONNÉES EXIF & GÉOLOCALISATION</span>
+          </div>
+
+          <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+            <div style="font-size: 24px; margin-bottom: 8px;">🛰️</div>
+            <div style="color: var(--neon-cyan); font-weight: 600;">Sélectionner une photo / Glisser-déposer</div>
+            <div style="color: var(--text-muted); font-size: 11px; margin-top: 4px;">Extraction automatique des coordonnées GPS</div>
+            <input type="file" id="file-input" style="display: none;" accept="image/*" onchange="handleFileSelect(event)" />
+          </div>
+
+          <div class="exif-result-card" id="exif-card">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="color: var(--neon-green); font-weight: 700;">GÉO-COORDONNÉES DÉTECTÉES</span>
+              <span class="badge-cat badge-conflit" id="exif-badge-status">GPS VALIDE</span>
+            </div>
+            <div id="exif-details" style="font-size: 11px; line-height: 1.6;"></div>
+            <button class="cyber-btn cyber-btn-primary" id="btn-locate-exif" onclick="locateExifOnMap()">
+              🎯 LOCALISER SUR LA CARTE
+            </button>
+          </div>
+
+          <div class="panel-title" style="margin-top: 8px;">RECHERCHE D'IMAGE INVERSÉE (OSINT)</div>
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <a href="https://lens.google.com/" target="_blank" class="cyber-btn" style="text-decoration: none;">
+              🔍 GOOGLE LENS REVERSE SEARCH
+            </a>
+            <a href="https://yandex.com/images/search?rpt=imageview" target="_blank" class="cyber-btn" style="text-decoration: none;">
+              🌐 YANDEX VISUAL INTELLIGENCE
+            </a>
+            <a href="https://tineye.com/search" target="_blank" class="cyber-btn" style="text-decoration: none;">
+              🔬 TINEYE REVERSE SEARCH
+            </a>
+          </div>
+        </div>
+
+        <!-- ONGLET 4 : GÉNÉRATEUR GOOGLE DORKS OSINT -->
+        <div id="tab-dorks" class="tab-pane">
+          <div class="panel-header">
+            <span class="panel-title">GÉNÉRATEUR DE DORKS OSINT</span>
+          </div>
+
+          <div class="dork-grid">
+            <div class="dork-card">
+              <div style="font-weight: 700; color: var(--neon-red);">1. Documents Confidentiels / Restreints</div>
+              <div class="dork-query">filetype:pdf "CONFIDENTIAL" OR "RESTRICTED"</div>
+              <button class="cyber-btn btn-xs" onclick="openDork('filetype:pdf \"CONFIDENTIAL\" OR \"RESTRICTED\"')">
+                LANCER GOOGLE ↗
+              </button>
+            </div>
+
+            <div class="dork-card">
+              <div style="font-weight: 700; color: var(--neon-orange);">2. Fuites de Mots de Passe & Clés API</div>
+              <div class="dork-query">site:pastebin.com "password" OR "api_key"</div>
+              <button class="cyber-btn btn-xs" onclick="openDork('site:pastebin.com \"password\" OR \"api_key\"')">
+                LANCER GOOGLE ↗
+              </button>
+            </div>
+
+            <div class="dork-card">
+              <div style="font-weight: 700; color: var(--neon-cyan);">3. Répertoires de Sauvegardes Exposés</div>
+              <div class="dork-query">intitle:"index of" inurl:ftp "backup"</div>
+              <button class="cyber-btn btn-xs" onclick="openDork('intitle:\"index of\" inurl:ftp \"backup\"')">
+                LANCER GOOGLE ↗
+              </button>
+            </div>
+
+            <div class="dork-card">
+              <div style="font-weight: 700; color: var(--neon-violet);">4. Documents d'État-Major Classifiés</div>
+              <div class="dork-query">intext:"classified" ext:doc OR ext:pdf</div>
+              <button class="cyber-btn btn-xs" onclick="openDork('intext:\"classified\" ext:doc OR ext:pdf')">
+                LANCER GOOGLE ↗
+              </button>
+            </div>
+
+            <div class="dork-card">
+              <div style="font-weight: 700; color: var(--neon-green);">5. SIG & Tracés Militaires (KML/KMZ)</div>
+              <div class="dork-query">filetype:kml OR filetype:kmz "military"</div>
+              <button class="cyber-btn btn-xs" onclick="openDork('filetype:kml OR filetype:kmz \"military\"')">
+                LANCER GOOGLE ↗
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </aside>
+
+    <!-- Zone Cartographique Plein Écran -->
+    <main class="map-container">
+      <!-- Bouton Flottant Mobile pour panneau -->
+      <button class="fab-toggle-panel" id="btn-fab-toggle" onclick="toggleSidebar()">
+        ☰ PANNEAU TACTIQUE
+      </button>
+
+      <!-- Sélecteur de fond de carte sans clef API avec Surcouches Tactiques -->
+      <div class="map-layer-selector">
+        <button id="btn-layer-sat" class="btn-layer-opt active" onclick="switchBaseLayer('sat')">🛰️ SATELLITE HD</button>
+        <button id="btn-layer-dark" class="btn-layer-opt" onclick="switchBaseLayer('dark')">🌑 DARK TACTIQUE</button>
+        <button id="btn-layer-osm" class="btn-layer-opt" onclick="switchBaseLayer('osm')">🗺️ OSM STANDARD</button>
+        
+        <!-- Menu déroulant des surcouches tactiques (Traffic, Météo/Précipitations, Relief/Terrain) -->
+        <div class="map-overlay-dropdown">
+          <button id="btn-toggle-overlays" class="btn-layer-opt" onclick="toggleOverlayDropdown(event)">
+            <span>⚡ SURCOUCHES</span>
+            <span id="overlay-active-badge" style="font-size:9px; background:var(--neon-green); color:#000; padding:1px 4px; border-radius:10px; display:none;">0</span>
+            <span style="font-size:8px;">▼</span>
+          </button>
+          <div class="map-overlay-menu" id="map-overlay-menu">
+            <div class="map-overlay-menu-header">
+              <span>SURCOUCHES GEOINT DISPONIBLES</span>
+              <span style="cursor:pointer; color:var(--text-muted);" onclick="toggleOverlayDropdown(event)">✕</span>
+            </div>
+            
+            <!-- Surcouche Relief / Topographie OpenTopoMap -->
+            <div class="overlay-opt-row" id="row-overlay-terrain" onclick="toggleMapOverlay('terrain')">
+              <div class="overlay-opt-info">
+                <div class="overlay-opt-label">🏔️ VUE RELIEF & TERRAIN</div>
+                <div class="overlay-opt-desc">Courbes de niveau & ombrage topographique OpenTopoMap</div>
+              </div>
+              <span class="overlay-opt-status overlay-status-off" id="status-overlay-terrain">OFF</span>
+            </div>
+
+            <!-- Surcouche Météo & Précipitations Radar Open-Meteo -->
+            <div class="overlay-opt-row" id="row-overlay-weather" onclick="toggleMapOverlay('weather')">
+              <div class="overlay-opt-info">
+                <div class="overlay-opt-label">🌧️ RADAR MÉTÉO & PRÉCIPITATIONS</div>
+                <div class="overlay-opt-desc">Échos nuageux & cellules de pluie mondiales RainViewer</div>
+              </div>
+              <span class="overlay-opt-status overlay-status-off" id="status-overlay-weather">OFF</span>
+            </div>
+
+            <!-- Surcouche Trafic / Transports & Réseau Routier CyclOSM -->
+            <div class="overlay-opt-row" id="row-overlay-traffic" onclick="toggleMapOverlay('traffic')">
+              <div class="overlay-opt-info">
+                <div class="overlay-opt-label">🚗 TRAFIC & RÉSEAU ROUTIER</div>
+                <div class="overlay-opt-desc">Axes logistiques, voies rapides & voies de circulation</div>
+              </div>
+              <span class="overlay-opt-status overlay-status-off" id="status-overlay-traffic">OFF</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Carte 2D Leaflet -->
+      <div id="leaflet-map"></div>
+
+      <!-- Globe 3D Tactique Hautes Performances (Canvas 2D - Zéro Erreur MESA / WebGL) -->
+      <div id="tactical-globe-container">
+        <canvas id="tactical-3d-canvas"></canvas>
+        <div class="globe-hud-overlay">
+          <div class="globe-hud-title">🌐 GLOBE 3D GEOINT // SCAN ORBITAL</div>
+          <div class="globe-hud-coords" id="globe-coords-label">LAT: 20.0°N | LON: 30.0°E</div>
+          <div class="globe-controls">
+            <button class="cyber-btn btn-xs" onclick="globeZoomIn()">➕ ZOOM</button>
+            <button class="cyber-btn btn-xs" onclick="globeZoomOut()">➖ DEZOOM</button>
+            <button class="cyber-btn btn-xs" onclick="toggleGlobeAutoRotate()" id="btn-globe-rotate">⏸️ PAUSE</button>
+            <button class="cyber-btn btn-xs" onclick="resetGlobeView()">🎯 RESET</button>
+          </div>
+        </div>
+        <div class="globe-incident-tooltip" id="globe-tooltip">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span class="badge-cat badge-conflit" id="globe-tt-cat">INCIDENT</span>
+            <span style="font-size:9px; color:var(--text-muted);" id="globe-tt-region">Région</span>
+            <button class="cyber-btn btn-xs" onclick="closeGlobeTooltip()" style="padding:1px 5px;">✕</button>
+          </div>
+          <div class="globe-tooltip-title" id="globe-tt-title">Titre</div>
+          <div class="globe-tooltip-meta" id="globe-tt-meta">Détails</div>
+          <div class="globe-tooltip-actions">
+            <button class="cyber-btn cyber-btn-primary btn-xs" onclick="locateGlobeIncidentIn2D()">🗺️ VOIR SUR CARTE 2D</button>
+            <a id="globe-tt-link" class="cyber-btn btn-xs" target="_blank">SOURCE ↗</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Overlay Tactique de Mesure en Temps Réel -->
+      <div class="map-measurement-overlay" id="measure-overlay">
+        <div style="font-weight: 700; color: var(--neon-cyan); font-size: 11px;">MESURE GÉOSPATIALE (TURF.JS)</div>
+        <div id="measure-output" style="font-size: 13px; font-weight: 700; color: #fff;">0.00 km²</div>
+        <button class="cyber-btn cyber-btn-primary btn-xs" onclick="saveActiveMeasurement()">
+          💾 ENREGISTRER DANS LA BDD SQLITE
+        </button>
+      </div>
+    </main>
+
+  </div>
+
+  <!-- Barre de navigation inférieure mobile -->
+  <nav class="bottom-nav">
+    <button class="bottom-nav-btn active" id="bnav-map" onclick="showMapView()">
+      <span>🗺️</span>
+      <span>CARTE</span>
+    </button>
+    <button class="bottom-nav-btn" id="bnav-live" onclick="showPanelTab('tab-live')">
+      <span>📡</span>
+      <span>FLUX</span>
+    </button>
+    <button class="bottom-nav-btn" id="bnav-geoint" onclick="showPanelTab('tab-geoint')">
+      <span>📐</span>
+      <span>ZONES</span>
+    </button>
+    <button class="bottom-nav-btn" id="bnav-exif" onclick="showPanelTab('tab-exif')">
+      <span>📸</span>
+      <span>EXIF</span>
+    </button>
+    <button class="bottom-nav-btn" id="bnav-dorks" onclick="showPanelTab('tab-dorks')">
+      <span>🔍</span>
+      <span>DORKS</span>
+    </button>
+  </nav>
+
+  <!-- LOGIQUE JAVASCRIPT CONNECTÉE À ANDROID ROOM SQLITE & LIVE RSS -->
+  <script>
+    const API_BASE = window.location.origin.includes("http") ? window.location.origin : "http://localhost:8000";
+
+    // Variables d'état global
+    let leafletMap = null;
+    let drawnItems = null;
+    let incidentMarkersLayer = null;
+    let savedGeozonesLayer = null;
+
+    // État du Globe 3D Tactique (Canvas 2D - Haute Performance sans WebGL/MESA)
+    let globeCanvas = null;
+    let globeCtx = null;
+    let globeAnimId = null;
+    let globeRadius = 180;
+    let globeZoom = 1.0;
+    let globeYaw = 0.5;
+    let globePitch = 0.35;
+    let globeTargetYaw = 0.5;
+    let globeTargetPitch = 0.35;
+    let isGlobePointerDown = false;
+    let globeLastPointerX = 0;
+    let globeLastPointerY = 0;
+    let globeAutoRotate = true;
+    let globeSelectedIncident = null;
+    let globeProjectedIncidents = [];
+    let globeStars = [];
+    
+    // Fonds de cartes 100% SANS CLEF API
+    let activeTileLayer = null;
+    let currentBaseLayerKey = "sat";
+
+    // Surcouches cartographiques actives (Météo, Trafic, Relief/Terrain)
+    const activeOverlays = {
+      terrain: null,
+      weather: null,
+      traffic: null
+    };
+
+    let allIncidents = [];
+    let savedGeozones = [];
+    let currentDrawingGeoJSON = null;
+    let currentDrawingArea = 0;
+    let lastExifLocation = null;
+    let activeMapMode = "2D";
+    let isSidebarOpen = window.innerWidth > 820;
+
+    let activeThemeFilter = "all";
+
+    window.addEventListener("DOMContentLoaded", () => {
+      initLeaflet();
+      fetchLiveFeeds();
+      loadSavedGeozones();
+      setupDragAndDrop();
+      startSyncTimerIndicator();
+    });
+
+    // Callback appelé depuis Android Kotlin quand de nouvelles données arrivent en tâche de fond
+    window.onAndroidDataUpdated = function() {
+      fetchLiveFeeds();
+      loadSavedGeozones();
+    };
+
+    function startSyncTimerIndicator() {
+      setInterval(() => {
+        const timerLabel = document.getElementById("sync-timer-label");
+        if (!timerLabel) return;
+        if (window.AndroidOSINT && typeof window.AndroidOSINT.getLastSyncTimestamp === "function") {
+          const lastTs = window.AndroidOSINT.getLastSyncTimestamp();
+          if (lastTs > 0) {
+            const diffMin = Math.max(0, Math.floor((Date.now() - lastTs) / 60000));
+            const nextMin = Math.max(0, 60 - (diffMin % 60));
+            timerLabel.textContent = `| MAJ : il y a ${diffMin}m (Prochaine : ${nextMin}m)`;
+            return;
+          }
+        }
+        timerLabel.textContent = "| MAJ en arrière-plan 1h";
+      }, 30000);
+    }
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById("app-sidebar");
+      isSidebarOpen = !isSidebarOpen;
+      if (isSidebarOpen) {
+        sidebar.classList.add("open");
+      } else {
+        sidebar.classList.remove("open");
+      }
+      setTimeout(() => {
+        if (leafletMap) leafletMap.invalidateSize();
+      }, 300);
+    }
+
+    function showMapView() {
+      const sidebar = document.getElementById("app-sidebar");
+      sidebar.classList.remove("open");
+      isSidebarOpen = false;
+      updateBottomNavActive("bnav-map");
+      setTimeout(() => {
+        if (leafletMap) leafletMap.invalidateSize();
+      }, 300);
+    }
+
+    function showPanelTab(tabId) {
+      const sidebar = document.getElementById("app-sidebar");
+      sidebar.classList.add("open");
+      isSidebarOpen = true;
+      switchTab(tabId);
+      updateBottomNavActive(
+        tabId === "tab-live" ? "bnav-live" :
+        tabId === "tab-geoint" ? "bnav-geoint" :
+        tabId === "tab-exif" ? "bnav-exif" : "bnav-dorks"
+      );
+    }
+
+    function updateBottomNavActive(activeId) {
+      document.querySelectorAll(".bottom-nav-btn").forEach(btn => btn.classList.remove("active"));
+      const target = document.getElementById(activeId);
+      if (target) target.classList.add("active");
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll(".sidebar-tabs .tab-btn").forEach(btn => btn.classList.remove("active"));
+      document.querySelectorAll(".sidebar-content .tab-pane").forEach(pane => pane.classList.remove("active"));
+      
+      const tabKey = tabId.replace("tab-", "");
+      const activeBtn = document.getElementById(`tab-btn-${tabKey}`);
+      if (activeBtn) activeBtn.classList.add("active");
+      
+      const pane = document.getElementById(tabId);
+      if (pane) pane.classList.add("active");
+    }
+
+    // ------------------------------------------------------------------------
+    // Initialisation Carte 2D Leaflet avec Fonds 100% SANS CLEF API
+    // ------------------------------------------------------------------------
+    function initLeaflet() {
+      leafletMap = L.map("leaflet-map", {
+        center: [25.0, 30.0],
+        zoom: 3,
+        zoomControl: true,
+        attributionControl: false
+      });
+
+      // Appliquer le fond Satellite HD militaire par défaut (Esri World Imagery, 100% sans clé API)
+      setBaseTileLayer("sat");
+
+      incidentMarkersLayer = L.layerGroup().addTo(leafletMap);
+      savedGeozonesLayer = L.layerGroup().addTo(leafletMap);
+
+      drawnItems = new L.FeatureGroup();
+      leafletMap.addLayer(drawnItems);
+
+      const drawControl = new L.Control.Draw({
+        position: "topright",
+        draw: {
+          polygon: {
+            allowIntersection: false,
+            shapeOptions: { color: "#00e5ff", fillOpacity: 0.25, weight: 2 }
+          },
+          rectangle: {
+            shapeOptions: { color: "#ff9900", fillOpacity: 0.25, weight: 2 }
+          },
+          polyline: {
+            shapeOptions: { color: "#00ff9d", weight: 3 }
+          },
+          circle: {
+            shapeOptions: { color: "#bd34fe", fillOpacity: 0.25, weight: 2 }
+          },
+          circlemarker: false,
+          marker: {
+            icon: L.divIcon({
+              className: "custom-tactical-pin",
+              html: `<div style="background:#ff2a5f; width:12px; height:12px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 8px #ff2a5f;"></div>`,
+              iconSize: [12, 12]
+            })
+          }
+        },
+        edit: {
+          featureGroup: drawnItems
+        }
+      });
+      leafletMap.addControl(drawControl);
+
+      // Calcul dynamique Turf.js à la création d'un tracé
+      leafletMap.on(L.Draw.Event.CREATED, (event) => {
+        const layer = event.layer;
+        drawnItems.addLayer(layer);
+
+        const geojson = layer.toGeoJSON();
+        currentDrawingGeoJSON = geojson;
+
+        const overlay = document.getElementById("measure-overlay");
+        const output = document.getElementById("measure-output");
+
+        if (event.layerType === "polygon" || event.layerType === "rectangle") {
+          const areaSqMeters = turf.area(geojson);
+          currentDrawingArea = (areaSqMeters / 1000000).toFixed(2);
+          output.innerHTML = `Surface d'impact : <span style="color:var(--neon-green)">${currentDrawingArea} km²</span>`;
+          overlay.style.display = "flex";
+        } else if (event.layerType === "polyline") {
+          const lengthKm = turf.length(geojson, { units: "kilometers" }).toFixed(2);
+          currentDrawingArea = lengthKm;
+          output.innerHTML = `Itinéraire tactique : <span style="color:var(--neon-cyan)">${lengthKm} km</span>`;
+          overlay.style.display = "flex";
+        } else if (event.layerType === "circle") {
+          const radiusMeters = layer.getRadius();
+          const areaCircle = (Math.PI * Math.pow(radiusMeters, 2) / 1000000).toFixed(2);
+          currentDrawingArea = areaCircle;
+          output.innerHTML = `Rayon : ${Math.round(radiusMeters)}m (<span style="color:var(--neon-violet)">${areaCircle} km²</span>)`;
+          overlay.style.display = "flex";
+        } else {
+          currentDrawingArea = 0;
+          output.innerHTML = `Point d'intérêt tactique repéré`;
+          overlay.style.display = "flex";
+        }
+      });
+    }
+
+    // Gestion des fonds de carte sans clé API
+    function switchBaseLayer(key) {
+      currentBaseLayerKey = key;
+      document.querySelectorAll(".map-layer-selector .btn-layer-opt").forEach(btn => btn.classList.remove("active"));
+      const activeBtn = document.getElementById(`btn-layer-${key}`);
+      if (activeBtn) activeBtn.classList.add("active");
+      setBaseTileLayer(key);
+    }
+
+    function setBaseTileLayer(key) {
+      if (activeTileLayer) {
+        leafletMap.removeLayer(activeTileLayer);
+      }
+
+      const mapContainerEl = document.getElementById("leaflet-map");
+      mapContainerEl.classList.remove("cyber-dark-tiles");
+
+      if (key === "sat") {
+        // Esri World Imagery (Satellite haute résolution mondial, gratuit sans clé)
+        activeTileLayer = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
+          maxZoom: 18
+        }).addTo(leafletMap);
+      } else if (key === "dark") {
+        // Dark Tactique OSM via filtre CSS garanti 100% sans clé ni erreur 403
+        activeTileLayer = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          maxZoom: 19
+        }).addTo(leafletMap);
+        mapContainerEl.classList.add("cyber-dark-tiles");
+      } else {
+        // OpenStreetMap standard universel
+        activeTileLayer = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          maxZoom: 19
+        }).addTo(leafletMap);
+      }
+
+      // S'assurer que les surcouches actives restent au-dessus du fond de carte
+      reorderMapLayers();
+    }
+
+    // ------------------------------------------------------------------------
+    // Gestion des Surcouches Cartographiques (Overlay Styles)
+    // ------------------------------------------------------------------------
+    function toggleOverlayDropdown(e) {
+      if (e) {
+        e.stopPropagation();
+      }
+      const menu = document.getElementById("map-overlay-menu");
+      if (menu) {
+        menu.classList.toggle("show");
+      }
+    }
+
+    // Fermer le dropdown des surcouches lors d'un clic en dehors
+    document.addEventListener("click", (e) => {
+      const dropdown = document.querySelector(".map-overlay-dropdown");
+      const menu = document.getElementById("map-overlay-menu");
+      if (menu && dropdown && !dropdown.contains(e.target)) {
+        menu.classList.remove("show");
+      }
+    });
+
+    function toggleMapOverlay(type) {
+      if (!leafletMap) return;
+
+      if (activeOverlays[type]) {
+        // Désactivation de la surcouche
+        leafletMap.removeLayer(activeOverlays[type]);
+        activeOverlays[type] = null;
+        updateOverlayUI(type, false);
+      } else {
+        // Activation de la surcouche selon le type demandé
+        if (type === "terrain") {
+          // OpenTopoMap : Relief topographique mondial & courbes de niveau
+          activeOverlays.terrain = L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png", {
+            maxZoom: 17,
+            opacity: 0.65
+          }).addTo(leafletMap);
+        } else if (type === "weather") {
+          // RainViewer / Radar météo mondial des précipitations et couverture nuageuse
+          activeOverlays.weather = L.tileLayer("https://tilecache.rainviewer.com/v2/radar/nowcast_10/256/{z}/{x}/{y}/2/1_1.png", {
+            maxZoom: 18,
+            opacity: 0.75,
+            attribution: "RainViewer Weather Radar"
+          }).addTo(leafletMap);
+        } else if (type === "traffic") {
+          // CyclOSM / OpenStreetMap Transports & Infrastructure routière tactique
+          activeOverlays.traffic = L.tileLayer("https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png", {
+            maxZoom: 18,
+            opacity: 0.60
+          }).addTo(leafletMap);
+        }
+        updateOverlayUI(type, true);
+      }
+
+      reorderMapLayers();
+      updateOverlayBadge();
+    }
+
+    function updateOverlayUI(type, isActive) {
+      const row = document.getElementById(`row-overlay-${type}`);
+      const status = document.getElementById(`status-overlay-${type}`);
+      if (row && status) {
+        if (isActive) {
+          row.classList.add("active");
+          status.className = "overlay-opt-status overlay-status-on";
+          status.textContent = "ACTIF";
+        } else {
+          row.classList.remove("active");
+          status.className = "overlay-opt-status overlay-status-off";
+          status.textContent = "OFF";
+        }
+      }
+    }
+
+    function updateOverlayBadge() {
+      let activeCount = 0;
+      if (activeOverlays.terrain) activeCount++;
+      if (activeOverlays.weather) activeCount++;
+      if (activeOverlays.traffic) activeCount++;
+
+      const badge = document.getElementById("overlay-active-badge");
+      const toggleBtn = document.getElementById("btn-toggle-overlays");
+      if (badge && toggleBtn) {
+        if (activeCount > 0) {
+          badge.textContent = activeCount;
+          badge.style.display = "inline-block";
+          toggleBtn.classList.add("overlay-active");
+        } else {
+          badge.style.display = "none";
+          toggleBtn.classList.remove("overlay-active");
+        }
+      }
+    }
+
+    function reorderMapLayers() {
+      // Maintenir les marqueurs d'incidents et zones dessinées au premier plan
+      if (activeOverlays.terrain) activeOverlays.terrain.bringToFront();
+      if (activeOverlays.traffic) activeOverlays.traffic.bringToFront();
+      if (activeOverlays.weather) activeOverlays.weather.bringToFront();
+
+      if (savedGeozonesLayer) savedGeozonesLayer.bringToFront();
+      if (drawnItems) drawnItems.bringToFront();
+      if (incidentMarkersLayer) incidentMarkersLayer.bringToFront();
+    }
+
+    // ------------------------------------------------------------------------
+    // Moteur Globe 3D Tactique Hautes Performances (Canvas 2D - Zéro Erreur MESA / WebGL)
+    // ------------------------------------------------------------------------
+    const WORLD_LAND_COORDINATES = [
+      // Europe & Asie
+      [[-10,36],[0,43],[10,45],[25,40],[35,30],[55,25],[70,20],[85,15],[105,10],[120,22],[130,35],[140,45],[130,55],[100,65],[60,70],[20,70],[5,60],[-5,50],[-10,36]],
+      // Afrique
+      [[-17,14],[-10,5],[5,4],[10,-5],[15,-20],[20,-34],[32,-28],[40,-10],[50,12],[42,15],[32,31],[25,32],[10,37],[-5,35],[-17,14]],
+      // Amérique du Nord
+      [[-165,65],[-140,60],[-125,50],[-120,35],[-105,20],[-85,20],[-80,25],[-75,35],[-65,45],[-60,55],[-80,65],[-120,70],[-165,65]],
+      // Amérique du Sud
+      [[-80,9],[-75,0],[-80,-15],[-70,-35],[-65,-55],[-55,-50],[-40,-20],[-35,-5],[-50,5],[-70,12],[-80,9]],
+      // Océanie / Australie
+      [[115,-22],[130,-15],[145,-18],[152,-28],[150,-38],[135,-35],[115,-35],[115,-22]]
+    ];
+
+    function switchMapMode(mode) {
+      activeMapMode = mode;
+      const btn2D = document.getElementById("btn-switch-2d");
+      const btn3D = document.getElementById("btn-switch-3d");
+      const leafletEl = document.getElementById("leaflet-map");
+      const globeContainer = document.getElementById("tactical-globe-container");
+      const layerSelector = document.querySelector(".map-layer-selector");
+
+      if (mode === "2D") {
+        btn2D.classList.add("active");
+        btn3D.classList.remove("active");
+        leafletEl.style.display = "block";
+        globeContainer.style.display = "none";
+        if (layerSelector) layerSelector.style.display = "flex";
+        stopTacticalGlobe();
+        leafletMap.invalidateSize();
+      } else {
+        btn3D.classList.add("active");
+        btn2D.classList.remove("active");
+        leafletEl.style.display = "none";
+        globeContainer.style.display = "block";
+        if (layerSelector) layerSelector.style.display = "none";
+        initTacticalGlobe();
+      }
+    }
+
+    function initTacticalGlobe() {
+      globeCanvas = document.getElementById("tactical-3d-canvas");
+      if (!globeCanvas) return;
+      globeCtx = globeCanvas.getContext("2d");
+
+      resizeTacticalGlobe();
+      window.addEventListener("resize", resizeTacticalGlobe);
+
+      setupGlobeInteraction();
+
+      if (!globeAnimId) {
+        lastGlobeFrameTime = performance.now();
+        globeAnimLoop();
+      }
+    }
+
+    function stopTacticalGlobe() {
+      if (globeAnimId) {
+        cancelAnimationFrame(globeAnimId);
+        globeAnimId = null;
+      }
+    }
+
+    function resizeTacticalGlobe() {
+      if (!globeCanvas) return;
+      const rect = globeCanvas.parentElement.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      globeCanvas.width = rect.width * dpr;
+      globeCanvas.height = rect.height * dpr;
+      globeRadius = Math.min(rect.width, rect.height) * 0.38;
+
+      // Génération du champ d'étoiles spatial
+      globeStars = [];
+      for (let i = 0; i < 120; i++) {
+        globeStars.push({
+          x: Math.random() * globeCanvas.width,
+          y: Math.random() * globeCanvas.height,
+          r: Math.random() * 1.5 + 0.5,
+          alpha: Math.random() * 0.7 + 0.3
+        });
+      }
+    }
+
+    let lastGlobeFrameTime = performance.now();
+    function globeAnimLoop() {
+      const now = performance.now();
+      const dt = (now - lastGlobeFrameTime) / 1000;
+      lastGlobeFrameTime = now;
+
+      // Rotation automatique fluide lorsque l'utilisateur n'interagit pas
+      if (globeAutoRotate && !isGlobePointerDown) {
+        globeTargetYaw += 0.12 * dt;
+      }
+
+      // Amortissement inertiel
+      globeYaw += (globeTargetYaw - globeYaw) * 0.15;
+      globePitch += (globeTargetPitch - globePitch) * 0.15;
+      globePitch = Math.max(-1.4, Math.min(1.4, globePitch));
+
+      drawTacticalGlobe();
+
+      globeAnimId = requestAnimationFrame(globeAnimLoop);
+    }
+
+    function projectPoint3D(lonDeg, latDeg, cx, cy, r) {
+      const lambda = (lonDeg * Math.PI) / 180;
+      const phi = (latDeg * Math.PI) / 180;
+
+      const deltaLambda = lambda - globeYaw;
+      const cosPhi = Math.cos(phi);
+      const sinPhi = Math.sin(phi);
+
+      const x0 = cosPhi * Math.sin(deltaLambda);
+      const y0 = sinPhi;
+      const z0 = cosPhi * Math.cos(deltaLambda);
+
+      const cosP = Math.cos(globePitch);
+      const sinP = Math.sin(globePitch);
+
+      const y1 = y0 * cosP - z0 * sinP;
+      const z1 = y0 * sinP + z0 * cosP;
+      const x1 = x0;
+
+      return {
+        x: cx + x1 * r,
+        y: cy - y1 * r,
+        z: z1,
+        visible: z1 > 0.05
+      };
+    }
+
+    function drawTacticalGlobe() {
+      if (!globeCtx || !globeCanvas) return;
+      const ctx = globeCtx;
+      const w = globeCanvas.width;
+      const h = globeCanvas.height;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const cx = w / 2;
+      const cy = h / 2;
+      const r = globeRadius * globeZoom * dpr;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // Fond de grille étoilée tactique
+      ctx.fillStyle = "#ffffff";
+      globeStars.forEach(st => {
+        ctx.globalAlpha = st.alpha * (0.8 + 0.2 * Math.sin(Date.now() / 600 + st.x));
+        ctx.beginPath();
+        ctx.arc(st.x, st.y, st.r * dpr, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.globalAlpha = 1.0;
+
+      // Halo d'atmosphère orbital externe (Glow néon cyan)
+      const atmoGrad = ctx.createRadialGradient(cx, cy, r * 0.95, cx, cy, r * 1.18);
+      atmoGrad.addColorStop(0, "rgba(0, 229, 255, 0.35)");
+      atmoGrad.addColorStop(0.5, "rgba(0, 255, 157, 0.15)");
+      atmoGrad.addColorStop(1, "rgba(0, 229, 255, 0)");
+      ctx.fillStyle = atmoGrad;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r * 1.18, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Disque principal du globe (Sphère nocturne cybernétique)
+      const globeGrad = ctx.createRadialGradient(cx - r * 0.3, cy - r * 0.3, r * 0.1, cx, cy, r);
+      globeGrad.addColorStop(0, "#101d36");
+      globeGrad.addColorStop(0.65, "#091120");
+      globeGrad.addColorStop(1, "#040810");
+      ctx.fillStyle = globeGrad;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Anneau de bordure de la planète
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.6)";
+      ctx.lineWidth = 1.5 * dpr;
+      ctx.stroke();
+
+      // Tracé des Graticules (Méridiens & Parallèles)
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.clip();
+
+      // Parallèles (Latitudes)
+      const parallels = [-60, -30, 0, 30, 60];
+      parallels.forEach(lat => {
+        ctx.beginPath();
+        let started = false;
+        const isEquator = lat === 0;
+        ctx.strokeStyle = isEquator ? "rgba(0, 229, 255, 0.55)" : "rgba(30, 55, 90, 0.4)";
+        ctx.lineWidth = (isEquator ? 1.5 : 1.0) * dpr;
+
+        for (let lon = -180; lon <= 180; lon += 5) {
+          const pt = projectPoint3D(lon, lat, cx, cy, r);
+          if (pt.visible) {
+            if (!started) {
+              ctx.moveTo(pt.x, pt.y);
+              started = true;
+            } else {
+              ctx.lineTo(pt.x, pt.y);
+            }
+          } else {
+            started = false;
+          }
+        }
+        ctx.stroke();
+      });
+
+      // Méridiens (Longitudes)
+      for (let lon = -180; lon < 180; lon += 30) {
+        ctx.beginPath();
+        let started = false;
+        ctx.strokeStyle = "rgba(30, 55, 90, 0.4)";
+        ctx.lineWidth = 1.0 * dpr;
+        for (let lat = -85; lat <= 85; lat += 5) {
+          const pt = projectPoint3D(lon, lat, cx, cy, r);
+          if (pt.visible) {
+            if (!started) {
+              ctx.moveTo(pt.x, pt.y);
+              started = true;
+            } else {
+              ctx.lineTo(pt.x, pt.y);
+            }
+          } else {
+            started = false;
+          }
+        }
+        ctx.stroke();
+      }
+
+      // Tracé des continents mondiaux
+      WORLD_LAND_COORDINATES.forEach(poly => {
+        ctx.beginPath();
+        let started = false;
+        ctx.strokeStyle = "rgba(0, 255, 157, 0.55)";
+        ctx.fillStyle = "rgba(0, 255, 157, 0.08)";
+        ctx.lineWidth = 1.2 * dpr;
+
+        for (let i = 0; i < poly.length; i++) {
+          const [lon, lat] = poly[i];
+          const pt = projectPoint3D(lon, lat, cx, cy, r);
+          if (pt.visible) {
+            if (!started) {
+              ctx.moveTo(pt.x, pt.y);
+              started = true;
+            } else {
+              ctx.lineTo(pt.x, pt.y);
+            }
+          } else {
+            started = false;
+          }
+        }
+        ctx.stroke();
+        ctx.fill();
+      });
+
+      // Tracé des Incidents OSINT en 3D
+      globeProjectedIncidents = [];
+      const timeMs = Date.now();
+      const pulseSize = (Math.sin(timeMs / 250) + 1) * 3 * dpr;
+
+      allIncidents.forEach(inc => {
+        if (typeof inc.latitude !== "number" || typeof inc.longitude !== "number") return;
+        const pt = projectPoint3D(inc.longitude, inc.latitude, cx, cy, r);
+        if (pt.visible) {
+          globeProjectedIncidents.push({
+            incident: inc,
+            x: pt.x,
+            y: pt.y,
+            z: pt.z
+          });
+
+          let hex = "#00e5ff";
+          if (inc.category === "conflit") hex = "#ff2a5f";
+          if (inc.category === "energie") hex = "#ff9900";
+          if (inc.category === "epidemie") hex = "#bd34fe";
+          if (inc.category === "catastrophe") hex = "#38ef7d";
+          if (inc.category === "protest") hex = "#ffd600";
+
+          // Anneau d'onde radar pulsante
+          ctx.strokeStyle = hex;
+          ctx.lineWidth = 1.2 * dpr;
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, (5 * dpr) + pulseSize, 0, Math.PI * 2);
+          ctx.stroke();
+
+          // Cœur lumineux
+          ctx.fillStyle = hex;
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, 3 * dpr, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Cible si sélectionné
+          if (globeSelectedIncident && globeSelectedIncident.id === inc.id) {
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = 2 * dpr;
+            ctx.beginPath();
+            ctx.arc(pt.x, pt.y, 12 * dpr, 0, Math.PI * 2);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(pt.x - 16 * dpr, pt.y);
+            ctx.lineTo(pt.x + 16 * dpr, pt.y);
+            ctx.moveTo(pt.x, pt.y - 16 * dpr);
+            ctx.lineTo(pt.x, pt.y + 16 * dpr);
+            ctx.stroke();
+          }
+        }
+      });
+
+      ctx.restore();
+
+      // Mise à jour de l'indicateur HUD de position orbitale
+      const curLonDeg = ((globeYaw * 180 / Math.PI) % 360).toFixed(1);
+      const curLatDeg = (globePitch * 180 / Math.PI).toFixed(1);
+      const coordsLabel = document.getElementById("globe-coords-label");
+      if (coordsLabel) {
+        coordsLabel.textContent = `LAT: ${curLatDeg}° | LON: ${curLonDeg}° | SATELLITES: ${globeProjectedIncidents.length} VISIBLES`;
+      }
+    }
+
+    function setupGlobeInteraction() {
+      if (!globeCanvas) return;
+
+      globeCanvas.onpointerdown = (e) => {
+        isGlobePointerDown = true;
+        globeLastPointerX = e.clientX;
+        globeLastPointerY = e.clientY;
+        globeCanvas.setPointerCapture(e.pointerId);
+      };
+
+      globeCanvas.onpointermove = (e) => {
+        if (!isGlobePointerDown) return;
+        const dx = e.clientX - globeLastPointerX;
+        const dy = e.clientY - globeLastPointerY;
+        globeLastPointerX = e.clientX;
+        globeLastPointerY = e.clientY;
+
+        globeTargetYaw += dx * 0.006;
+        globeTargetPitch += dy * 0.006;
+      };
+
+      globeCanvas.onpointerup = (e) => {
+        isGlobePointerDown = false;
+        try { globeCanvas.releasePointerCapture(e.pointerId); } catch (_) {}
+      };
+
+      globeCanvas.onpointercancel = (e) => {
+        isGlobePointerDown = false;
+      };
+
+      // Clic ou tap pour sélectionner un incident sur le globe
+      globeCanvas.onclick = (e) => {
+        const rect = globeCanvas.getBoundingClientRect();
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const clickX = (e.clientX - rect.left) * dpr;
+        const clickY = (e.clientY - rect.top) * dpr;
+
+        let closest = null;
+        let minDist = 24 * dpr;
+
+        globeProjectedIncidents.forEach(item => {
+          const dist = Math.hypot(item.x - clickX, item.y - clickY);
+          if (dist < minDist) {
+            minDist = dist;
+            closest = item.incident;
+          }
+        });
+
+        if (closest) {
+          openGlobeTooltip(closest);
+        } else {
+          closeGlobeTooltip();
+        }
+      };
+
+      // Zoom à la molette
+      globeCanvas.onwheel = (e) => {
+        e.preventDefault();
+        if (e.deltaY < 0) {
+          globeZoomIn();
+        } else {
+          globeZoomOut();
+        }
+      };
+    }
+
+    function openGlobeTooltip(inc) {
+      globeSelectedIncident = inc;
+      const tooltip = document.getElementById("globe-tooltip");
+      const ttCat = document.getElementById("globe-tt-cat");
+      const ttReg = document.getElementById("globe-tt-region");
+      const ttTitle = document.getElementById("globe-tt-title");
+      const ttMeta = document.getElementById("globe-tt-meta");
+      const ttLink = document.getElementById("globe-tt-link");
+
+      ttCat.className = `badge-cat badge-${inc.category || 'conflit'}`;
+      ttCat.textContent = (inc.category || "OSINT").toUpperCase();
+      ttReg.textContent = `${inc.region || 'Monde'} • ${inc.country || 'Global'}`;
+      ttTitle.textContent = inc.title;
+      ttMeta.innerHTML = `<b>Source :</b> ${inc.source} | <b>Coordonnées :</b> ${inc.latitude.toFixed(3)}, ${inc.longitude.toFixed(3)}`;
+      ttLink.href = inc.link || "#";
+
+      tooltip.style.display = "flex";
+    }
+
+    function closeGlobeTooltip() {
+      globeSelectedIncident = null;
+      const tooltip = document.getElementById("globe-tooltip");
+      if (tooltip) tooltip.style.display = "none";
+    }
+
+    function globeZoomIn() {
+      globeZoom = Math.min(2.2, globeZoom + 0.2);
+    }
+
+    function globeZoomOut() {
+      globeZoom = Math.max(0.65, globeZoom - 0.2);
+    }
+
+    function toggleGlobeAutoRotate() {
+      globeAutoRotate = !globeAutoRotate;
+      const btn = document.getElementById("btn-globe-rotate");
+      if (btn) {
+        btn.textContent = globeAutoRotate ? "⏸️ PAUSE" : "▶️ ROTATION";
+      }
+    }
+
+    function resetGlobeView() {
+      globeTargetYaw = 0.5;
+      globeTargetPitch = 0.35;
+      globeZoom = 1.0;
+      closeGlobeTooltip();
+    }
+
+    function locateGlobeIncidentIn2D() {
+      if (!globeSelectedIncident) return;
+      const target = globeSelectedIncident;
+      switchMapMode("2D");
+      setTimeout(() => {
+        if (leafletMap) {
+          leafletMap.flyTo([target.latitude, target.longitude], 8, { duration: 1.2 });
+        }
+      }, 200);
+    }
+
+    // ------------------------------------------------------------------------
+    // Récupération des flux d'incidents (Room SQLite via AndroidOSINT)
+    // ------------------------------------------------------------------------
+    async function fetchLiveFeeds(triggerRefresh = false) {
+      const statusBadge = document.getElementById("db-status-badge");
+      statusBadge.textContent = "SYNCHRO...";
+
+      if (triggerRefresh && window.AndroidOSINT && typeof window.AndroidOSINT.refreshFeeds === "function") {
+        window.AndroidOSINT.refreshFeeds();
+        statusBadge.textContent = "SCRAPING...";
+      }
+
+      try {
+        let incidents = [];
+        if (window.AndroidOSINT && typeof window.AndroidOSINT.getLiveFeeds === "function") {
+          const raw = window.AndroidOSINT.getLiveFeeds();
+          incidents = JSON.parse(raw);
+        } else {
+          const resp = await fetch(`${API_BASE}/api/feeds/live`);
+          if (!resp.ok) throw new Error("Fallback fetch");
+          incidents = await resp.json();
+        }
+
+        allIncidents = incidents;
+        populateCountryFilter(incidents);
+        applyAllFilters();
+
+        statusBadge.textContent = `BDD : ${incidents.length} ÉVÉNEMENTS`;
+        statusBadge.style.color = "var(--neon-green)";
+      } catch (err) {
+        console.warn("Erreur chargement incidents :", err);
+        statusBadge.textContent = "SQLITE ACTIF";
+      }
+    }
+
+    // Remplit dynamiquement la liste des pays détectés
+    function populateCountryFilter(incidents) {
+      const countrySelect = document.getElementById("filter-country-select");
+      const currentSelected = countrySelect.value;
+      const countries = new Set();
+
+      incidents.forEach(i => {
+        if (i.country && i.country.trim()) countries.add(i.country.trim());
+      });
+
+      const sorted = Array.from(countries).sort();
+      countrySelect.innerHTML = `<option value="all">🏳️ Tous les Pays (${sorted.length})</option>`;
+      sorted.forEach(c => {
+        const opt = document.createElement("option");
+        opt.value = c;
+        opt.textContent = c;
+        if (c === currentSelected) opt.selected = true;
+        countrySelect.appendChild(opt);
+      });
+    }
+
+    function onRegionChanged() {
+      applyAllFilters();
+    }
+
+    function filterByTheme(theme, btnElement) {
+      activeThemeFilter = theme;
+      document.querySelectorAll(".category-filters .filter-chip").forEach(chip => chip.classList.remove("active"));
+      btnElement.classList.add("active");
+      applyAllFilters();
+    }
+
+    // Application dynamique et combinée de tous les filtres (Recherche, Région, Pays, Thématique, Source)
+    function applyAllFilters() {
+      const searchTxt = (document.getElementById("filter-search-input")?.value || "").toLowerCase().trim();
+      const regionVal = document.getElementById("filter-region-select")?.value || "all";
+      const countryVal = document.getElementById("filter-country-select")?.value || "all";
+      const sourceVal = document.getElementById("filter-sourcetype-select")?.value || "all";
+
+      const filtered = allIncidents.filter(inc => {
+        // 1. Filtre par recherche textuelle
+        if (searchTxt) {
+          const matchTitle = (inc.title || "").toLowerCase().includes(searchTxt);
+          const matchSummary = (inc.summary || "").toLowerCase().includes(searchTxt);
+          const matchSource = (inc.source || "").toLowerCase().includes(searchTxt);
+          const matchCountry = (inc.country || "").toLowerCase().includes(searchTxt);
+          if (!matchTitle && !matchSummary && !matchSource && !matchCountry) return false;
+        }
+
+        // 2. Filtre par Région
+        if (regionVal !== "all" && inc.region !== regionVal) {
+          return false;
+        }
+
+        // 3. Filtre par Pays
+        if (countryVal !== "all" && inc.country !== countryVal) {
+          return false;
+        }
+
+        // 4. Filtre par Source
+        if (sourceVal !== "all" && inc.source_type !== sourceVal) {
+          return false;
+        }
+
+        // 5. Filtre par Thématique
+        if (activeThemeFilter !== "all" && inc.category !== activeThemeFilter) {
+          return false;
+        }
+
+        return true;
+      });
+
+      renderIncidents(filtered);
+      renderMapMarkers(filtered);
+
+      const countLabel = document.getElementById("filtered-count-label");
+      if (countLabel) {
+        countLabel.textContent = `${filtered.length} / ${allIncidents.length} alertes actives`;
+      }
+    }
+
+    function renderIncidents(incidents) {
+      const container = document.getElementById("incident-container");
+      container.innerHTML = "";
+
+      if (!incidents || incidents.length === 0) {
+        container.innerHTML = `
+          <div style="color:var(--text-muted); text-align:center; padding:30px 10px;">
+            <div style="font-size:24px; margin-bottom:8px;">🔍</div>
+            <div>Aucun événement correspondant aux critères sélectionnés.</div>
+            <button class="cyber-btn btn-xs" style="margin-top:10px;" onclick="resetFilters()">RÉINITIALISER LES FILTRES</button>
+          </div>
+        `;
+        return;
+      }
+
+      incidents.forEach((inc) => {
+        const card = document.createElement("div");
+        card.className = `incident-card cat-${inc.category}`;
+        
+        const categoryLabels = {
+          "conflit": "CONFLIT",
+          "cyber": "CYBER",
+          "energie": "ÉNERGIE/MER",
+          "epidemie": "SANTÉ",
+          "catastrophe": "CATASTROPHE",
+          "protest": "DISSIDENCE"
+        };
+        const catLabel = categoryLabels[inc.category] || (inc.category || "ALERTE").toUpperCase();
+
+        card.innerHTML = `
+          <div class="incident-card-top">
+            <div style="display:flex; gap:4px; align-items:center;">
+              <span class="badge-cat badge-${inc.category}">${catLabel}</span>
+              <span class="badge-sourcetype">${inc.source_type || 'SOURCE'}</span>
+            </div>
+            <span style="font-size:10px; color:var(--text-muted);">${escapeHtml(inc.source)}</span>
+          </div>
+
+          <div class="incident-location-line">
+            <span>📍 ${escapeHtml(inc.country || 'Monde')}</span>
+            <span style="color:var(--text-muted); font-size:9px;">// ${escapeHtml(inc.region || 'Global')}</span>
+          </div>
+
+          <div class="incident-title">${escapeHtml(inc.title)}</div>
+
+          ${inc.summary ? `<div class="incident-summary">${escapeHtml(inc.summary)}</div>` : ''}
+
+          <div class="incident-meta">
+            <span>📡 ${inc.latitude.toFixed(3)}, ${inc.longitude.toFixed(3)}</span>
+            <span>${formatDate(inc.published_at)}</span>
+          </div>
+
+          <div class="incident-actions">
+            <button class="cyber-btn btn-xs" onclick="centerMapOnCoords(${inc.latitude}, ${inc.longitude}, '${escapeHtml(inc.title)}')">
+              🎯 CENTRER CARTE
+            </button>
+            <a href="${inc.link}" target="_blank" class="cyber-btn btn-xs" style="text-decoration:none;">
+              SOURCE EXTERNE ↗
+            </a>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function resetFilters() {
+      document.getElementById("filter-search-input").value = "";
+      document.getElementById("filter-region-select").value = "all";
+      document.getElementById("filter-country-select").value = "all";
+      document.getElementById("filter-sourcetype-select").value = "all";
+      activeThemeFilter = "all";
+      document.querySelectorAll(".category-filters .filter-chip").forEach(c => {
+        c.classList.toggle("active", c.getAttribute("data-cat") === "all");
+      });
+      applyAllFilters();
+    }
+
+    function renderMapMarkers(incidents) {
+      if (!leafletMap || !incidentMarkersLayer) return;
+      incidentMarkersLayer.clearLayers();
+
+      incidents.forEach(inc => {
+        let color = "#00e5ff";
+        if (inc.category === "conflit") color = "#ff2a5f";
+        if (inc.category === "energie") color = "#ff9900";
+        if (inc.category === "epidemie") color = "#bd34fe";
+        if (inc.category === "catastrophe") color = "#38ef7d";
+        if (inc.category === "protest") color = "#ffd600";
+
+        const markerHtml = `
+          <div style="background:${color}; width:11px; height:11px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 10px ${color};"></div>
+        `;
+        const icon = L.divIcon({
+          className: "tactical-incident-icon",
+          html: markerHtml,
+          iconSize: [11, 11]
+        });
+
+        const marker = L.marker([inc.latitude, inc.longitude], { icon: icon });
+        marker.bindPopup(`
+          <div style="padding:4px; max-width:260px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+              <span class="badge-cat badge-${inc.category}">${(inc.category || '').toUpperCase()}</span>
+              <span style="font-size:10px; color:var(--text-muted);">${escapeHtml(inc.source)}</span>
+            </div>
+            <div style="color:var(--neon-cyan); font-weight:700; font-size:10px; margin-bottom:3px;">
+              📍 ${escapeHtml(inc.country || '')} (${escapeHtml(inc.region || '')})
+            </div>
+            <div style="font-weight:700; font-size:11px; margin-bottom:6px; color:#fff;">${escapeHtml(inc.title)}</div>
+            ${inc.summary ? `<div style="font-size:10px; color:#cbd5e1; margin-bottom:6px;">${escapeHtml(inc.summary)}</div>` : ''}
+            <div style="font-size:9px; color:var(--text-muted); margin-bottom:6px;">📡 ${inc.latitude.toFixed(4)}, ${inc.longitude.toFixed(4)}</div>
+            <a href="${inc.link}" target="_blank" style="color:var(--neon-green); font-size:11px; text-decoration:underline;">Consulter le rapport officiel ↗</a>
+          </div>
+        `);
+        incidentMarkersLayer.addLayer(marker);
+      });
+    }
+
+    function centerMapOnCoords(lat, lng, title) {
+      showMapView();
+      if (activeMapMode === "2D") {
+        leafletMap.flyTo([lat, lng], 8, { duration: 1.2 });
+      } else if (cesiumViewer) {
+        cesiumViewer.camera.flyTo({
+          destination: Cesium.Cartesian3.fromDegrees(lng, lat, 200000)
+        });
+      }
+    }
+
+    // ------------------------------------------------------------------------
+    // Gestion des Zones GEOINT (Persistance Room SQLite)
+    // ------------------------------------------------------------------------
+    async function loadSavedGeozones() {
+      try {
+        let zones = [];
+        if (window.AndroidOSINT && typeof window.AndroidOSINT.getGeozones === "function") {
+          const raw = window.AndroidOSINT.getGeozones();
+          zones = JSON.parse(raw);
+        } else {
+          const res = await fetch(`${API_BASE}/api/geozones`);
+          if (res.ok) zones = await res.json();
+        }
+
+        savedGeozones = zones;
+        renderSavedGeozonesUI();
+        displaySavedGeozonesOnMap();
+      } catch (err) {
+        console.warn("Erreur chargement géozones :", err);
+      }
+    }
+
+    function renderSavedGeozonesUI() {
+      const container = document.getElementById("geozone-container");
+      const countEl = document.getElementById("total-zones-count");
+      const sumEl = document.getElementById("total-area-sum");
+
+      countEl.textContent = savedGeozones.length;
+      let totalArea = 0;
+
+      if (savedGeozones.length === 0) {
+        container.innerHTML = `<div style="color:var(--text-muted); text-align:center; padding:10px;">Aucune zone tactique en base.</div>`;
+        sumEl.textContent = "0 km² cumulés";
+        return;
+      }
+
+      container.innerHTML = "";
+      savedGeozones.forEach(z => {
+        totalArea += parseFloat(z.area_sqkm) || 0;
+        const item = document.createElement("div");
+        item.className = "geozone-item";
+        item.innerHTML = `
+          <div>
+            <div style="font-weight:700; color:var(--neon-green); font-size:11px;">${escapeHtml(z.name)}</div>
+            <div style="font-size:10px; color:var(--text-muted);">
+              ${z.geometry_type} // ${z.area_sqkm} km²
+            </div>
+          </div>
+          <div style="display:flex; gap:4px;">
+            <button class="cyber-btn btn-xs" onclick="zoomToZone(${z.id})">ZOOM</button>
+            <button class="cyber-btn cyber-btn-danger btn-xs" onclick="deleteGeozone(${z.id})">SUPPR</button>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+
+      sumEl.textContent = `${totalArea.toFixed(1)} km² cumulés`;
+    }
+
+    function displaySavedGeozonesOnMap() {
+      if (!savedGeozonesLayer) return;
+      savedGeozonesLayer.clearLayers();
+
+      savedGeozones.forEach(zone => {
+        try {
+          const geo = typeof zone.geojson_data === "string" ? JSON.parse(zone.geojson_data) : zone.geojson_data;
+          const layer = L.geoJSON(geo, {
+            style: {
+              color: "#00ff9d",
+              weight: 2,
+              fillOpacity: 0.15
+            }
+          });
+          layer.bindPopup(`
+            <b>Zone : ${escapeHtml(zone.name)}</b><br/>
+            Type : ${zone.geometry_type}<br/>
+            Surface : ${zone.area_sqkm} km²
+          `);
+          savedGeozonesLayer.addLayer(layer);
+        } catch (e) {
+          console.warn("Erreur affichage zone :", e);
+        }
+      });
+    }
+
+    async function saveActiveMeasurement() {
+      if (!currentDrawingGeoJSON) {
+        alert("Aucun tracé actif à enregistrer.");
+        return;
+      }
+      promptSaveCurrentDrawn();
+    }
+
+    async function promptSaveCurrentDrawn() {
+      if (!currentDrawingGeoJSON) {
+        alert("Veuillez d'abord tracer une zone, une ligne ou un polygone sur la carte.");
+        return;
+      }
+
+      const defaultName = "Zone-Tactique-" + new Date().toLocaleTimeString().replace(/:/g, "");
+      const name = prompt("Entrez le nom de la zone tactique à sauvegarder :", defaultName);
+      if (!name) return;
+
+      const geomType = currentDrawingGeoJSON.geometry?.type || "Polygon";
+      const geojsonStr = JSON.stringify(currentDrawingGeoJSON);
+      const area = parseFloat(currentDrawingArea) || 0.0;
+
+      if (window.AndroidOSINT && typeof window.AndroidOSINT.saveGeozone === "function") {
+        window.AndroidOSINT.saveGeozone(name, geomType, geojsonStr, area);
+        document.getElementById("measure-overlay").style.display = "none";
+        currentDrawingGeoJSON = null;
+        drawnItems.clearLayers();
+        await loadSavedGeozones();
+      } else {
+        try {
+          const resp = await fetch(`${API_BASE}/api/geozones`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              name: name,
+              geometry_type: geomType,
+              geojson_data: currentDrawingGeoJSON,
+              area_sqkm: area
+            })
+          });
+          if (!resp.ok) throw new Error("Erreur enregistrement");
+          document.getElementById("measure-overlay").style.display = "none";
+          currentDrawingGeoJSON = null;
+          drawnItems.clearLayers();
+          await loadSavedGeozones();
+        } catch (err) {
+          alert("Erreur lors de la sauvegarde : " + err.message);
+        }
+      }
+    }
+
+    async function deleteGeozone(zoneId) {
+      if (!confirm(`Confirmer la suppression définitive de la zone ID #${zoneId} ?`)) return;
+
+      if (window.AndroidOSINT && typeof window.AndroidOSINT.deleteGeozone === "function") {
+        window.AndroidOSINT.deleteGeozone(zoneId);
+        await loadSavedGeozones();
+      } else {
+        try {
+          await fetch(`${API_BASE}/api/geozones/${zoneId}`, { method: "DELETE" });
+          await loadSavedGeozones();
+        } catch (err) {
+          alert("Erreur : " + err.message);
+        }
+      }
+    }
+
+    function zoomToZone(zoneId) {
+      showMapView();
+      const zone = savedGeozones.find(z => z.id === zoneId);
+      if (!zone) return;
+      try {
+        const geo = typeof zone.geojson_data === "string" ? JSON.parse(zone.geojson_data) : zone.geojson_data;
+        const tempLayer = L.geoJSON(geo);
+        leafletMap.fitBounds(tempLayer.getBounds(), { padding: [50, 50] });
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function exportGeoJSON() {
+      if (savedGeozones.length === 0) {
+        alert("Aucune zone à exporter.");
+        return;
+      }
+      const featureCollection = {
+        type: "FeatureCollection",
+        features: savedGeozones.map(z => {
+          const geo = typeof z.geojson_data === "string" ? JSON.parse(z.geojson_data) : z.geojson_data;
+          return {
+            type: "Feature",
+            properties: { id: z.id, name: z.name, area_sqkm: z.area_sqkm },
+            geometry: geo.geometry || geo
+          };
+        })
+      };
+
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(featureCollection, null, 2));
+      const downloadAnchor = document.createElement("a");
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `human_osint_geozones_${Date.now()}.geojson`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    // ------------------------------------------------------------------------
+    // Analyse Image & Extraction EXIF (ExifReader.js)
+    // ------------------------------------------------------------------------
+    function setupDragAndDrop() {
+      const dropZone = document.getElementById("drop-zone");
+      ["dragenter", "dragover", "dragleave", "drop"].forEach(eventName => {
+        dropZone.addEventListener(eventName, preventDefaults, false);
+      });
+      function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
+
+      dropZone.addEventListener("dragover", () => dropZone.classList.add("drag-over"));
+      dropZone.addEventListener("dragleave", () => dropZone.classList.remove("drag-over"));
+      dropZone.addEventListener("drop", (e) => {
+        dropZone.classList.remove("drag-over");
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        if (files.length) processImageFile(files[0]);
+      });
+    }
+
+    function handleFileSelect(e) {
+      const files = e.target.files;
+      if (files.length) processImageFile(files[0]);
+    }
+
+    async function processImageFile(file) {
+      const exifCard = document.getElementById("exif-card");
+      const details = document.getElementById("exif-details");
+      const badge = document.getElementById("exif-badge-status");
+
+      try {
+        const tags = await ExifReader.load(file, { expanded: true });
+
+        if (tags.gps && tags.gps.Latitude && tags.gps.Longitude) {
+          const lat = tags.gps.Latitude;
+          const lng = tags.gps.Longitude;
+          lastExifLocation = { lat, lng };
+
+          badge.textContent = "GPS VALIDE";
+          badge.className = "badge-cat badge-conflit";
+          exifCard.style.display = "flex";
+          details.innerHTML = `
+            <b>Fichier :</b> ${escapeHtml(file.name)}<br/>
+            <b>Latitude :</b> <span style="color:var(--neon-green)">${lat.toFixed(6)}</span><br/>
+            <b>Longitude :</b> <span style="color:var(--neon-green)">${lng.toFixed(6)}</span><br/>
+            <b>Appareil :</b> ${tags.exif?.Model?.description || "Non spécifié"}<br/>
+            <b>Horodatage :</b> ${tags.exif?.DateTimeOriginal?.description || "Inconnu"}
+          `;
+
+          locateExifOnMap();
+        } else {
+          badge.textContent = "SANS GPS";
+          badge.className = "badge-cat badge-energie";
+          exifCard.style.display = "flex";
+          lastExifLocation = null;
+          details.innerHTML = `
+            <b>Fichier :</b> ${escapeHtml(file.name)}<br/>
+            <span style="color:var(--neon-red)">⚠️ Aucune coordonnée GPS trouvée dans les métadonnées.</span><br/>
+            <small>Les métadonnées ont peut-être été purgées par les réseaux sociaux.</small>
+          `;
+        }
+      } catch (err) {
+        alert("Erreur lors de l'analyse EXIF : " + err.message);
+      }
+    }
+
+    function locateExifOnMap() {
+      if (!lastExifLocation) return;
+      showMapView();
+      const { lat, lng } = lastExifLocation;
+
+      const redPin = L.divIcon({
+        className: "exif-pulse-marker",
+        html: `<div style="background:#ff2a5f; width:16px; height:16px; border-radius:50%; border:3px solid #fff; box-shadow:0 0 15px #ff2a5f;"></div>`,
+        iconSize: [16, 16]
+      });
+
+      const marker = L.marker([lat, lng], { icon: redPin }).addTo(leafletMap);
+      marker.bindPopup(`
+        <div style="font-weight:700; color:var(--neon-red);">🎯 ORIGINE PHOTO EXIF</div>
+        <div>Latitude: ${lat.toFixed(6)}</div>
+        <div>Longitude: ${lng.toFixed(6)}</div>
+      `).openPopup();
+
+      leafletMap.flyTo([lat, lng], 13, { duration: 1.5 });
+    }
+
+    function openDork(query) {
+      const url = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+      window.open(url, "_blank");
+    }
+
+    function escapeHtml(text) {
+      if (!text) return "";
+      const div = document.createElement("div");
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function formatDate(dateString) {
+      if (!dateString) return "";
+      try {
+        const d = new Date(dateString);
+        if (isNaN(d.getTime())) return dateString;
+        return d.toLocaleDateString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+      } catch {
+        return dateString;
+      }
+    }
+  </script>
+</body>
+</html>
