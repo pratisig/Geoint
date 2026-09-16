@@ -1,11 +1,30 @@
 {
-  "name": "HUMAN-OSINT V4 POWER",
-  "description": "Plateforme OSINT/GEOINT v4.0 POWER - 70+ sources live, satellite HD 0.3m Esri+Google, 80+ dorks, 40+ moteurs OSINT spécialisés, reverse image search 7 moteurs, advanced search multi-engines, report generator, AI agent avec clés utilisateur",
+  "name": "HUMAN-OSINT V4.1 POWER",
+  "description": "Plateforme OSINT/GEOINT v4.1 POWER - flux d'actualité auto-updatés (61 RSS + 5 API satellite + Reddit + Telegram + GDELT) avec push SSE, globe 3D Cesium à fond de carte réel (Esri 0.3m / Google Sat / OpenStreetMap / dark / relief), 80+ dorks, 40+ moteurs OSINT, reverse image, report generator, AI agent, aide intégrée à chaque outil",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"],
-  "version": "4.0.0",
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ],
+  "version": "4.1.0",
   "sources": 76,
   "dorks": 80,
   "engines": 40,
-  "features": ["live 70+", "social", "media", "reverse image", "advanced search", "osint engines", "dorks 80+", "geoint satellite HD", "report generator", "security", "actors", "ai agent"]
+  "features": [
+    "auto-update SSE",
+    "live 70+",
+    "3D globe real basemap",
+    "osm basemap",
+    "social",
+    "media",
+    "reverse image",
+    "advanced search",
+    "osint engines",
+    "dorks 80+",
+    "geoint satellite HD",
+    "report generator",
+    "security",
+    "actors",
+    "ai agent",
+    "aide outils intégrée"
+  ]
 }

@@ -1,4 +1,33 @@
-# HUMAN-OSINT v4.0 POWER // OSINT/GEOINT ULTIMATE PLATFORM
+# HUMAN-OSINT v4.1 POWER // OSINT/GEOINT ULTIMATE PLATFORM
+
+> ## ✨ Nouveautés v4.1
+>
+> **1. Flux d'actualité réellement auto-updatés.** Le canal SSE ne comparait que
+> le *nombre* d'incidents : un cycle renvoyant le même nombre d'éléments plus
+> récents ne produisait aucun événement, et l'interface ne se mettait jamais à
+> jour. La détection porte désormais sur une **empreinte du contenu**
+> (`content_hash`), avec heartbeat anti-timeout, backoff de reconnexion,
+> rafraîchissement au retour d'onglet et badge d'âge des données.
+> Diagnostic : `GET /api/auto-update/status`.
+>
+> **2. Globe 3D avec un vrai fond de carte.** `Cesium.Viewer` était construit
+> avec l'option `imageryProvider`, **supprimée dans CesiumJS 1.107** (dépréciée
+> en 1.104). En 1.115 elle est ignorée silencieusement : le globe affichait sa
+> `baseColor` (bleu) et seule la couche de frontières blanches restait visible.
+> Le globe utilise maintenant `baseLayer` + `Cesium.ImageryLayer`, et le
+> sélecteur de fond de carte (Esri 0.3m / Google Sat / **OpenStreetMap** /
+> dark / relief) fonctionne aussi bien en 2D qu'en 3D.
+>
+> **3. Documentation et aide intégrée.** 53 fonctions Python et 86 fonctions
+> JavaScript documentées, une barre d'aide en tête de chacun des 12 outils,
+> des infobulles sur les contrôles, un panneau 📖 AIDE global, et une
+> référence API générée depuis le schéma OpenAPI réel.
+>
+> 📘 **Documentation complète : [`DOCUMENTATION.md`](DOCUMENTATION.md)** —
+> régénérable avec `python tools/generate_docs.py`.
+>
+> ✅ **Tests : `cd tests && npm install && npm test`** (37 assertions, jsdom)
+
 
 Plateforme opérationnelle de renseignement OSINT/GEOINT **EN TEMPS RÉEL V4 POWER** : **70+ sources RSS live, NASA EONET + FIRMS satellite, USGS sismique, GDELT x5, Reddit x6, Telegram x4**, globe **3D satellite réel HD Esri 0.3m + Google Sat**, **80+ Google Dorks**, **40+ moteurs OSINT spécialisés**, **Reverse Image Search 7 moteurs**, **générateur de rapports**, **agent IA avec clés utilisateur**.
 

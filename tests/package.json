@@ -1,0 +1,12 @@
+{
+  "name": "human-osint-frontend-tests",
+  "private": true,
+  "type": "module",
+  "description": "jsdom-based functional tests for the HUMAN-OSINT single-page front-end.",
+  "scripts": {
+    "test": "node frontend.test.mjs"
+  },
+  "devDependencies": {
+    "jsdom": "^25.0.0"
+  }
+}
