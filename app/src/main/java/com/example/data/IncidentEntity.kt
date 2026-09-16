@@ -10,13 +10,19 @@ data class IncidentEntity(
     val title: String,
     val link: String,
     val source: String,
-    val sourceType: String = "PRESSE", // "OFFICIEL", "OSINT_DEPÊCHE", "RENSEIGNEMENT", "CYBER_FUITE", "PRESSE", "ALERTE_CATASTROPHE"
-    val category: String, // "conflit", "cyber", "energie", "epidemie", "protest", "catastrophe"
-    val region: String = "Global", // "Moyen-Orient", "Europe", "Afrique", "Asie-Pacifique", "Amériques", "Global"
-    val country: String = "International", // e.g. "Ukraine", "Israël/Gaza", "Iran", "Soudan", etc.
+    val sourceType: String = "PRESSE",
+    val category: String,
+    val region: String = "Global",
+    val country: String = "International",
     val latitude: Double,
     val longitude: Double,
     val publishedAt: String,
     val summary: String = "",
+    val severity: String = "medium",
+    val actors: String = "[]",
+    val needs: String = "[]",
+    val riskLevel: Int = 2,
+    val language: String = "fr",
+    val verified: Boolean = false,
     val createdAt: Long = System.currentTimeMillis()
 )

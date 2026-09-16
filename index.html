@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>HUMAN-OSINT v3.0 ULTIMATE // MAX SCRAPING + SATELLITE + DORKING</title>
+  <title>HUMAN-OSINT v4.0 ULTIMATE // POWER OSINT/GEOINT PLATFORM</title>
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -19,37 +19,41 @@
     :root {
       --bg-dark:#070a0f; --bg-panel:#0d131f; --bg-card:#131b29; --bg-card-hover:#1b263b;
       --border:#1e2c42; --neon-green:#00ff9d; --neon-red:#ff2a5f; --neon-orange:#ff9900;
-      --neon-violet:#bd34fe; --neon-cyan:#00e5ff; --neon-yellow:#ffd600;
+      --neon-violet:#bd34fe; --neon-cyan:#00e5ff; --neon-yellow:#ffd600; --neon-pink:#ff00ff;
       --text-muted:#8292ab; --text-bright:#edf2f7; --font-mono:"SF Mono","Fira Code",Consolas,monospace;
     }
     *{box-sizing:border-box;margin:0;padding:0;}
     body{background:var(--bg-dark);color:var(--text-bright);font-family:var(--font-mono);font-size:13px;height:100vh;overflow:hidden;display:flex;flex-direction:column;}
-    header{height:60px;background:linear-gradient(90deg,#090e17 0%,#111827 100%);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 16px;z-index:1000;box-shadow:0 2px 15px rgba(0,0,0,0.7);}
-    .header-left{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+    header{height:64px;background:linear-gradient(90deg,#090e17 0%,#111827 100%);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 14px;z-index:1000;box-shadow:0 2px 15px rgba(0,0,0,0.7);flex-wrap:wrap;gap:6px;}
+    .header-left{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
     .status-pulse{width:12px;height:12px;border-radius:50%;background:var(--neon-green);box-shadow:0 0 12px var(--neon-green);animation:pulse 2s infinite;}
     @keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.4);opacity:0.6}}
-    .brand-title{font-size:14px;font-weight:800;letter-spacing:1.5px;color:var(--neon-green);text-transform:uppercase;text-shadow:0 0 12px rgba(0,255,157,0.5);}
+    .brand-title{font-size:13px;font-weight:800;letter-spacing:1.2px;color:var(--neon-green);text-transform:uppercase;text-shadow:0 0 12px rgba(0,255,157,0.5);}
     .live-badge{background:rgba(255,42,95,0.15);border:1px solid var(--neon-red);color:var(--neon-red);padding:2px 8px;border-radius:12px;font-size:9px;font-weight:800;animation:blink 1.5s infinite;}
     @keyframes blink{0%,100%{opacity:1}50%{opacity:0.5}}
-    .header-stats{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-    .stat-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:4px;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.3);color:var(--neon-cyan);font-size:10px;}
+    .header-stats{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+    .stat-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:4px;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.3);color:var(--neon-cyan);font-size:10px;}
     .stat-badge.live{background:rgba(0,255,157,0.12);border-color:var(--neon-green);color:var(--neon-green);}
     .mode-switch-group{display:flex;background:#090e17;border:1px solid var(--border);border-radius:4px;overflow:hidden;}
-    .btn-mode{background:transparent;border:none;color:var(--text-muted);padding:7px 14px;font-family:var(--font-mono);font-size:11px;font-weight:700;cursor:pointer;transition:all 0.2s;}
+    .btn-mode{background:transparent;border:none;color:var(--text-muted);padding:6px 12px;font-family:var(--font-mono);font-size:10px;font-weight:700;cursor:pointer;transition:all 0.2s;}
     .btn-mode.active{background:var(--neon-cyan);color:#05080e;box-shadow:0 0 15px rgba(0,229,255,0.5);}
 
-    .app-workspace{display:flex;flex:1;height:calc(100vh - 60px);position:relative;}
-    .sidebar{width:520px;min-width:400px;background:var(--bg-panel);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:500;box-shadow:4px 0 25px rgba(0,0,0,0.6);}
-    .sidebar-tabs{display:flex;background:#090f18;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;}
-    .sidebar-tabs::-webkit-scrollbar{display:none;}
-    .tab-btn{flex:1;min-width:75px;padding:10px 5px;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--text-muted);font-family:var(--font-mono);font-size:9px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:0.4px;transition:all 0.2s;white-space:nowrap;}
+    .app-workspace{display:flex;flex:1;height:calc(100vh - 64px);position:relative;}
+    .sidebar{width:560px;min-width:420px;background:var(--bg-panel);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:500;box-shadow:4px 0 25px rgba(0,0,0,0.6);}
+    .sidebar-tabs{display:flex;background:#090f18;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:thin;gap:1px;}
+    .sidebar-tabs::-webkit-scrollbar{height:4px;} .sidebar-tabs::-webkit-scrollbar-thumb{background:var(--border);}
+    .tab-btn{flex:0 0 auto;min-width:70px;padding:9px 8px;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--text-muted);font-family:var(--font-mono);font-size:9px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:0.4px;transition:all 0.2s;white-space:nowrap;}
     .tab-btn.active{color:var(--neon-green);border-bottom-color:var(--neon-green);background:rgba(0,255,157,0.06);}
     .tab-btn.dork-tab.active{color:var(--neon-orange);border-bottom-color:var(--neon-orange);background:rgba(255,153,0,0.08);}
-    .sidebar-content{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:12px;}
+    .tab-btn.image-tab.active{color:var(--neon-pink);border-bottom-color:var(--neon-pink);background:rgba(255,0,255,0.08);}
+    .tab-btn.engine-tab.active{color:var(--neon-violet);border-bottom-color:var(--neon-violet);background:rgba(189,52,254,0.08);}
+    .tab-btn.report-tab.active{color:var(--neon-yellow);border-bottom-color:var(--neon-yellow);background:rgba(255,214,0,0.08);}
+    .tab-btn.ai-tab.active{color:var(--neon-cyan);border-bottom-color:var(--neon-cyan);background:rgba(0,229,255,0.08);}
+    .sidebar-content{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:10px;}
     .tab-pane{display:none;flex-direction:column;gap:10px;height:100%;}
     .tab-pane.active{display:flex;}
 
-    .panel-header{display:flex;align-items:center;justify-content:space-between;border-bottom:1px dashed var(--border);padding-bottom:8px;flex-wrap:wrap;gap:6px;}
+    .panel-header{display:flex;align-items:center;justify-content:space-between;border-bottom:1px dashed var(--border);padding-bottom:6px;flex-wrap:wrap;gap:6px;}
     .panel-title{font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;}
     .live-indicator{background:linear-gradient(90deg,rgba(0,255,157,0.08),rgba(0,229,255,0.08));border:1px solid rgba(0,255,157,0.3);border-left:3px solid var(--neon-green);padding:8px 10px;border-radius:4px;display:flex;justify-content:space-between;align-items:center;font-size:11px;flex-wrap:wrap;gap:6px;}
     .live-dot{width:8px;height:8px;background:var(--neon-green);border-radius:50%;display:inline-block;margin-right:6px;box-shadow:0 0 8px var(--neon-green);animation:pulse 1.5s infinite;}
@@ -60,6 +64,9 @@
     .cyber-btn-primary:hover{background:var(--neon-green);color:#05080e;box-shadow:0 0 15px rgba(0,255,157,0.5);}
     .cyber-btn-orange{background:rgba(255,153,0,0.12);border-color:var(--neon-orange);color:var(--neon-orange);}
     .cyber-btn-orange:hover{background:var(--neon-orange);color:#000;}
+    .cyber-btn-pink{background:rgba(255,0,255,0.12);border-color:var(--neon-pink);color:var(--neon-pink);}
+    .cyber-btn-violet{background:rgba(189,52,254,0.12);border-color:var(--neon-violet);color:var(--neon-violet);}
+    .cyber-btn-yellow{background:rgba(255,214,0,0.12);border-color:var(--neon-yellow);color:var(--neon-yellow);}
     .btn-xs{padding:3px 8px;font-size:10px;}
 
     .search-input,.filter-select,.dork-input{width:100%;background:var(--bg-card);border:1px solid var(--border);color:var(--text-bright);padding:7px 10px;border-radius:4px;font-family:var(--font-mono);font-size:11px;outline:none;}
@@ -72,6 +79,10 @@
     .filter-chip.live-chip{border-color:var(--neon-green);color:var(--neon-green);}
     .filter-chip.dork-chip{border-color:var(--neon-orange);color:var(--neon-orange);}
     .filter-chip.dork-chip.active{background:var(--neon-orange);color:#000;}
+    .filter-chip.image-chip{border-color:var(--neon-pink);color:var(--neon-pink);}
+    .filter-chip.image-chip.active{background:var(--neon-pink);color:#fff;}
+    .filter-chip.engine-chip{border-color:var(--neon-violet);color:var(--neon-violet);}
+    .filter-chip.engine-chip.active{background:var(--neon-violet);color:#fff;}
 
     .badge-cat{display:inline-block;padding:2px 7px;border-radius:3px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;}
     .badge-conflit{background:rgba(255,42,95,0.15);color:var(--neon-red);border:1px solid var(--neon-red);}
@@ -107,6 +118,11 @@
     .dork-tag{background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.2);color:var(--neon-cyan);padding:1px 6px;border-radius:10px;font-size:9px;}
     .dork-generated{background:rgba(0,255,157,0.05);border:1px solid var(--neon-green);padding:10px;border-radius:4px;display:flex;flex-direction:column;gap:8px;}
 
+    .engine-card{background:var(--bg-card);border:1px solid var(--border);border-left:3px solid var(--neon-violet);padding:10px;border-radius:4px;display:flex;flex-direction:column;gap:6px;transition:all 0.2s;}
+    .engine-card.free{border-left-color:var(--neon-green);}
+    .engine-card.paid{border-left-color:var(--neon-orange);}
+    .engine-card:hover{background:var(--bg-card-hover);transform:translateX(2px);}
+
     .tactical-hud{background:#090e17;border:1px solid var(--border);padding:10px;border-radius:4px;}
     .hud-title{font-size:10px;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px;}
     .hud-stat-value{font-size:20px;font-weight:800;color:var(--neon-cyan);}
@@ -114,17 +130,19 @@
     .map-container{flex:1;position:relative;height:100%;background:#040609;}
     #leaflet-map,#cesium-map{width:100%;height:100%;position:absolute;top:0;left:0;}
     #cesium-map{display:none;}
-    .map-layer-selector{position:absolute;top:12px;right:12px;z-index:1000;display:flex;background:rgba(13,19,31,0.92);backdrop-filter:blur(10px);border:1px solid var(--border);border-radius:6px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.7);}
-    .btn-layer-opt{background:transparent;border:none;color:var(--text-muted);padding:7px 12px;font-family:var(--font-mono);font-size:10px;font-weight:700;cursor:pointer;transition:all 0.2s;white-space:nowrap;}
+    .map-layer-selector{position:absolute;top:12px;right:12px;z-index:1000;display:flex;background:rgba(13,19,31,0.92);backdrop-filter:blur(10px);border:1px solid var(--border);border-radius:6px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.7);flex-wrap:wrap;max-width:70%;}
+    .btn-layer-opt{background:transparent;border:none;color:var(--text-muted);padding:7px 10px;font-family:var(--font-mono);font-size:9px;font-weight:700;cursor:pointer;transition:all 0.2s;white-space:nowrap;}
     .btn-layer-opt.active{background:rgba(0,255,157,0.18);color:var(--neon-green);border-bottom:2px solid var(--neon-green);}
     .map-measurement-overlay{position:absolute;bottom:24px;left:20px;background:rgba(13,19,31,0.9);backdrop-filter:blur(8px);border:1px solid var(--neon-cyan);box-shadow:0 4px 20px rgba(0,0,0,0.7);padding:12px 16px;border-radius:6px;z-index:1000;min-width:300px;display:none;flex-direction:column;gap:8px;}
-    .satellite-info{position:absolute;bottom:20px;right:20px;z-index:999;background:rgba(7,10,15,0.85);border:1px solid var(--neon-green);border-radius:4px;padding:6px 10px;font-size:10px;color:var(--neon-green);backdrop-filter:blur(6px);}
+    .satellite-info{position:absolute;bottom:20px;right:20px;z-index:999;background:rgba(7,10,15,0.85);border:1px solid var(--neon-green);border-radius:4px;padding:6px 10px;font-size:10px;color:var(--neon-green);backdrop-filter:blur(6px);max-width:60%;text-align:right;}
     .actor-chip{display:inline-flex;align-items:center;gap:4px;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.3);color:var(--neon-cyan);padding:2px 8px;border-radius:12px;font-size:10px;margin:2px;}
     .need-chip{display:inline-flex;background:rgba(255,153,0,0.1);border:1px solid rgba(255,153,0,0.3);color:var(--neon-orange);padding:2px 8px;border-radius:12px;font-size:10px;margin:2px;}
     #drop-zone.drag-over{border-color:var(--neon-green) !important;background:rgba(0,255,157,0.12) !important;box-shadow:0 0 15px rgba(0,255,157,0.3);}
+    #drop-zone-image.drag-over{border-color:var(--neon-pink) !important;background:rgba(255,0,255,0.12) !important;box-shadow:0 0 15px rgba(255,0,255,0.3);}
     .leaflet-bar a{background-color:var(--bg-card) !important;color:var(--neon-cyan) !important;border-bottom:1px solid var(--border) !important;}
     .leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--bg-panel) !important;color:var(--text-bright) !important;border:1px solid var(--border);box-shadow:0 4px 20px rgba(0,0,0,0.8);font-family:var(--font-mono);}
-    @media(max-width:1100px){.sidebar{width:100%;position:absolute;height:100%;transform:translateX(-100%);transition:transform 0.3s;}.sidebar.open{transform:translateX(0);}}
+    .report-output{background:#0a0f18;border:1px solid var(--border);border-radius:4px;padding:12px;white-space:pre-wrap;font-size:11px;line-height:1.5;max-height:600px;overflow-y:auto;}
+    @media(max-width:1200px){.sidebar{width:100%;position:absolute;height:100%;transform:translateX(-100%);transition:transform 0.3s;}.sidebar.open{transform:translateX(0);}}
   </style>
 </head>
 <body>
@@ -132,20 +150,21 @@
 <header>
   <div class="header-left">
     <div class="status-pulse"></div>
-    <div class="brand-title">HUMAN-OSINT v3.0 ULTIMATE</div>
-    <span class="live-badge">● ULTIMATE LIVE</span>
-    <span class="stat-badge live">🛰️ SAT HD RÉEL</span>
-    <span class="stat-badge live">📡 35+ SOURCES</span>
-    <span class="stat-badge live">🔍 60+ DORKS</span>
+    <div class="brand-title">HUMAN-OSINT v4.0 POWER</div>
+    <span class="live-badge">● V4 LIVE</span>
+    <span class="stat-badge live">🛰️ SAT HD 0.3m</span>
+    <span class="stat-badge live">📡 70+ SOURCES</span>
+    <span class="stat-badge live">🔍 80+ DORKS</span>
+    <span class="stat-badge live">🌐 40 ENGINES</span>
   </div>
   <div class="header-stats">
     <div class="stat-badge" id="utc-clock">UTC 00:00:00</div>
-    <div class="stat-badge live" id="db-status-badge">SYNC ULTIMATE...</div>
+    <div class="stat-badge live" id="db-status-badge">SYNC V4...</div>
     <div class="stat-badge" id="live-count-badge">0 LIVE</div>
     <div class="stat-badge" id="api-base-badge" style="cursor:pointer;" onclick="setBackendUrl()" title="Cliquez pour configurer backend">🔧 API</div>
     <div class="mode-switch-group">
-      <button id="btn-switch-2d" class="btn-mode active" onclick="switchMapMode('2D')">2D SAT</button>
-      <button id="btn-switch-3d" class="btn-mode" onclick="switchMapMode('3D')">3D SAT GLOBE RÉEL</button>
+      <button id="btn-switch-2d" class="btn-mode active" onclick="switchMapMode('2D')">2D SAT HD</button>
+      <button id="btn-switch-3d" class="btn-mode" onclick="switchMapMode('3D')">3D GLOBE SAT RÉEL</button>
     </div>
   </div>
 </header>
@@ -153,13 +172,18 @@
 <div class="app-workspace">
   <aside class="sidebar" id="app-sidebar">
     <div class="sidebar-tabs">
-      <button class="tab-btn active" onclick="switchTab('tab-live')">LIVE</button>
+      <button class="tab-btn active" onclick="switchTab('tab-live')">LIVE 70+</button>
       <button class="tab-btn" onclick="switchTab('tab-social')">SOCIAL</button>
       <button class="tab-btn" onclick="switchTab('tab-media')">MEDIA</button>
-      <button class="tab-btn" onclick="switchTab('tab-security')">SÉCURITÉ</button>
+      <button class="tab-btn image-tab" onclick="switchTab('tab-image')">IMAGE</button>
+      <button class="tab-btn" onclick="switchTab('tab-search')">SEARCH</button>
+      <button class="tab-btn engine-tab" onclick="switchTab('tab-engines')">ENGINES</button>
+      <button class="tab-btn dork-tab" onclick="switchTab('tab-dorks')">DORKS 80+</button>
       <button class="tab-btn" onclick="switchTab('tab-geoint')">GEOINT</button>
+      <button class="tab-btn report-tab" onclick="switchTab('tab-report')">REPORT</button>
+      <button class="tab-btn" onclick="switchTab('tab-security')">SÉCURITÉ</button>
       <button class="tab-btn" onclick="switchTab('tab-actors')">ACTEURS</button>
-      <button class="tab-btn dork-tab" onclick="switchTab('tab-dorks')">DORKS ULTIMATE</button>
+      <button class="tab-btn ai-tab" onclick="switchTab('tab-ai')">AI AGENT</button>
     </div>
 
     <div class="sidebar-content">
@@ -167,9 +191,9 @@
       <!-- LIVE -->
       <div id="tab-live" class="tab-pane active">
         <div class="live-indicator">
-          <div><span class="live-dot"></span><b style="color:var(--neon-green)">ULTIMATE LIVE 30s AUTO + SSE</b><br><span id="last-update-label" style="font-size:10px;color:var(--text-muted)">Dernière MAJ: -- | 35 RSS + NASA + USGS + GDELT + Reddit + Telegram</span></div>
+          <div><span class="live-dot"></span><b style="color:var(--neon-green)">V4 LIVE 60s AUTO + SSE + ROBUST FALLBACK</b><br><span id="last-update-label" style="font-size:10px;color:var(--text-muted)">Dernière MAJ: -- | 60+ RSS + NASA EONET + USGS + GDACS + GDELT x5 + Reddit x6 + Telegram x4</span></div>
           <div style="display:flex;gap:6px;flex-direction:column;">
-            <button class="cyber-btn cyber-btn-primary btn-xs" onclick="fetchLiveFeeds(true)">⚡ FORCE REFRESH ULTIMATE</button>
+            <button class="cyber-btn cyber-btn-primary btn-xs" onclick="fetchLiveFeeds(true)">⚡ FORCE REFRESH V4</button>
             <button class="cyber-btn btn-xs" onclick="toggleAutoRefresh()" id="btn-auto-refresh">⏸️ PAUSE</button>
           </div>
         </div>
@@ -184,7 +208,7 @@
             <option value="Global">Global Sat</option>
           </select>
           <select id="filter-source-select" class="filter-select" onchange="applyAllFilters()">
-            <option value="all">📡 Toutes Sources ULTIMATE</option>
+            <option value="all">📡 Toutes Sources V4</option>
             <option value="NASA EONET">NASA EONET Satellite</option>
             <option value="USGS">USGS Sismique</option>
             <option value="GDACS">GDACS</option>
@@ -195,9 +219,31 @@
             <option value="BBC">BBC/CNN/Reuters</option>
           </select>
         </div>
-        <input type="text" id="filter-search-input" class="search-input" placeholder="🔍 Recherche ULTIMATE: ville, acteur, JNIM, Wagner, M23, Hamas..." oninput="applyAllFilters()" />
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+          <select id="filter-category-select" class="filter-select" onchange="applyAllFilters()">
+            <option value="all">🎯 Toutes Catégories</option>
+            <option value="conflit">⚔️ Conflits</option>
+            <option value="catastrophe">🌋 Catastrophes</option>
+            <option value="energie">⛽ Énergie</option>
+            <option value="epidemie">☣️ Épidémies</option>
+            <option value="cyber">💻 Cyber</option>
+            <option value="protest">📢 Protest</option>
+          </select>
+          <select id="filter-country-select" class="filter-select" onchange="applyAllFilters()">
+            <option value="all">🏳️ Tous Pays</option>
+            <option value="Ukraine">Ukraine</option>
+            <option value="Gaza">Gaza</option>
+            <option value="Soudan">Soudan</option>
+            <option value="Mali">Mali / Sahel</option>
+            <option value="Syrie">Syrie</option>
+            <option value="Yémen">Yémen</option>
+            <option value="Taïwan">Taïwan</option>
+            <option value="RDC">RDC Congo</option>
+          </select>
+        </div>
+        <input type="text" id="filter-search-input" class="search-input" placeholder="🔍 Recherche V4: ville, acteur, JNIM, Wagner, M23, Hamas, séisme, choléra..." oninput="applyAllFilters()" />
         <div class="category-filters">
-          <button class="filter-chip active" onclick="filterByTheme('all', this)">TOUTES ULTIMATE</button>
+          <button class="filter-chip active" onclick="filterByTheme('all', this)">TOUTES V4</button>
           <button class="filter-chip" onclick="filterByTheme('conflit', this)">⚔️ CONFLITS</button>
           <button class="filter-chip" onclick="filterByTheme('catastrophe', this)">🌋 CATA SAT</button>
           <button class="filter-chip" onclick="filterByTheme('energie', this)">⛽ ÉNERGIE</button>
@@ -208,82 +254,152 @@
         </div>
         <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted)">
           <span id="filtered-count-label">0 événements</span>
-          <span style="color:var(--neon-green)">● 35+ SOURCES LIVE</span>
+          <span style="color:var(--neon-green)">● 70+ SOURCES V4 LIVE</span>
         </div>
-        <div class="incident-list" id="incident-container"><div style="color:var(--text-muted);text-align:center;padding:20px;">Chargement ULTIMATE scraping max...</div></div>
+        <div class="incident-list" id="incident-container"><div style="color:var(--text-muted);text-align:center;padding:20px;">Chargement V4 scraping robuste...</div></div>
       </div>
 
       <!-- SOCIAL -->
       <div id="tab-social" class="tab-pane">
-        <div class="panel-header"><span class="panel-title">RÉSEAUX SOCIAUX LIVE - MAX SCRAPING</span><button class="cyber-btn btn-xs" onclick="fetchSocial()">🔄 REFRESH SOCIAL</button></div>
-        <div class="live-indicator"><span class="live-dot"></span><b>Sources: Reddit r/OSINT, r/UkraineConflict, Telegram @OSINTtechnical, @UkraineOSINT, GDELT Social | Scraping temps réel</b></div>
-        <div class="incident-list" id="social-container"><div style="color:var(--text-muted);text-align:center;padding:20px;">Chargement réseaux sociaux live...</div></div>
+        <div class="panel-header"><span class="panel-title">RÉSEAUX SOCIAUX LIVE - MAX SCRAPING V4</span><button class="cyber-btn btn-xs" onclick="fetchSocial()">🔄 REFRESH SOCIAL</button></div>
+        <div class="live-indicator"><span class="live-dot"></span><b>Sources: Reddit x6 (OSINT, UkraineConflict, Syria, Sahel, geopolitics, worldnews), Telegram x4 (@OSINTtechnical, @UkraineOSINT, @liveuamap, @rybar), GDELT Social | Scraping temps réel V4</b></div>
+        <div class="incident-list" id="social-container"><div style="color:var(--text-muted);text-align:center;padding:20px;">Chargement réseaux sociaux V4...</div></div>
       </div>
 
       <!-- MEDIA -->
       <div id="tab-media" class="tab-pane">
-        <div class="panel-header"><span class="panel-title">MÉDIAS INFO LIVE - 35 SOURCES</span><button class="cyber-btn btn-xs" onclick="fetchMedia()">🔄 REFRESH MEDIA</button></div>
-        <div class="live-indicator"><span class="live-dot"></span><b>35 flux: BBC, CNN, Reuters, Al Jazeera, France24, RFI, Le Monde, Guardian, AP, Jeune Afrique, AfricaNews, DefenseNews, OCHA, MSF, ICRC, ISW, etc.</b></div>
-        <div class="incident-list" id="media-container"><div style="color:var(--text-muted);text-align:center;padding:20px;">Chargement médias internationaux live...</div></div>
+        <div class="panel-header"><span class="panel-title">MÉDIAS INFO LIVE - 60+ SOURCES V4</span><button class="cyber-btn btn-xs" onclick="fetchMedia()">🔄 REFRESH MEDIA</button></div>
+        <div class="live-indicator"><span class="live-dot"></span><b>60+ flux: BBC World/Africa/MiddleEast, CNN, Reuters World/Africa/MiddleEast, Al Jazeera, France24 FR/EN/Afrique, RFI Afrique/Monde, Le Monde, Guardian, DW World/Africa, Euronews, Jeune Afrique, AfricaNews, AP, OilPrice, Maritime, HackerNews, Bleeping, TheRecord, CISA, ISW, DefenseNews, OCHA, NASA, USGS, EIA, MSF, ICRC, UNHCR, WFP, ACLED, VOA, AllAfrica, HRW, etc.</b></div>
+        <div class="incident-list" id="media-container"><div style="color:var(--text-muted);text-align:center;padding:20px;">Chargement médias V4 60+ sources...</div></div>
       </div>
 
-      <!-- SECURITY -->
-      <div id="tab-security" class="tab-pane">
-        <div class="panel-header"><span class="panel-title">ANALYSE SÉCURITÉ & RISQUES ULTIMATE LIVE</span><button class="cyber-btn btn-xs" onclick="fetchSecurityAssessment()">🔄 ACTUALISER</button></div>
-        <div class="tactical-hud">
-          <div class="hud-title">ÉVALUATION RISQUE PAR RÉGION - TEMPS RÉEL ULTIMATE (35+ sources)</div>
-          <div style="display:flex;justify-content:space-between;align-items:baseline;"><span class="hud-stat-value" id="risk-regions-count">0</span><span style="font-size:11px;color:var(--neon-red);" id="risk-critical-count">0 critique</span></div>
-        </div>
-        <div id="security-container" style="display:flex;flex-direction:column;gap:8px;overflow-y:auto;flex:1;"><div style="color:var(--text-muted);text-align:center;padding:20px;">Chargement analyse sécurité ULTIMATE...</div></div>
-      </div>
+      <!-- IMAGE OSINT -->
+      <div id="tab-image" class="tab-pane">
+        <div class="panel-header"><span class="panel-title">📸 IMAGE OSINT - REVERSE IMAGE SEARCH V4</span><span style="font-size:10px;color:var(--neon-pink)">POWER TOOL</span></div>
+        <div class="live-indicator" style="border-left-color:var(--neon-pink);"><span style="color:var(--neon-pink)">📸</span><b style="color:var(--neon-pink)">REVERSE IMAGE SEARCH - 7 MOTEURS</b><br><span style="font-size:10px;color:var(--text-muted)">Google, Yandex (visages), TinEye, Bing, Baidu, Sogou, KarmaDecay Reddit + EXIF GPS</span></div>
 
-      <!-- GEOINT -->
-      <div id="tab-geoint" class="tab-pane">
-        <div class="panel-header"><span class="panel-title">ZONES TACTIQUES & SATELLITE RÉEL HD</span><button class="cyber-btn btn-xs" onclick="exportGeoJSON()">EXPORT GEOJSON</button></div>
-        <div class="tactical-hud"><div class="hud-title">ZONES EN BASE + SAT OVERLAYS LIVE</div><div style="display:flex;justify-content:space-between;align-items:baseline;"><span class="hud-stat-value" id="total-zones-count">0</span><span style="font-size:11px;color:var(--neon-green);" id="total-area-sum">0 km²</span></div></div>
-        <button class="cyber-btn cyber-btn-primary" style="width:100%;" onclick="promptSaveCurrentDrawn()">💾 SAUVEGARDER TRACÉ SATELLITE RÉEL</button>
-        <div class="panel-title">HISTORIQUE ZONES</div><div class="geozone-list" id="geozone-container"><div style="color:var(--text-muted);text-align:center;padding:10px;">Aucune zone.</div></div>
-        <div class="panel-title" style="margin-top:10px;">COUCHES SATELLITE ULTIMATE LIVE</div>
-        <div style="display:flex;flex-direction:column;gap:6px;">
-          <button class="cyber-btn btn-xs" onclick="switchBaseLayer('sat')">🛰️ SAT HD RÉEL Esri (0.3m)</button>
-          <button class="cyber-btn btn-xs" onclick="switchBaseLayer('dark')">🌑 DARK TACTIQUE</button>
-          <button class="cyber-btn btn-xs" onclick="toggleOverlay('weather')">🌧️ RADAR MÉTÉO LIVE RainViewer</button>
-          <button class="cyber-btn btn-xs" onclick="toggleOverlay('terrain')">🏔️ RELIEF TOPO OpenTopoMap</button>
+        <div class="tactical-hud" style="border-color:var(--neon-pink);">
+          <div class="hud-title" style="color:var(--neon-pink);">🔍 REVERSE IMAGE SEARCH GENERATOR</div>
+          <input type="text" id="reverse-image-url" class="search-input" placeholder="URL image: https://example.com/image.jpg" />
+          <input type="text" id="reverse-image-desc" class="search-input" placeholder="Description optionnelle: ex: tank T-90 Ukraine" style="margin-top:6px;" />
+          <div style="display:flex;gap:6px;margin-top:8px;">
+            <button class="cyber-btn cyber-btn-pink" style="flex:1;" onclick="generateReverseImage()">🔍 GÉNÉRER REVERSE SEARCH</button>
+            <button class="cyber-btn btn-xs" onclick="document.getElementById('reverse-image-url').value=''; document.getElementById('reverse-image-desc').value='';">EFFACER</button>
+          </div>
+          <div id="reverse-image-results" style="display:none;margin-top:10px;flex-direction:column;gap:6px;"></div>
         </div>
 
-        <div class="panel-title" style="margin-top:12px;">EXTRACTION EXIF GPS - PHOTO SAT RÉEL</div>
-        <div id="drop-zone" style="border:2px dashed var(--border);border-radius:6px;padding:16px;text-align:center;background:rgba(0,255,157,0.04);cursor:pointer;transition:all 0.2s;" onclick="document.getElementById('file-input').click()">
+        <div class="panel-title">EXTRACTION EXIF GPS - PHOTO SAT RÉEL V4</div>
+        <div id="drop-zone-image" style="border:2px dashed var(--neon-pink);border-radius:6px;padding:16px;text-align:center;background:rgba(255,0,255,0.04);cursor:pointer;transition:all 0.2s;" onclick="document.getElementById('file-input-image').click()">
           <div style="font-size:24px;">📸</div>
-          <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Glisser-déposer photo ou cliquer pour EXIF GPS extraction<br><span style="font-size:9px;color:var(--neon-green);">Support: JPG, JPEG avec métadonnées GPS - Géolocalisation satellite réel</span></div>
-          <input type="file" id="file-input" accept="image/jpeg,image/jpg" style="display:none;" onchange="handleFileSelect(event)" />
+          <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Glisser-déposer photo ou cliquer pour reverse + EXIF<br><span style="font-size:9px;color:var(--neon-pink);">Support: JPG, JPEG, PNG, WEBP - Extraction GPS + génération liens reverse auto</span></div>
+          <input type="file" id="file-input-image" accept="image/*" style="display:none;" onchange="handleImageFileSelect(event)" />
         </div>
-        <div id="exif-card" style="display:none;background:var(--bg-card);border:1px solid var(--neon-green);border-radius:4px;padding:10px;flex-direction:column;gap:8px;">
-          <div style="font-weight:700;color:var(--neon-green);font-size:11px;">📍 EXIF GPS EXTRACTÉ SAT RÉEL</div>
-          <div id="exif-details" style="font-size:11px;color:var(--text-bright);line-height:1.5;"></div>
-          <button class="cyber-btn cyber-btn-primary btn-xs" onclick="locateExifOnMap()">🎯 LOCALISER SUR CARTE SAT RÉEL</button>
+        <div id="exif-card-image" style="display:none;background:var(--bg-card);border:1px solid var(--neon-pink);border-radius:4px;padding:10px;flex-direction:column;gap:8px;">
+          <div style="font-weight:700;color:var(--neon-pink);font-size:11px;">📍 IMAGE OSINT EXTRACTÉ</div>
+          <div id="exif-details-image" style="font-size:11px;color:var(--text-bright);line-height:1.5;"></div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button class="cyber-btn cyber-btn-pink btn-xs" onclick="locateExifOnMapImage()">🎯 LOCALISER SAT</button>
+            <button class="cyber-btn btn-xs" onclick="reverseFromExifImage()">🔍 REVERSE SEARCH</button>
+          </div>
+        </div>
+
+        <div class="tactical-hud">
+          <div class="hud-title">IMINT TIPS V4</div>
+          <div style="font-size:10px;line-height:1.5;color:var(--text-bright);">
+            • <b style="color:var(--neon-pink)">Yandex</b> meilleur pour visages & reconnaissance<br>
+            • <b style="color:var(--neon-green)">TinEye</b> pour exact matches & modifications<br>
+            • <b style="color:var(--neon-cyan)">Google</b> pour large couverture web<br>
+            • <b style="color:var(--neon-orange)">KarmaDecay</b> pour Reddit reposts<br>
+            • <b style="color:var(--neon-violet)">EXIF</b> peut révéler GPS, appareil, date - attention OPSEC<br>
+            • Utilisez <b>InVID</b> plugin pour vidéos
+          </div>
         </div>
       </div>
 
-      <!-- ACTORS -->
-      <div id="tab-actors" class="tab-pane">
-        <div class="panel-header"><span class="panel-title">ACTEURS HUMANITAIRES & ENJEUX ULTIMATE LIVE</span></div>
-        <div id="actors-container" style="display:flex;flex-direction:column;gap:8px;"><div style="color:var(--text-muted);text-align:center;padding:20px;">Chargement acteurs ULTIMATE...</div></div>
-      </div>
+      <!-- SEARCH ADVANCED -->
+      <div id="tab-search" class="tab-pane">
+        <div class="panel-header"><span class="panel-title">🔎 RECHERCHE AVANCÉE - MULTI-ENGINES V4</span><span style="font-size:10px;color:var(--neon-cyan)">POWER</span></div>
+        <div class="live-indicator"><span style="color:var(--neon-cyan)">⚡</span><b style="color:var(--neon-cyan)">ADVANCED SEARCH LAB - Google Dorking + Shodan + Censys + etc.</b><br><span style="font-size:10px;color:var(--text-muted)">Générez des requêtes pour 40+ moteurs OSINT en un clic</span></div>
 
-      <!-- DORKS ULTIMATE -->
-      <div id="tab-dorks" class="tab-pane">
-        <div class="panel-header"><span class="panel-title">🔍 GOOGLE DORKING ULTIMATE - 60+ DORKS EXHAUSTIFS</span><span style="font-size:10px;color:var(--neon-orange);">POWER TOOL</span></div>
-
-        <div class="live-indicator" style="border-left-color:var(--neon-orange);"><span style="color:var(--neon-orange);">⚡</span><b style="color:var(--neon-orange);">DORKING LAB ULTIME - Investigation OSINT maximale</b><br><span style="font-size:10px;color:var(--text-muted)">60+ dorks pré-construits + générateur personnalisé + toutes options Google</span></div>
-
-        <!-- Dork Builder -->
-        <div class="tactical-hud" style="border-color:var(--neon-orange);">
-          <div class="hud-title" style="color:var(--neon-orange);">🛠️ GÉNÉRATEUR DORKS PERSONNALISÉ ULTIME</div>
+        <div class="tactical-hud" style="border-color:var(--neon-cyan);">
+          <div class="hud-title" style="color:var(--neon-cyan);">🛠️ GÉNÉRATEUR RECHERCHE MULTI-MOTEURS</div>
           <div class="dork-builder-grid">
-            <input type="text" id="dork-keywords" class="dork-input" placeholder="Mots-clés: ex: confidential, password, kml military" />
-            <input type="text" id="dork-country" class="dork-input" placeholder="Pays/Région: ex: Ukraine, Sahel, Gaza" />
-            <input type="text" id="dork-site" class="dork-input" placeholder="Site: ex: gov, reliefweb.int, github.com (virgule pour OR)" />
-            <input type="text" id="dork-filetype" class="dork-input" placeholder="Filetype: ex: pdf, sql, kml, env (virgule pour OR)" />
+            <input type="text" id="adv-query" class="search-input" placeholder="Requête: ex: Wagner Mali, M23 Goma, drone FPV" />
+            <input type="text" id="adv-site" class="search-input" placeholder="Site: ex: gov, reliefweb.int, t.me" />
+            <input type="text" id="adv-filetype" class="search-input" placeholder="Filetype: pdf, kml, sql, env" />
+            <input type="text" id="adv-country" class="search-input" placeholder="Pays/Région: Ukraine, Sahel" />
+            <input type="text" id="adv-extra" class="search-input" placeholder="Extra: ex: after:2024/01/01, before:2024/12/31" />
+            <select id="adv-category" class="filter-select">
+              <option value="general">Général</option>
+              <option value="documents">Documents</option>
+              <option value="iot">IoT / Caméras</option>
+              <option value="satellite">Satellite</option>
+              <option value="social">Social</option>
+              <option value="maritime">Maritime</option>
+              <option value="aviation">Aviation</option>
+            </select>
+          </div>
+          <div style="margin-top:8px;">
+            <div class="hud-title">SÉLECTION MOTEURS (40+ disponibles)</div>
+            <div id="adv-engines-checklist" style="display:grid;grid-template-columns:1fr 1fr;gap:4px;max-height:150px;overflow-y:auto;background:rgba(0,0,0,0.2);padding:8px;border-radius:4px;border:1px solid var(--border);">
+              <!-- populated by JS -->
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;margin-top:8px;">
+            <button class="cyber-btn cyber-btn-primary" style="flex:1;" onclick="generateAdvancedSearch()">⚡ GÉNÉRER RECHERCHES</button>
+            <button class="cyber-btn btn-xs" onclick="clearAdvancedSearch()">EFFACER</button>
+          </div>
+          <div id="adv-results-container" style="display:none;margin-top:10px;flex-direction:column;gap:8px;"></div>
+        </div>
+      </div>
+
+      <!-- ENGINES -->
+      <div id="tab-engines" class="tab-pane">
+        <div class="panel-header"><span class="panel-title">🌐 OSINT ENGINES - 40+ MOTEURS SPÉCIALISÉS V4</span><span style="font-size:10px;color:var(--neon-violet)">POWER TOOL</span></div>
+        <div class="live-indicator" style="border-left-color:var(--neon-violet);"><span style="color:var(--neon-violet)">🌐</span><b style="color:var(--neon-violet)">40+ MOTEURS OSINT SPÉCIALISÉS - Moins connus inclus</b><br><span style="font-size:10px;color:var(--text-muted)">Search, Image, IoT, People, Breach, Domain, Archive, Maritime, Aviation, Satellite, OSINT Framework</span></div>
+
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <input type="text" id="engine-search-input" class="search-input" placeholder="🔍 Rechercher moteur: ex: shodan, yandex, marine, satellite..." oninput="filterEngines()" style="flex:1;min-width:200px;" />
+          <select id="engine-category-filter" class="filter-select" onchange="filterEngines()" style="width:140px;">
+            <option value="all">Toutes catégories</option>
+            <option value="search">Search</option>
+            <option value="image">Image</option>
+            <option value="iot">IoT</option>
+            <option value="people">People</option>
+            <option value="breach">Breach</option>
+            <option value="domain">Domain</option>
+            <option value="archive">Archive</option>
+            <option value="maritime">Maritime</option>
+            <option value="aviation">Aviation</option>
+            <option value="satellite">Satellite</option>
+            <option value="osint">OSINT</option>
+            <option value="social">Social</option>
+          </select>
+          <label style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text-muted);"><input type="checkbox" id="engine-free-filter" onchange="filterEngines()" /> Free only</label>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);">
+          <span id="engine-count-label">40 engines</span>
+          <span style="color:var(--neon-violet);">● OSINT ENGINES V4</span>
+        </div>
+
+        <div class="incident-list" id="engine-container"><div style="color:var(--text-muted);text-align:center;padding:20px;">Chargement 40+ moteurs OSINT...</div></div>
+      </div>
+
+      <!-- DORKS -->
+      <div id="tab-dorks" class="tab-pane">
+        <div class="panel-header"><span class="panel-title">🔍 GOOGLE DORKING ULTIMATE - 80+ DORKS V4</span><span style="font-size:10px;color:var(--neon-orange);">POWER TOOL</span></div>
+
+        <div class="live-indicator" style="border-left-color:var(--neon-orange);"><span style="color:var(--neon-orange);">⚡</span><b style="color:var(--neon-orange);">DORKING LAB V4 - 80+ DORKS + BUILDER 9 VARIANTES</b><br><span style="font-size:10px;color:var(--text-muted)">Documents, credentials, database, IoT, geospatial, backup, SCADA, social, humanitarian, darknet, people, vuln, Sahel, Ukraine, satellite, maritime, aviation, advanced</span></div>
+
+        <div class="tactical-hud" style="border-color:var(--neon-orange);">
+          <div class="hud-title" style="color:var(--neon-orange);">🛠️ GÉNÉRATEUR DORKS PERSONNALISÉ V4</div>
+          <div class="dork-builder-grid">
+            <input type="text" id="dork-keywords" class="dork-input" placeholder="Mots-clés: confidential, password, kml military" />
+            <input type="text" id="dork-country" class="dork-input" placeholder="Pays/Région: Ukraine, Sahel, Gaza" />
+            <input type="text" id="dork-site" class="dork-input" placeholder="Site: gov, reliefweb.int, github.com (virgule pour OR)" />
+            <input type="text" id="dork-filetype" class="dork-input" placeholder="Filetype: pdf, sql, kml, env (virgule pour OR)" />
             <select id="dork-category" class="filter-select">
               <option value="all">Toutes catégories</option>
               <option value="documents">Documents sensibles</option>
@@ -296,20 +412,21 @@
               <option value="humanitarian">Humanitaire</option>
               <option value="sahel">Sahel spécifique</option>
               <option value="ukraine">Ukraine spécifique</option>
+              <option value="maritime">Maritime</option>
+              <option value="aviation">Aviation</option>
             </select>
-            <input type="text" id="dork-exclude" class="dork-input" placeholder="Exclure: ex: -wikipedia, -facebook" />
+            <input type="text" id="dork-exclude" class="dork-input" placeholder="Exclure: -wikipedia, -facebook" />
           </div>
           <div style="display:flex;gap:6px;margin-top:8px;">
-            <button class="cyber-btn cyber-btn-orange" style="flex:1;" onclick="generateCustomDork()">⚡ GÉNÉRER DORK ULTIME</button>
+            <button class="cyber-btn cyber-btn-orange" style="flex:1;" onclick="generateCustomDork()">⚡ GÉNÉRER DORK V4</button>
             <button class="cyber-btn btn-xs" onclick="clearDorkBuilder()">EFFACER</button>
           </div>
           <div id="dork-generated-container" style="display:none;margin-top:10px;"></div>
         </div>
 
-        <!-- Dorks Filters -->
         <div style="display:flex;gap:6px;flex-wrap:wrap;">
-          <input type="text" id="dork-search-input" class="search-input" placeholder="🔍 Rechercher dork: ex: camera, sql, password, satellite, sahel..." oninput="filterDorks()" style="flex:1;min-width:200px;" />
-          <select id="dork-category-filter" class="filter-select" onchange="filterDorks()" style="width:150px;">
+          <input type="text" id="dork-search-input" class="search-input" placeholder="🔍 Rechercher dork: camera, sql, password, satellite, sahel..." oninput="filterDorks()" style="flex:1;min-width:200px;" />
+          <select id="dork-category-filter" class="filter-select" onchange="filterDorks()" style="width:140px;">
             <option value="all">Toutes catégories</option>
             <option value="documents">Documents</option>
             <option value="credentials">Credentials</option>
@@ -324,9 +441,11 @@
             <option value="sahel">Sahel</option>
             <option value="ukraine">Ukraine</option>
             <option value="satellite">Satellite</option>
+            <option value="maritime">Maritime</option>
+            <option value="aviation">Aviation</option>
             <option value="advanced">Avancés</option>
           </select>
-          <select id="dork-severity-filter" class="filter-select" onchange="filterDorks()" style="width:120px;">
+          <select id="dork-severity-filter" class="filter-select" onchange="filterDorks()" style="width:110px;">
             <option value="all">Toutes sévérités</option>
             <option value="critical">🔴 Critical</option>
             <option value="high">🟠 High</option>
@@ -336,12 +455,190 @@
         </div>
 
         <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);">
-          <span id="dork-count-label">60 dorks</span>
-          <span style="color:var(--neon-orange);">● DORKING ULTIMATE POWER TOOL</span>
+          <span id="dork-count-label">80 dorks</span>
+          <span style="color:var(--neon-orange);">● DORKING V4 POWER</span>
         </div>
 
-        <div class="incident-list" id="dork-container" style="max-height:none;">
-          <div style="color:var(--text-muted);text-align:center;padding:20px;">Chargement base dorks ULTIMATE 60+...</div>
+        <div class="incident-list" id="dork-container"><div style="color:var(--text-muted);text-align:center;padding:20px;">Chargement base dorks V4 80+...</div></div>
+      </div>
+
+      <!-- GEOINT -->
+      <div id="tab-geoint" class="tab-pane">
+        <div class="panel-header"><span class="panel-title">ZONES TACTIQUES & SATELLITE RÉEL HD V4</span><button class="cyber-btn btn-xs" onclick="exportGeoJSON()">EXPORT GEOJSON</button></div>
+        <div class="tactical-hud"><div class="hud-title">ZONES EN BASE + SAT OVERLAYS LIVE V4</div><div style="display:flex;justify-content:space-between;align-items:baseline;"><span class="hud-stat-value" id="total-zones-count">0</span><span style="font-size:11px;color:var(--neon-green);" id="total-area-sum">0 km²</span></div></div>
+        <button class="cyber-btn cyber-btn-primary" style="width:100%;" onclick="promptSaveCurrentDrawn()">💾 SAUVEGARDER TRACÉ SATELLITE RÉEL</button>
+        <div class="panel-title">HISTORIQUE ZONES</div><div class="geozone-list" id="geozone-container"><div style="color:var(--text-muted);text-align:center;padding:10px;">Aucune zone.</div></div>
+        <div class="panel-title" style="margin-top:10px;">COUCHES SATELLITE V4 - HD RÉEL</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+          <button class="cyber-btn btn-xs" onclick="switchBaseLayer('sat')">🛰️ SAT HD Esri 0.3m</button>
+          <button class="cyber-btn btn-xs" onclick="switchBaseLayer('google')">🛰️ GOOGLE SAT</button>
+          <button class="cyber-btn btn-xs" onclick="switchBaseLayer('dark')">🌑 DARK TACTIQUE</button>
+          <button class="cyber-btn btn-xs" onclick="switchBaseLayer('osm')">🗺️ OSM</button>
+          <button class="cyber-btn btn-xs" onclick="toggleOverlay('weather')">🌧️ MÉTÉO LIVE</button>
+          <button class="cyber-btn btn-xs" onclick="toggleOverlay('terrain')">🏔️ RELIEF TOPO</button>
+        </div>
+
+        <div class="panel-title" style="margin-top:12px;">EXTRACTION EXIF GPS - PHOTO SAT RÉEL V4</div>
+        <div id="drop-zone" style="border:2px dashed var(--border);border-radius:6px;padding:16px;text-align:center;background:rgba(0,255,157,0.04);cursor:pointer;transition:all 0.2s;" onclick="document.getElementById('file-input').click()">
+          <div style="font-size:24px;">📸</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Glisser-déposer photo ou cliquer pour EXIF GPS<br><span style="font-size:9px;color:var(--neon-green);">JPG, JPEG avec GPS - Géolocalisation satellite réel + reverse auto</span></div>
+          <input type="file" id="file-input" accept="image/jpeg,image/jpg" style="display:none;" onchange="handleFileSelect(event)" />
+        </div>
+        <div id="exif-card" style="display:none;background:var(--bg-card);border:1px solid var(--neon-green);border-radius:4px;padding:10px;flex-direction:column;gap:8px;">
+          <div style="font-weight:700;color:var(--neon-green);font-size:11px;">📍 EXIF GPS EXTRACTÉ SAT RÉEL V4</div>
+          <div id="exif-details" style="font-size:11px;color:var(--text-bright);line-height:1.5;"></div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button class="cyber-btn cyber-btn-primary btn-xs" onclick="locateExifOnMap()">🎯 LOCALISER SAT</button>
+            <button class="cyber-btn btn-xs" onclick="reverseFromExif()">🔍 REVERSE IMAGE</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- REPORT -->
+      <div id="tab-report" class="tab-pane">
+        <div class="panel-header"><span class="panel-title">📄 GÉNÉRATEUR RAPPORTS OSINT/GEOINT V4</span><span style="font-size:10px;color:var(--neon-yellow)">POWER TOOL</span></div>
+        <div class="live-indicator" style="border-left-color:var(--neon-yellow);"><span style="color:var(--neon-yellow)">📄</span><b style="color:var(--neon-yellow)">RAPPORTS COMPLETS SUR SUJET DONNÉ - Export Markdown/GeoJSON</b><br><span style="font-size:10px;color:var(--text-muted)">Filtrage thématique & régional + IA optionnelle</span></div>
+
+        <div class="tactical-hud" style="border-color:var(--neon-yellow);">
+          <div class="hud-title" style="color:var(--neon-yellow);">📝 CONFIGURATION RAPPORT</div>
+          <input type="text" id="report-topic" class="search-input" placeholder="Sujet: ex: Conflit Sahel, Crise Gaza, Séisme Turquie, Wagner Afrique" />
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px;">
+            <input type="text" id="report-regions" class="search-input" placeholder="Régions: Afrique, Moyen-Orient (virgule)" />
+            <input type="text" id="report-categories" class="search-input" placeholder="Catégories: conflit, catastrophe (virgule)" />
+            <select id="report-timerange" class="filter-select">
+              <option value="24h">Dernières 24h</option>
+              <option value="7d" selected>Derniers 7 jours</option>
+              <option value="30d">Derniers 30 jours</option>
+              <option value="90d">Derniers 90 jours</option>
+              <option value="all">Toutes périodes</option>
+            </select>
+            <select id="report-max" class="filter-select">
+              <option value="20">20 incidents max</option>
+              <option value="50" selected>50 incidents max</option>
+              <option value="100">100 incidents max</option>
+              <option value="200">200 incidents max</option>
+            </select>
+          </div>
+          <div style="margin-top:8px;">
+            <div class="hud-title">SECTIONS INCLUSES</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:10px;">
+              <label><input type="checkbox" id="report-sec-summary" checked /> Résumé exécutif</label>
+              <label><input type="checkbox" id="report-sec-incidents" checked /> Incidents détaillés</label>
+              <label><input type="checkbox" id="report-sec-risk" checked /> Analyse risque</label>
+              <label><input type="checkbox" id="report-sec-actors" checked /> Acteurs</label>
+              <label><input type="checkbox" id="report-sec-map" checked /> Données carto GeoJSON</label>
+              <label><input type="checkbox" id="report-sec-reco" checked /> Recommandations</label>
+            </div>
+          </div>
+          <div style="margin-top:8px;border-top:1px dashed var(--border);padding-top:8px;">
+            <div class="hud-title">IA OPTIONNELLE (clé fournie par utilisateur)</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+              <select id="report-ai-provider" class="filter-select">
+                <option value="">Sans IA</option>
+                <option value="openai">OpenAI GPT-4o</option>
+                <option value="gemini">Google Gemini</option>
+                <option value="anthropic">Anthropic Claude</option>
+                <option value="mistral">Mistral AI</option>
+              </select>
+              <input type="password" id="report-ai-key" class="search-input" placeholder="Clé API (jamais stockée serveur)" />
+            </div>
+            <div style="font-size:9px;color:var(--text-muted);margin-top:4px;">Clés stockées uniquement en localStorage navigateur, jamais envoyées sans votre action. Pour analyse IA avancée.</div>
+          </div>
+          <div style="display:flex;gap:6px;margin-top:10px;">
+            <button class="cyber-btn cyber-btn-yellow" style="flex:1;" onclick="generateReport()">📄 GÉNÉRER RAPPORT V4</button>
+            <button class="cyber-btn btn-xs" onclick="clearReport()">EFFACER</button>
+          </div>
+          <div id="report-output-container" style="display:none;margin-top:10px;flex-direction:column;gap:8px;">
+            <div style="display:flex;gap:6px;">
+              <button class="cyber-btn btn-xs" onclick="copyReport()">📋 COPIER MARKDOWN</button>
+              <button class="cyber-btn btn-xs" onclick="downloadReport()">💾 TÉLÉCHARGER .MD</button>
+              <button class="cyber-btn btn-xs" onclick="downloadGeoJSONReport()">🗺️ TÉLÉCHARGER GEOJSON</button>
+            </div>
+            <div class="report-output" id="report-output"></div>
+            <div id="report-stats" style="font-size:10px;color:var(--text-muted);"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECURITY -->
+      <div id="tab-security" class="tab-pane">
+        <div class="panel-header"><span class="panel-title">ANALYSE SÉCURITÉ & RISQUES V4 LIVE</span><button class="cyber-btn btn-xs" onclick="fetchSecurityAssessment()">🔄 ACTUALISER</button></div>
+        <div class="tactical-hud">
+          <div class="hud-title">ÉVALUATION RISQUE PAR RÉGION - TEMPS RÉEL V4 (70+ sources)</div>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;"><span class="hud-stat-value" id="risk-regions-count">0</span><span style="font-size:11px;color:var(--neon-red);" id="risk-critical-count">0 critique</span></div>
+        </div>
+        <div id="security-container" style="display:flex;flex-direction:column;gap:8px;overflow-y:auto;flex:1;"><div style="color:var(--text-muted);text-align:center;padding:20px;">Chargement analyse sécurité V4...</div></div>
+      </div>
+
+      <!-- ACTORS -->
+      <div id="tab-actors" class="tab-pane">
+        <div class="panel-header"><span class="panel-title">ACTEURS HUMANITAIRES & ENJEUX V4 LIVE</span></div>
+        <div id="actors-container" style="display:flex;flex-direction:column;gap:8px;"><div style="color:var(--text-muted);text-align:center;padding:20px;">Chargement acteurs V4...</div></div>
+      </div>
+
+      <!-- AI AGENT -->
+      <div id="tab-ai" class="tab-pane">
+        <div class="panel-header"><span class="panel-title">🤖 AGENT IA OSINT - ANALYSE AVANCÉE V4</span><span style="font-size:10px;color:var(--neon-cyan)">POWER TOOL</span></div>
+        <div class="live-indicator" style="border-left-color:var(--neon-cyan);"><span style="color:var(--neon-cyan)">🤖</span><b style="color:var(--neon-cyan)">AGENT IA - Fournissez vos clés pour analyse approfondie</b><br><span style="font-size:10px;color:var(--text-muted)">Support: OpenAI, Gemini, Anthropic, Mistral - Clés jamais stockées serveur, uniquement localStorage + requête directe</span></div>
+
+        <div class="tactical-hud" style="border-color:var(--neon-cyan);">
+          <div class="hud-title" style="color:var(--neon-cyan);">🔑 CONFIGURATION CLÉS IA (localStorage)</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+            <select id="ai-provider" class="filter-select">
+              <option value="openai">OpenAI GPT-4o / mini</option>
+              <option value="gemini">Google Gemini 1.5 Flash/Pro</option>
+              <option value="anthropic">Anthropic Claude 3</option>
+              <option value="mistral">Mistral AI</option>
+            </select>
+            <select id="ai-model" class="filter-select">
+              <option value="">Modèle auto</option>
+              <option value="gpt-4o-mini">gpt-4o-mini (OpenAI - rapide)</option>
+              <option value="gpt-4o">gpt-4o (OpenAI - puissant)</option>
+              <option value="gemini-1.5-flash">gemini-1.5-flash (Gemini - rapide)</option>
+              <option value="gemini-1.5-pro">gemini-1.5-pro (Gemini - puissant)</option>
+              <option value="claude-3-haiku-20240307">claude-3-haiku (Anthropic - rapide)</option>
+              <option value="claude-3-5-sonnet-20241022">claude-3-5-sonnet (Anthropic - puissant)</option>
+            </select>
+            <input type="password" id="ai-api-key" class="search-input" placeholder="Clé API - ex: sk-... ou AIza..." style="grid-column:1 / -1;" />
+          </div>
+          <div style="display:flex;gap:6px;margin-top:8px;">
+            <button class="cyber-btn cyber-btn-primary" style="flex:1;" onclick="saveAIKey()">💾 SAUVEGARDER CLÉ LOCAL</button>
+            <button class="cyber-btn btn-xs" onclick="clearAIKey()">EFFACER</button>
+            <button class="cyber-btn btn-xs" onclick="testAIKey()">🧪 TESTER</button>
+          </div>
+          <div id="ai-key-status" style="font-size:10px;color:var(--text-muted);margin-top:6px;">Aucune clé configurée - Mode simulation</div>
+        </div>
+
+        <div class="tactical-hud">
+          <div class="hud-title">💬 ANALYSE IA - PROMPT OSINT</div>
+          <textarea id="ai-prompt" class="search-input" style="min-height:80px;resize:vertical;" placeholder="Ex: Analyse les risques sécuritaires au Sahel pour les 7 prochains jours basés sur les incidents récents. Identifie les acteurs clés et propose 3 recommandations."></textarea>
+          <div style="display:flex;gap:6px;margin-top:6px;">
+            <label style="font-size:10px;color:var(--text-muted);"><input type="checkbox" id="ai-include-incidents" checked /> Inclure incidents LIVE (top 15)</label>
+            <label style="font-size:10px;color:var(--text-muted);"><input type="checkbox" id="ai-include-context" checked /> Inclure contexte régional</label>
+          </div>
+          <div style="display:flex;gap:6px;margin-top:8px;">
+            <button class="cyber-btn cyber-btn-primary" style="flex:1;" onclick="runAIAnalysis()">🤖 LANCER ANALYSE IA</button>
+            <button class="cyber-btn btn-xs" onclick="document.getElementById('ai-prompt').value=''">EFFACER</button>
+          </div>
+          <div id="ai-result-container" style="display:none;margin-top:10px;flex-direction:column;gap:8px;">
+            <div class="report-output" id="ai-result-output"></div>
+            <div style="display:flex;gap:6px;">
+              <button class="cyber-btn btn-xs" onclick="copyAIResult()">📋 COPIER</button>
+              <button class="cyber-btn btn-xs" onclick="downloadAIResult()">💾 TÉLÉCHARGER</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="tactical-hud">
+          <div class="hud-title">IA TIPS V4</div>
+          <div style="font-size:10px;line-height:1.5;color:var(--text-bright);">
+            • <b style="color:var(--neon-green)">OpenAI</b> gpt-4o-mini rapide & pas cher, gpt-4o puissant<br>
+            • <b style="color:var(--neon-cyan)">Gemini</b> 1.5 Flash gratuit généreux, bon pour OSINT<br>
+            • <b style="color:var(--neon-violet)">Claude</b> excellent pour analyse stratégique & rapports<br>
+            • Clés stockées uniquement <b>localStorage</b> navigateur, jamais serveur<br>
+            • Sans clé: mode simulation avec template<br>
+            • Obtenez clés: <a href="https://platform.openai.com/api-keys" target="_blank" style="color:var(--neon-green)">OpenAI</a>, <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:var(--neon-cyan)">Gemini</a>, <a href="https://console.anthropic.com/" target="_blank" style="color:var(--neon-violet)">Anthropic</a>
+          </div>
         </div>
       </div>
 
@@ -350,7 +647,8 @@
 
   <main class="map-container">
     <div class="map-layer-selector">
-      <button id="btn-layer-sat" class="btn-layer-opt active" onclick="switchBaseLayer('sat')">🛰️ SAT HD RÉEL 0.3m</button>
+      <button id="btn-layer-sat" class="btn-layer-opt active" onclick="switchBaseLayer('sat')">🛰️ ESRI HD 0.3m</button>
+      <button id="btn-layer-google" class="btn-layer-opt" onclick="switchBaseLayer('google')">🛰️ GOOGLE SAT</button>
       <button id="btn-layer-dark" class="btn-layer-opt" onclick="switchBaseLayer('dark')">🌑 DARK</button>
       <button id="btn-layer-osm" class="btn-layer-opt" onclick="switchBaseLayer('osm')">🗺️ OSM</button>
       <button id="btn-layer-terrain" class="btn-layer-opt" onclick="switchBaseLayer('terrain')">🏔️ RELIEF</button>
@@ -358,16 +656,16 @@
     <div id="leaflet-map"></div>
     <div id="cesium-map"></div>
     <div class="map-measurement-overlay" id="measure-overlay">
-      <div style="font-weight:700;color:var(--neon-cyan);font-size:11px;">MESURE SATELLITE RÉEL ULTIMATE (TURF.JS)</div>
+      <div style="font-weight:700;color:var(--neon-cyan);font-size:11px;">MESURE SATELLITE RÉEL V4 (TURF.JS)</div>
       <div id="measure-output" style="font-size:14px;font-weight:700;color:#fff;">0.00 km²</div>
       <button class="cyber-btn cyber-btn-primary btn-xs" onclick="saveActiveMeasurement()">💾 ENREGISTRER ZONE SAT RÉEL</button>
     </div>
-    <div class="satellite-info" id="satellite-info">🛰️ SAT RÉEL Esri 0.3m | 35+ SOURCES LIVE | 60+ DORKS | ULTIMATE v3.0 | Cesium 3D Globe Réel</div>
+    <div class="satellite-info" id="satellite-info">🛰️ SAT RÉEL Esri 0.3m + Google Sat | 70+ SOURCES LIVE | 80+ DORKS | 40 ENGINES | REVERSE IMAGE | REPORT + AI AGENT | V4.0 POWER | Cesium 3D Globe Satellite Réel HD</div>
   </main>
 </div>
 
 <script>
-  // === API BASE CONFIGURABLE POUR GITHUB PAGES + BACKEND EXTERNE ===
+  // === API BASE CONFIGURABLE POUR GITHUB PAGES + BACKEND EXTERNE + ANDROID ===
   function getApiBase(){
     try{
       const params = new URLSearchParams(window.location.search);
@@ -378,28 +676,30 @@
       }
       const stored = localStorage.getItem('HUMAN_OSINT_API_BASE');
       if(stored) return stored.replace(/\/$/, '');
-      // Si on est sur github.io, pas de backend local => mode demo + invite à configurer
       if(window.location.hostname.includes('github.io')){
-        // Vous pouvez mettre ici votre backend Render/Railway par défaut
-        // Exemple: return 'https://votre-backend.onrender.com'
-        // Laisser vide => mode démo offline avec données statiques
         const defaultBackend = localStorage.getItem('HUMAN_OSINT_DEFAULT_BACKEND') || '';
         if(defaultBackend) return defaultBackend;
-        return ''; // mode demo
+        return ''; // demo mode
+      }
+      // Android WebView file:// origin - detect bridge
+      if(window.AndroidOSINT || window.location.protocol === 'file:'){
+        return 'ANDROID_BRIDGE';
       }
       if(window.location.origin.includes('http')) return window.location.origin;
     }catch(e){}
     return 'http://localhost:8000';
   }
   const API_BASE = getApiBase();
-  const IS_DEMO_MODE = !API_BASE || API_BASE === '';
+  const IS_ANDROID = API_BASE === 'ANDROID_BRIDGE' || !!window.AndroidOSINT;
+  const IS_DEMO_MODE = !API_BASE || API_BASE === '' || IS_ANDROID ? false : false; // Android uses bridge, not demo
+  const IS_GITHUB_DEMO = window.location.hostname.includes('github.io') && !localStorage.getItem('HUMAN_OSINT_API_BASE');
 
   function setBackendUrl(){
-    const url = prompt('Entrez URL backend FastAPI (ex: https://xxx.onrender.com ou http://localhost:8000). Laissez vide pour mode démo offline:', localStorage.getItem('HUMAN_OSINT_API_BASE')||'');
+    const url = prompt('Entrez URL backend FastAPI (ex: https://xxx.onrender.com ou http://localhost:8000). Laissez vide pour mode démo offline V4 (30 incidents):', localStorage.getItem('HUMAN_OSINT_API_BASE')||'');
     if(url===null) return;
     if(!url.trim()){
       localStorage.removeItem('HUMAN_OSINT_API_BASE');
-      alert('Mode démo offline activé. Rechargez la page.');
+      alert('Mode démo V4 offline activé (30 incidents). Rechargez la page.');
       location.reload();
     } else {
       localStorage.setItem('HUMAN_OSINT_API_BASE', url.trim().replace(/\/$/, ''));
@@ -412,15 +712,16 @@
   let currentBaseLayerKey="sat";
   let allIncidents=[], allSocial=[], allMedia=[], savedGeozones=[], currentDrawingGeoJSON=null, currentDrawingArea=0, activeMapMode="2D", activeThemeFilter="all";
   let autoRefreshEnabled=true, autoRefreshInterval=null, sseConnection=null;
-  let allDorks=[], filteredDorks=[];
+  let allDorks=[], filteredDorks=[], allEngines=[], filteredEngines=[], reverseEngines=[];
+  let lastReportData=null, lastAIResult=null;
 
   window.addEventListener("DOMContentLoaded", () => {
-    initClock(); initLeaflet(); fetchLiveFeeds(); loadSavedGeozones(); fetchSecurityAssessment(); fetchActors(); fetchDorks(); setupDragAndDrop(); startAutoRefresh(); connectSSE();
+    initClock(); initLeaflet(); fetchLiveFeeds(); loadSavedGeozones(); fetchSecurityAssessment(); fetchActors(); fetchDorks(); fetchEngines(); fetchReverseEngines(); setupDragAndDrop(); startAutoRefresh(); connectSSE(); loadAIKey(); initAdvEnginesChecklist();
   });
 
   function initClock(){
     const clockEl=document.getElementById("utc-clock");
-    setInterval(()=>{ const now=new Date(); clockEl.textContent="UTC "+now.toISOString().substring(11,19)+" | ULTIMATE LIVE"; },1000);
+    setInterval(()=>{ const now=new Date(); clockEl.textContent="UTC "+now.toISOString().substring(11,19)+" | V4 POWER LIVE"; },1000);
   }
 
   function switchTab(tabId){
@@ -433,6 +734,7 @@
     if(tabId==="tab-social" && allSocial.length===0) fetchSocial();
     if(tabId==="tab-media" && allMedia.length===0) fetchMedia();
     if(tabId==="tab-dorks" && allDorks.length===0) fetchDorks();
+    if(tabId==="tab-engines" && allEngines.length===0) fetchEngines();
   }
 
   function initLeaflet(){
@@ -482,6 +784,9 @@
     if(key==="sat"){
       activeTileLayer=L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,attribution:"Esri Satellite HD Réel 0.3m"}).addTo(leafletMap);
       L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",{maxZoom:19}).addTo(leafletMap);
+    } else if(key==="google"){
+      activeTileLayer=L.tileLayer("https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",{maxZoom:20,attribution:"Google Satellite"}).addTo(leafletMap);
+      L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",{maxZoom:19}).addTo(leafletMap);
     } else if(key==="dark"){
       activeTileLayer=L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",{maxZoom:19,subdomains:"abcd"}).addTo(leafletMap);
     } else if(key==="terrain"){
@@ -517,13 +822,13 @@
       btn2D.classList.add("active"); btn3D.classList.remove("active");
       leafletEl.style.display="block"; cesiumEl.style.display="none";
       if(layerSelector) layerSelector.style.display="flex";
-      satInfo.innerHTML="🛰️ SAT RÉEL Esri 0.3m | 35+ SOURCES LIVE | 60+ DORKS | ULTIMATE v3.0 | 2D SAT HD";
+      satInfo.innerHTML="🛰️ SAT RÉEL Esri 0.3m + Google Sat | 70+ SOURCES LIVE | 80+ DORKS | 40 ENGINES | V4.0 | 2D SAT HD";
       leafletMap.invalidateSize();
     } else {
       btn3D.classList.add("active"); btn2D.classList.remove("active");
       leafletEl.style.display="none"; cesiumEl.style.display="block";
       if(layerSelector) layerSelector.style.display="none";
-      satInfo.innerHTML="🌐 GLOBE 3D SATELLITE RÉEL HD 0.3m - Rotation, zoom, imagerie vraie | Cesium + Esri | ULTIMATE";
+      satInfo.innerHTML="🌐 GLOBE 3D SATELLITE RÉEL HD 0.3m - Rotation, zoom, imagerie vraie Esri + Google | Cesium + Esri World Imagery | V4 POWER";
       initCesiumSatellite();
     }
   }
@@ -535,7 +840,7 @@
         Cesium.Ion.defaultAccessToken=undefined;
         const esriImagery=new Cesium.UrlTemplateImageryProvider({
           url:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-          maximumLevel:19,credit:'Esri World Imagery - Satellite Réel HD 0.3m ULTIMATE'
+          maximumLevel:19,credit:'Esri World Imagery - Satellite Réel HD 0.3m V4'
         });
         cesiumViewer=new Cesium.Viewer("cesium-map",{
           imageryProvider:esriImagery,
@@ -545,24 +850,25 @@
         cesiumViewer.scene.globe.enableLighting=false;
         cesiumViewer.scene.globe.showGroundAtmosphere=true;
         cesiumViewer.scene.backgroundColor=Cesium.Color.BLACK;
+        // Add labels overlay - satellite + labels = real satellite view
         const labelsProvider=new Cesium.UrlTemplateImageryProvider({
           url:'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',maximumLevel:19
         });
         cesiumViewer.imageryLayers.addImageryProvider(labelsProvider);
         cesiumViewer.camera.flyTo({destination:Cesium.Cartesian3.fromDegrees(30.0,25.0,12000000),duration:2.5});
         syncCesiumIncidents();
-        console.log("✅ Cesium ULTIMATE satellite réel HD initialisé");
+        console.log("✅ Cesium V4 satellite réel HD initialisé - Esri 0.3m");
       }
     } catch(e){
       console.warn("Cesium error:",e);
-      document.getElementById("cesium-map").innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--neon-cyan);background:#040609;text-align:center;padding:20px;"><div style="font-size:48px;">🛰️</div><div style="font-size:16px;font-weight:700;margin-bottom:8px;">GLOBE SATELLITE 3D - MODE SECOURS ULTIMATE</div><div style="font-size:12px;color:var(--text-muted);max-width:400px;">WebGL requis. Mode 2D satellite HD réel déjà disponible avec imagerie vraie Esri 0.3m.</div><button class="cyber-btn cyber-btn-primary" style="margin-top:16px;" onclick="switchMapMode('2D')">RETOUR 2D SAT HD RÉEL</button></div>`;
+      document.getElementById("cesium-map").innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--neon-cyan);background:#040609;text-align:center;padding:20px;"><div style="font-size:48px;">🛰️</div><div style="font-size:16px;font-weight:700;margin-bottom:8px;">GLOBE SATELLITE 3D V4 - MODE SECOURS</div><div style="font-size:12px;color:var(--text-muted);max-width:500px;">WebGL requis. Mode 2D satellite HD réel déjà disponible avec imagerie vraie Esri 0.3m + Google Satellite. Erreur: ${e.message}</div><button class="cyber-btn cyber-btn-primary" style="margin-top:16px;" onclick="switchMapMode('2D')">RETOUR 2D SAT HD RÉEL</button></div>`;
     }
   }
 
   function syncCesiumIncidents(){
     if(!cesiumViewer) return;
     cesiumViewer.entities.removeAll();
-    const all = [...allIncidents, ...allSocial, ...allMedia].slice(0,80);
+    const all = [...allIncidents, ...allSocial, ...allMedia].slice(0,100);
     all.forEach(inc=>{
       let color=Cesium.Color.fromCssColorString("#00e5ff");
       if(inc.category==="conflit") color=Cesium.Color.fromCssColorString("#ff2a5f");
@@ -574,26 +880,51 @@
       const isSocial=(inc.source||"").includes("Reddit")||(inc.source||"").includes("Telegram")||(inc.source||"").includes("GDELT");
       cesiumViewer.entities.add({
         position:Cesium.Cartesian3.fromDegrees(inc.longitude,inc.latitude,isSat?8000:5000),
-        point:{pixelSize:isSat?10:isSocial?8:7,color:color,outlineColor:Cesium.Color.WHITE,outlineWidth:1.5},
-        label:isSat?{text:"🛰️ LIVE",font:"9px monospace",fillColor:Cesium.Color.WHITE,outlineColor:Cesium.Color.BLACK,outlineWidth:2,style:Cesium.LabelStyle.FILL_AND_OUTLINE,verticalOrigin:Cesium.VerticalOrigin.BOTTOM,pixelOffset:new Cesium.Cartesian2(0,-12)}:isSocial?{text:"📱 SOCIAL",font:"8px monospace",fillColor:Cesium.Color.WHITE,outlineColor:Cesium.Color.BLACK,outlineWidth:2,style:Cesium.LabelStyle.FILL_AND_OUTLINE,verticalOrigin:Cesium.VerticalOrigin.BOTTOM,pixelOffset:new Cesium.Cartesian2(0,-12)}:undefined,
+        point:{pixelSize:isSat?12:isSocial?9:7,color:color,outlineColor:Cesium.Color.WHITE,outlineWidth:1.5},
+        label:isSat?{text:"🛰️ SAT LIVE",font:"9px monospace",fillColor:Cesium.Color.WHITE,outlineColor:Cesium.Color.BLACK,outlineWidth:2,style:Cesium.LabelStyle.FILL_AND_OUTLINE,verticalOrigin:Cesium.VerticalOrigin.BOTTOM,pixelOffset:new Cesium.Cartesian2(0,-14)}:isSocial?{text:"📱 SOCIAL",font:"8px monospace",fillColor:Cesium.Color.WHITE,outlineColor:Cesium.Color.BLACK,outlineWidth:2,style:Cesium.LabelStyle.FILL_AND_OUTLINE,verticalOrigin:Cesium.VerticalOrigin.BOTTOM,pixelOffset:new Cesium.Cartesian2(0,-12)}:undefined,
         name:inc.title,
-        description:`<div style="font-family:monospace;color:#fff;background:#0d131f;padding:10px;border-radius:4px;"><b style="color:#00ff9d;">${inc.title}</b><br/><b>Source ULTIMATE:</b> ${inc.source} (${inc.source_type})<br/><b>Cat:</b> ${inc.category} | <b>Risque:</b> ${inc.risk_level||2}/5<br/><b>Pays:</b> ${inc.country||'Global'} | <b>Région:</b> ${inc.region||'Global'}<br/><b>Coords SAT RÉEL:</b> ${inc.latitude.toFixed(4)}, ${inc.longitude.toFixed(4)}<br/><b>Acteurs:</b> ${(inc.actors||[]).join(', ')}<br/><b>Besoins:</b> ${(inc.needs||[]).join(', ')}<br/><p style="color:#8292ab;font-size:11px;">${inc.summary||''}</p><a href="${inc.link}" target="_blank" style="color:#00e5ff;">Source LIVE ↗</a></div>`
+        description:`<div style="font-family:monospace;color:#fff;background:#0d131f;padding:10px;border-radius:4px;"><b style="color:#00ff9d;">${inc.title}</b><br/><b>Source V4:</b> ${inc.source} (${inc.source_type})<br/><b>Cat:</b> ${inc.category} | <b>Risque:</b> ${inc.risk_level||2}/5<br/><b>Pays:</b> ${inc.country||'Global'} | <b>Région:</b> ${inc.region||'Global'}<br/><b>Coords SAT RÉEL HD:</b> ${inc.latitude.toFixed(4)}, ${inc.longitude.toFixed(4)}<br/><b>Acteurs:</b> ${(inc.actors||[]).join(', ')}<br/><b>Besoins:</b> ${(inc.needs||[]).join(', ')}<br/><p style="color:#8292ab;font-size:11px;">${inc.summary||''}</p><a href="${inc.link}" target="_blank" style="color:#00e5ff;">Source V4 LIVE ↗</a></div>`
       });
     });
   }
 
-  // Demo fallback data for GitHub Pages offline mode
+  // Demo V4 - 30 incidents
   function getDemoIncidents(){
     const now = new Date();
     const iso = now.toISOString();
-    return [
-      {id:1,title:"[DEMO] Conflit actif Donbass/Pokrovsk - Artillerie lourde + drones FPV [LIVE SAT]",link:"https://deepstatemap.live",source:"DeepState OSINT (DEMO)",source_type:"OSINT",category:"conflit",region:"Europe",country:"Ukraine",latitude:48.28,longitude:37.18,risk_level:5,published_at:iso,summary:"DEMO OFFLINE - Percée mécanisée Pokrovsk. En mode GitHub Pages sans backend, configurez backend via ?api=URL ou bouton API.",actors:["AFU","RF"],needs:["Evacuation"]},
-      {id:2,title:"[DEMO] Frappe massive FIRMS Darfour Soudan - Incendies villages [LIVE SAT]",link:"https://firms.modaps.eosdis.nasa.gov/",source:"NASA FIRMS (DEMO)",source_type:"SATELLITE",category:"catastrophe",region:"Afrique",country:"Soudan",latitude:13.62,longitude:25.34,risk_level:5,published_at:iso,summary:"DEMO - Détection satellite incendies El Fasher.",actors:["RSF","Civils"],needs:["Abri"]},
-      {id:3,title:"[DEMO] Séisme M6.8 Mer Rouge - Alerte tsunami mineure [USGS LIVE]",link:"https://earthquake.usgs.gov",source:"USGS (DEMO)",source_type:"SATELLITE",category:"catastrophe",region:"Moyen-Orient",country:"Mer Rouge",latitude:14.5,longitude:42.8,risk_level:4,published_at:iso,summary:"DEMO USGS",actors:["GDACS"],needs:["Secours"]},
-      {id:4,title:"[DEMO] Offensive JNIM Sahel - Embuscade IED + kidnapping [GDELT+Reddit]",link:"https://www.reddit.com/r/OSINT",source:"Reddit OSINT (DEMO)",source_type:"SOCIAL",category:"conflit",region:"Afrique",country:"Mali / Sahel",latitude:16.27,longitude:-0.04,risk_level:5,published_at:iso,summary:"DEMO Sahel",actors:["JNIM","FAMa"],needs:["Sécurité"]},
-      {id:5,title:"[DEMO] Tensions Détroit Taïwan - 38 aéronefs PLA [MND]",link:"https://www.mnd.gov.tw",source:"MND Taïwan (DEMO)",source_type:"OFFICIEL",category:"conflit",region:"Asie-Pacifique",country:"Taïwan",latitude:24.15,longitude:119.5,risk_level:4,published_at:iso,summary:"DEMO Taïwan",actors:["PLA"],needs:["Surveillance"]},
-      {id:6,title:"[DEMO] Epidémie Mpox Clade 1b RDC - Déploiement OMS [WHO LIVE]",link:"https://www.who.int",source:"OMS (DEMO)",source_type:"OFFICIEL",category:"epidemie",region:"Afrique",country:"RDC",latitude:-2.5,longitude:28.85,risk_level:4,published_at:iso,summary:"DEMO santé",actors:["OMS","MSF"],needs:["Médical"]},
+    const base = [
+      {id:1,title:"[DEMO V4] Conflit actif Donbass/Pokrovsk - Artillerie lourde + drones FPV [LIVE SAT]",link:"https://deepstatemap.live",source:"DeepState OSINT (DEMO V4)",source_type:"OSINT",category:"conflit",region:"Europe",country:"Ukraine",latitude:48.28,longitude:37.18,risk_level:5,published_at:iso,summary:"DEMO V4 - Percée mécanisée Pokrovsk. Backend configurable via ?api=URL",actors:["AFU","RF"],needs:["Evacuation"]},
+      {id:2,title:"[DEMO V4] Frappe massive FIRMS Darfour Soudan - Incendies villages [LIVE SAT]",link:"https://firms.modaps.eosdis.nasa.gov/",source:"NASA FIRMS (DEMO V4)",source_type:"SATELLITE",category:"catastrophe",region:"Afrique",country:"Soudan",latitude:13.62,longitude:25.34,risk_level:5,published_at:iso,summary:"DEMO V4 FIRMS",actors:["RSF","Civils"],needs:["Abri"]},
+      {id:3,title:"[DEMO V4] Séisme M6.8 Mer Rouge - Alerte tsunami [USGS LIVE]",link:"https://earthquake.usgs.gov",source:"USGS (DEMO V4)",source_type:"SATELLITE",category:"catastrophe",region:"Moyen-Orient",country:"Mer Rouge",latitude:14.5,longitude:42.8,risk_level:4,published_at:iso,summary:"DEMO V4 USGS",actors:["GDACS"],needs:["Secours"]},
+      {id:4,title:"[DEMO V4] Offensive JNIM Sahel - Embuscade IED + kidnapping [GDELT+Reddit]",link:"https://www.reddit.com/r/OSINT",source:"Reddit OSINT (DEMO V4)",source_type:"SOCIAL",category:"conflit",region:"Afrique",country:"Mali / Sahel",latitude:16.27,longitude:-0.04,risk_level:5,published_at:iso,summary:"DEMO V4 Sahel",actors:["JNIM","FAMa"],needs:["Sécurité"]},
+      {id:5,title:"[DEMO V4] Tensions Détroit Taïwan - 38 aéronefs PLA [MND]",link:"https://www.mnd.gov.tw",source:"MND Taïwan (DEMO V4)",source_type:"OFFICIEL",category:"conflit",region:"Asie-Pacifique",country:"Taïwan",latitude:24.15,longitude:119.5,risk_level:4,published_at:iso,summary:"DEMO V4 Taïwan",actors:["PLA"],needs:["Surveillance"]},
+      {id:6,title:"[DEMO V4] Épidémie Mpox Clade 1b RDC - Déploiement OMS [WHO LIVE]",link:"https://www.who.int",source:"OMS (DEMO V4)",source_type:"OFFICIEL",category:"epidemie",region:"Afrique",country:"RDC",latitude:-2.5,longitude:28.85,risk_level:4,published_at:iso,summary:"DEMO V4 santé",actors:["OMS","MSF"],needs:["Médical"]},
+      {id:7,title:"[DEMO V4] Attaque maritime Bab-el-Mandeb - Pétrolier [AIS SAT]",link:"https://www.ukmto.org",source:"UKMTO (DEMO V4)",source_type:"OFFICIEL",category:"energie",region:"Moyen-Orient",country:"Mer Rouge",latitude:12.58,longitude:43.33,risk_level:4,published_at:iso,summary:"DEMO V4 maritime",actors:["Houthis","Coalition"],needs:["Sécurité maritime"]},
+      {id:8,title:"[DEMO V4] Crise RDC/Kivu - M23 avance vers Goma [OCHA SAT]",link:"https://reliefweb.int",source:"ReliefWeb (DEMO V4)",source_type:"OFFICIEL",category:"conflit",region:"Afrique",country:"RDC Congo",latitude:-1.67,longitude:29.22,risk_level:5,published_at:iso,summary:"DEMO V4 RDC",actors:["M23","FARDC","MONUSCO"],needs:["Abri","Protection"]},
+      {id:9,title:"[DEMO V4] Cyberattaque ransomware Ukraine - CERT-UA",link:"https://cert.gov.ua",source:"CERT-UA (DEMO V4)",source_type:"CYBER",category:"cyber",region:"Europe",country:"Ukraine",latitude:50.45,longitude:30.52,risk_level:3,published_at:iso,summary:"DEMO V4 cyber",actors:["CERT-UA"],needs:["IT"]},
+      {id:10,title:"[DEMO V4] Coup d'État Guinée - Blindés présidence [RFI]",link:"https://www.rfi.fr",source:"RFI Afrique (DEMO V4)",source_type:"PRESSE",category:"protest",region:"Afrique",country:"Guinée",latitude:9.53,longitude:-13.67,risk_level:4,published_at:iso,summary:"DEMO V4 Guinée",actors:["Garde","CEDEAO"],needs:["Médiation"]},
+      {id:11,title:"[DEMO V4] Frappes Gaza - Bilan humanitaire critique [BBC]",link:"https://www.bbc.com",source:"BBC World (DEMO V4)",source_type:"PRESSE",category:"conflit",region:"Moyen-Orient",country:"Palestine/Gaza",latitude:31.45,longitude:34.38,risk_level:5,published_at:iso,summary:"DEMO V4 Gaza",actors:["Tsahal","Hamas","OCHA"],needs:["Abri","Nourriture"]},
+      {id:12,title:"[DEMO V4] Sahel 3 frontières - Enlèvement humanitaires [France24]",link:"https://www.france24.com",source:"France24 (DEMO V4)",source_type:"PRESSE",category:"conflit",region:"Afrique",country:"Niger / Sahel",latitude:14.28,longitude:0.85,risk_level:4,published_at:iso,summary:"DEMO V4 Sahel",actors:["JNIM","ONG"],needs:["Sécurité"]},
+      {id:13,title:"[DEMO V4] Iran Fordow - Enrichissement AIEA [Al Jazeera]",link:"https://www.aljazeera.com",source:"Al Jazeera (DEMO V4)",source_type:"PRESSE",category:"energie",region:"Moyen-Orient",country:"Iran",latitude:34.88,longitude:51.01,risk_level:4,published_at:iso,summary:"DEMO V4 Iran",actors:["AIEA","IRGC"],needs:["Diplomatie"]},
+      {id:14,title:"[DEMO V4] Haïti gangs - Attaque aéroport [CNN]",link:"https://edition.cnn.com",source:"CNN World (DEMO V4)",source_type:"PRESSE",category:"conflit",region:"Amériques",country:"Haïti",latitude:18.59,longitude:-72.30,risk_level:4,published_at:iso,summary:"DEMO V4 Haïti",actors:["Gangs"],needs:["Sécurité"]},
+      {id:15,title:"[DEMO V4] Éthiopie Tigré - Reprise combats [DW]",link:"https://www.dw.com",source:"DW Africa (DEMO V4)",source_type:"PRESSE",category:"conflit",region:"Afrique",country:"Éthiopie",latitude:14.0,longitude:38.0,risk_level:4,published_at:iso,summary:"DEMO V4 Éthiopie",actors:["FANO"],needs:["Protection"]},
+      {id:16,title:"[DEMO V4] Choléra Lac Tchad - CTC urgence [OMS+MSF]",link:"https://www.who.int",source:"OMS Live + MSF (DEMO V4)",source_type:"OFFICIEL",category:"epidemie",region:"Afrique",country:"Cameroun",latitude:10.59,longitude:14.32,risk_level:4,published_at:iso,summary:"DEMO V4 choléra",actors:["OMS","MSF"],needs:["Vaccins","Eau"]},
+      {id:17,title:"[DEMO V4] Cyclone Mozambique 180km/h [GDACS SAT]",link:"https://www.gdacs.org",source:"GDACS (DEMO V4)",source_type:"SATELLITE",category:"catastrophe",region:"Afrique",country:"Mozambique",latitude:-12.33,longitude:40.5,risk_level:5,published_at:iso,summary:"DEMO V4 cyclone",actors:["GDACS","OCHA"],needs:["Évacuation"]},
+      {id:18,title:"[DEMO V4] Venezuela Essequibo - Tensions [Guardian]",link:"https://www.theguardian.com",source:"Guardian (DEMO V4)",source_type:"PRESSE",category:"protest",region:"Amériques",country:"Venezuela",latitude:6.42,longitude:-66.58,risk_level:3,published_at:iso,summary:"DEMO V4 Venezuela",actors:["Maduro"],needs:["Médiation"]},
+      {id:19,title:"[DEMO V4] Détroit Ormuz - Pétrolier attaqué Brent +5% [OilPrice]",link:"https://oilprice.com",source:"OilPrice (DEMO V4)",source_type:"PRESSE",category:"energie",region:"Moyen-Orient",country:"Détroit Ormuz",latitude:26.56,longitude:56.25,risk_level:4,published_at:iso,summary:"DEMO V4 Ormuz",actors:["IRGC"],needs:["Sécurité maritime"]},
+      {id:20,title:"[DEMO V4] Fuite données 10M - BreachForums [HackerNews]",link:"https://thehackernews.com",source:"HackerNews (DEMO V4)",source_type:"CYBER",category:"cyber",region:"Global",country:"International",latitude:37.77,longitude:-122.41,risk_level:3,published_at:iso,summary:"DEMO V4 breach",actors:["BreachForums"],needs:["Protection données"]},
+      {id:21,title:"[DEMO V4] MSF Soudan du Sud - Paludisme camps [MSF]",link:"https://www.msf.org",source:"MSF (DEMO V4)",source_type:"OFFICIEL",category:"epidemie",region:"Afrique",country:"Soudan du Sud",latitude:7.0,longitude:30.0,risk_level:4,published_at:iso,summary:"DEMO V4 paludisme",actors:["MSF","OMS"],needs:["Médicaments"]},
+      {id:22,title:"[DEMO V4] Myanmar - Frappes junte villages [UN News]",link:"https://news.un.org",source:"UN News (DEMO V4)",source_type:"OFFICIEL",category:"conflit",region:"Asie-Pacifique",country:"Myanmar",latitude:21.9,longitude:95.9,risk_level:5,published_at:iso,summary:"DEMO V4 Myanmar",actors:["Junte","Civils"],needs:["Protection"]},
+      {id:23,title:"[DEMO V4] Sénégal Dakar - Manifestations [Le Monde]",link:"https://www.lemonde.fr",source:"Le Monde (DEMO V4)",source_type:"PRESSE",category:"protest",region:"Afrique",country:"Sénégal",latitude:14.69,longitude:-17.44,risk_level:3,published_at:iso,summary:"DEMO V4 Sénégal",actors:["Opposition"],needs:["Médiation"]},
+      {id:24,title:"[DEMO V4] Burkina Djibo - Attaque 40 morts [RFI]",link:"https://www.rfi.fr",source:"RFI (DEMO V4)",source_type:"PRESSE",category:"conflit",region:"Afrique",country:"Burkina Faso",latitude:14.10,longitude:-1.63,risk_level:5,published_at:iso,summary:"DEMO V4 Burkina",actors:["JNIM","FDS"],needs:["Sécurité"]},
+      {id:25,title:"[DEMO V4] Mali Wagner - Convoi attaqué [Jeune Afrique]",link:"https://www.jeuneafrique.com",source:"Jeune Afrique (DEMO V4)",source_type:"PRESSE",category:"conflit",region:"Afrique",country:"Mali",latitude:17.0,longitude:-1.0,risk_level:4,published_at:iso,summary:"DEMO V4 Mali",actors:["Wagner","JNIM"],needs:["Sécurité"]},
+      {id:26,title:"[DEMO V4] Syrie Idlib - Frappes dépôts munitions [OSINT]",link:"https://t.me/s/OSINTtechnical",source:"Telegram (DEMO V4)",source_type:"SOCIAL",category:"conflit",region:"Moyen-Orient",country:"Syrie",latitude:35.93,longitude:36.63,risk_level:4,published_at:iso,summary:"DEMO V4 Syrie",actors:["HTS"],needs:["Protection"]},
+      {id:27,title:"[DEMO V4] Liban Sud - Roquettes Ligne Bleue [FINUL]",link:"https://unifil.unmissions.org",source:"FINUL (DEMO V4)",source_type:"OFFICIEL",category:"conflit",region:"Moyen-Orient",country:"Liban",latitude:33.12,longitude:35.32,risk_level:4,published_at:iso,summary:"DEMO V4 Liban",actors:["Hezbollah","FINUL"],needs:["Sécurité"]},
+      {id:28,title:"[DEMO V4] Nigéria Delta - Sabotage oléoduc [Punch]",link:"https://punchng.com",source:"Punch Nigeria (DEMO V4)",source_type:"PRESSE",category:"energie",region:"Afrique",country:"Nigéria",latitude:4.81,longitude:7.04,risk_level:3,published_at:iso,summary:"DEMO V4 Nigéria",actors:["Militants"],needs:["Sécurité"]},
+      {id:29,title:"[DEMO V4] Indonésie Séisme M6.8 - Alerte tsunami [GDACS]",link:"https://www.gdacs.org",source:"GDACS (DEMO V4)",source_type:"SATELLITE",category:"catastrophe",region:"Asie-Pacifique",country:"Indonésie",latitude:-0.58,longitude:122.98,risk_level:4,published_at:iso,summary:"DEMO V4 séisme",actors:["GDACS","USGS"],needs:["Secours"]},
+      {id:30,title:"[DEMO V4] Corée du Nord - Tir missile balistique [Yonhap]",link:"https://en.yna.co.kr",source:"Yonhap (DEMO V4)",source_type:"PRESSE",category:"conflit",region:"Asie-Pacifique",country:"Corée du Nord",latitude:39.01,longitude:127.44,risk_level:4,published_at:iso,summary:"DEMO V4 Corée",actors:["Kim","US"],needs:["Surveillance"]},
     ];
+    return base;
   }
 
   async function fetchLiveFeeds(force=false){
@@ -601,24 +932,76 @@
     const liveCountBadge=document.getElementById("live-count-badge");
     const lastUpdateLabel=document.getElementById("last-update-label");
     const apiBadge=document.getElementById("api-base-badge");
-    if(apiBadge) apiBadge.textContent = IS_DEMO_MODE ? '🔧 DEMO OFFLINE - CLIC CONFIG API' : `🔧 ${API_BASE.substring(0,30)}`;
-    if(IS_DEMO_MODE){
+    if(apiBadge) apiBadge.textContent = IS_ANDROID ? '📱 ANDROID BRIDGE' : IS_GITHUB_DEMO ? '🔧 DEMO V4 - CLIC CONFIG API' : `🔧 ${API_BASE.substring(0,30)}`;
+
+    // ANDROID BRIDGE MODE - use native interface
+    if(IS_ANDROID && window.AndroidOSINT && typeof AndroidOSINT.getLiveFeeds === 'function'){
+      try{
+        const raw = AndroidOSINT.getLiveFeeds();
+        let data = [];
+        try{ data = JSON.parse(raw); }catch(e){ data = []; }
+        if(!data || data.length===0){
+          // fallback to demo if bridge empty
+          data = getDemoIncidents();
+          statusBadge.textContent=`ANDROID BRIDGE - DEMO V4 ${data.length} (BDD vide, preload en cours...)`;
+          statusBadge.style.color="var(--neon-orange)";
+        } else {
+          statusBadge.textContent=`ANDROID BRIDGE OK - ${data.length} LIVE SQLite`;
+          statusBadge.style.color="var(--neon-green)";
+        }
+        // Convert Android format to V4 format
+        allIncidents = data.map(d=>({
+          title: d.title, link: d.link, source: d.source, source_type: d.source_type||'PRESSE',
+          category: d.category||'conflit', region: d.region||'Global', country: d.country||'International',
+          latitude: parseFloat(d.latitude)||0, longitude: parseFloat(d.longitude)||0,
+          published_at: d.published_at||new Date().toISOString(), summary: d.summary||'',
+          severity: 'medium', actors: [], needs: [], risk_level: 3
+        }));
+        renderIncidents(allIncidents);
+        renderMapMarkers(allIncidents);
+        if(cesiumViewer) syncCesiumIncidents();
+        liveCountBadge.textContent=`${allIncidents.length} ANDROID LIVE`;
+        liveCountBadge.style.color="var(--neon-green)";
+        lastUpdateLabel.textContent=`Android SQLite - ${allIncidents.length} événements | Bridge natif | Refresh 30s`;
+        // Trigger refresh via bridge
+        if(force && typeof AndroidOSINT.refreshFeeds === 'function'){
+          AndroidOSINT.refreshFeeds();
+          setTimeout(()=>fetchLiveFeeds(false), 3000);
+        }
+        return;
+      }catch(e){
+        console.warn("Android bridge error", e);
+        statusBadge.textContent=`ANDROID BRIDGE ERR - FALLBACK DEMO V4`;
+        statusBadge.style.color="var(--neon-red)";
+        const demo = getDemoIncidents();
+        allIncidents=demo;
+        renderIncidents(demo);
+        renderMapMarkers(demo);
+        if(cesiumViewer) syncCesiumIncidents();
+        liveCountBadge.textContent=`${demo.length} DEMO V4`;
+        lastUpdateLabel.textContent=`Android bridge error - Fallback DEMO V4: ${e.message}`;
+        return;
+      }
+    }
+
+    if(IS_GITHUB_DEMO){
       const demo = getDemoIncidents();
       allIncidents=demo;
       renderIncidents(demo);
       renderMapMarkers(demo);
       if(cesiumViewer) syncCesiumIncidents();
-      statusBadge.textContent=`DEMO OFFLINE - ${demo.length} LIVE (GitHub Pages)`;
+      statusBadge.textContent=`DEMO V4 OFFLINE - ${demo.length} LIVE (GitHub Pages)`;
       statusBadge.style.color="var(--neon-orange)";
-      liveCountBadge.textContent=`${demo.length} DEMO`;
+      liveCountBadge.textContent=`${demo.length} DEMO V4`;
       liveCountBadge.style.color="var(--neon-orange)";
-      lastUpdateLabel.innerHTML=`Mode démo GitHub Pages sans backend. Pour live réel, configurez backend: <button class="cyber-btn btn-xs" onclick="setBackendUrl()">🔧 CONFIG API</button> ou ajoutez ?api=https://votre-backend.onrender.com à l'URL`;
+      lastUpdateLabel.innerHTML=`Mode démo V4 GitHub Pages (30 incidents) sans backend. Pour live réel 70+ sources, configurez backend: <button class="cyber-btn btn-xs" onclick="setBackendUrl()">🔧 CONFIG API</button> ou ajoutez ?api=https://votre-backend.onrender.com à l'URL`;
       return;
     }
-    statusBadge.textContent="SYNC ULTIMATE..."; statusBadge.style.color="var(--neon-orange)";
+
+    statusBadge.textContent="SYNC V4..."; statusBadge.style.color="var(--neon-orange)";
     if(force){ try{ await fetch(`${API_BASE}/api/live/refresh`,{method:"POST"}); }catch(e){} }
     try{
-      const response=await fetch(`${API_BASE}/api/feeds/live?limit=80`);
+      const response=await fetch(`${API_BASE}/api/feeds/live?limit=100`);
       if(!response.ok) throw new Error("Network");
       const incidents=await response.json();
       allIncidents=incidents;
@@ -626,39 +1009,42 @@
       renderMapMarkers(incidents);
       if(cesiumViewer) syncCesiumIncidents();
       const now=new Date();
-      statusBadge.textContent=`ULTIMATE SYNC OK - ${incidents.length} LIVE`;
+      statusBadge.textContent=`V4 SYNC OK - ${incidents.length} LIVE`;
       statusBadge.style.color="var(--neon-green)";
-      liveCountBadge.textContent=`${incidents.length} LIVE ULTIMATE`;
+      liveCountBadge.textContent=`${incidents.length} LIVE V4`;
       liveCountBadge.style.color="var(--neon-green)";
-      lastUpdateLabel.textContent=`Dernière MAJ: ${now.toLocaleTimeString()} | ${incidents.length} évts | Sources: NASA, USGS, GDELT, Reddit, Telegram, 35 RSS | Backend: ${API_BASE}`;
+      lastUpdateLabel.textContent=`Dernière MAJ: ${now.toLocaleTimeString()} | ${incidents.length} évts | Sources: NASA EONET + USGS + GDACS + FIRMS + GDELT x5 + Reddit x6 + Telegram x4 + 60 RSS | Backend: ${API_BASE}`;
       fetch(`${API_BASE}/api/live/combined`).then(r=>r.json()).then(data=>{
         if(data.meta){
-          lastUpdateLabel.textContent=`MAJ: ${new Date(data.meta.last_updated||now).toLocaleTimeString()} | ${data.meta.total} totaux | ${data.meta.total_social||0} social | ${data.meta.total_media||0} media | Refresh ${data.meta.refresh_interval_sec}s | 35+ sources | ${API_BASE}`;
+          lastUpdateLabel.textContent=`MAJ: ${new Date(data.meta.last_updated||now).toLocaleTimeString()} | ${data.meta.total} totaux | ${data.meta.total_social||0} social | ${data.meta.total_media||0} media | Refresh ${data.meta.refresh_interval_sec}s | 70+ sources | ${API_BASE}`;
           if(data.social) allSocial=data.social;
           if(data.media) allMedia=data.media;
         }
       }).catch(()=>{});
     } catch(error){
       console.warn("Live fetch error:",error);
-      statusBadge.textContent="MODE LOCAL ULTIMATE - RETRY 10s"; statusBadge.style.color="var(--neon-red)";
-      // Fallback to demo if backend fails on GitHub Pages
-      if(window.location.hostname.includes('github.io')){
+      statusBadge.textContent="MODE LOCAL V4 - RETRY 10s"; statusBadge.style.color="var(--neon-red)";
+      if(window.location.hostname.includes('github.io') || API_BASE.includes('localhost')){
         const demo = getDemoIncidents();
         allIncidents=demo;
         renderIncidents(demo);
         renderMapMarkers(demo);
-        lastUpdateLabel.innerHTML=`Backend ${API_BASE} inaccessible - Fallback DEMO. <button class="cyber-btn btn-xs" onclick="setBackendUrl()">🔧 CHANGER API</button>`;
+        if(cesiumViewer) syncCesiumIncidents();
+        lastUpdateLabel.innerHTML=`Backend ${API_BASE} inaccessible - Fallback DEMO V4 30 incidents. <button class="cyber-btn btn-xs" onclick="setBackendUrl()">🔧 CHANGER API</button>`;
+        liveCountBadge.textContent=`${demo.length} DEMO V4`;
       }
     }
   }
 
   async function fetchSocial(){
     const container=document.getElementById("social-container");
-    if(IS_DEMO_MODE){
-      container.innerHTML=`<div style="color:var(--neon-orange);text-align:center;padding:20px;">Mode démo GitHub Pages - Réseaux sociaux live nécessitent backend FastAPI.<br><button class="cyber-btn btn-xs" onclick="setBackendUrl()">🔧 CONFIGURER BACKEND</button><br><br>En démo: 2 posts simulés</div>`;
+    if(IS_ANDROID){
+      container.innerHTML=`<div style="color:var(--text-muted);text-align:center;padding:20px;">Android - Social via backend ou démo<br>En démo: 4 posts simulés</div>`;
       const demoSocial=[
-        {source:"Reddit r/OSINT (DEMO)",source_type:"SOCIAL",country:"Ukraine",region:"Europe",title:"[DEMO] Thread OSINT Pokrovsk - Vidéos drones FPV",summary:"DEMO Reddit",latitude:48.28,longitude:37.18,published_at:new Date().toISOString(),link:"https://reddit.com/r/OSINT",category:"conflit"},
-        {source:"Telegram OSINTtechnical (DEMO)",source_type:"SOCIAL",country:"Syrie",region:"Moyen-Orient",title:"[DEMO] Canal Telegram - Frappes Idlib",summary:"DEMO Telegram",latitude:35.93,longitude:36.63,published_at:new Date().toISOString(),link:"https://t.me/s/OSINTtechnical",category:"conflit"},
+        {source:"Reddit r/OSINT (DEMO V4)",source_type:"SOCIAL",country:"Ukraine",region:"Europe",title:"[DEMO V4] Thread OSINT Pokrovsk - Vidéos drones FPV",summary:"DEMO V4 Reddit",latitude:48.28,longitude:37.18,published_at:new Date().toISOString(),link:"https://reddit.com/r/OSINT",category:"conflit"},
+        {source:"Telegram @OSINTtechnical (DEMO V4)",source_type:"SOCIAL",country:"Syrie",region:"Moyen-Orient",title:"[DEMO V4] Canal Telegram - Frappes Idlib",summary:"DEMO V4 Telegram",latitude:35.93,longitude:36.63,published_at:new Date().toISOString(),link:"https://t.me/s/OSINTtechnical",category:"conflit"},
+        {source:"Reddit r/Sahel (DEMO V4)",source_type:"SOCIAL",country:"Mali",region:"Afrique",title:"[DEMO V4] JNIM embuscade Gao",summary:"DEMO V4 Sahel",latitude:16.27,longitude:-0.04,published_at:new Date().toISOString(),link:"https://reddit.com/r/Sahel",category:"conflit"},
+        {source:"GDELT Social (DEMO V4)",source_type:"SOCIAL",country:"Gaza",region:"Moyen-Orient",title:"[DEMO V4] GDELT Gaza live",summary:"DEMO V4 GDELT",latitude:31.45,longitude:34.38,published_at:new Date().toISOString(),link:"https://gdeltproject.org",category:"conflit"},
       ];
       allSocial=demoSocial;
       container.innerHTML="";
@@ -680,13 +1066,41 @@
       });
       return;
     }
-    container.innerHTML=`<div style="color:var(--text-muted);text-align:center;padding:20px;">Chargement réseaux sociaux ULTIMATE...</div>`;
+    if(IS_GITHUB_DEMO){
+      container.innerHTML=`<div style="color:var(--neon-orange);text-align:center;padding:20px;">Mode démo GitHub Pages V4 - Réseaux sociaux live nécessitent backend FastAPI.<br><button class="cyber-btn btn-xs" onclick="setBackendUrl()">🔧 CONFIGURER BACKEND</button><br><br>En démo: 4 posts simulés V4</div>`;
+      const demoSocial=[
+        {source:"Reddit r/OSINT (DEMO V4)",source_type:"SOCIAL",country:"Ukraine",region:"Europe",title:"[DEMO V4] Thread OSINT Pokrovsk - Vidéos drones FPV",summary:"DEMO V4 Reddit",latitude:48.28,longitude:37.18,published_at:new Date().toISOString(),link:"https://reddit.com/r/OSINT",category:"conflit"},
+        {source:"Telegram @OSINTtechnical (DEMO V4)",source_type:"SOCIAL",country:"Syrie",region:"Moyen-Orient",title:"[DEMO V4] Canal Telegram - Frappes Idlib",summary:"DEMO V4 Telegram",latitude:35.93,longitude:36.63,published_at:new Date().toISOString(),link:"https://t.me/s/OSINTtechnical",category:"conflit"},
+        {source:"Reddit r/Sahel (DEMO V4)",source_type:"SOCIAL",country:"Mali",region:"Afrique",title:"[DEMO V4] JNIM embuscade Gao",summary:"DEMO V4 Sahel",latitude:16.27,longitude:-0.04,published_at:new Date().toISOString(),link:"https://reddit.com/r/Sahel",category:"conflit"},
+        {source:"GDELT Social (DEMO V4)",source_type:"SOCIAL",country:"Gaza",region:"Moyen-Orient",title:"[DEMO V4] GDELT Gaza live",summary:"DEMO V4 GDELT",latitude:31.45,longitude:34.38,published_at:new Date().toISOString(),link:"https://gdeltproject.org",category:"conflit"},
+      ];
+      allSocial=demoSocial;
+      container.innerHTML="";
+      demoSocial.forEach(inc=>{
+        const card=document.createElement("div");
+        card.className=`incident-card live cat-${inc.category}`;
+        card.innerHTML=`
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span class="badge-cat badge-social">📱 ${escapeHtml(inc.source)}</span>
+            <span style="font-size:9px;color:var(--text-muted);">${escapeHtml(inc.source_type)}</span>
+          </div>
+          <div style="font-size:10px;color:#1DA1F2;font-weight:700;">📍 ${escapeHtml(inc.country||'Monde')} // ${escapeHtml(inc.region||'Global')}</div>
+          <div class="incident-title">${escapeHtml(inc.title)}</div>
+          <div style="font-size:10px;color:var(--text-muted);">${escapeHtml((inc.summary||'').substring(0,140))}</div>
+          <div class="incident-meta"><span>📱 SOCIAL ${inc.latitude.toFixed(2)}, ${inc.longitude.toFixed(2)}</span><span>${formatDate(inc.published_at)}</span></div>
+          <div class="incident-actions"><button class="cyber-btn btn-xs" onclick="centerMapOnCoords(${inc.latitude}, ${inc.longitude})">🎯 LOC</button><a href="${inc.link}" target="_blank" class="cyber-btn btn-xs" style="text-decoration:none;">SOURCE SOCIAL ↗</a></div>
+        `;
+        container.appendChild(card);
+      });
+      return;
+    }
+    container.innerHTML=`<div style="color:var(--text-muted);text-align:center;padding:20px;">Chargement réseaux sociaux V4...</div>`;
     try{
       const res=await fetch(`${API_BASE}/api/osint/social?limit=40`);
       const data=await res.json();
       allSocial=data.social||[];
       container.innerHTML="";
-      if(allSocial.length===0){ container.innerHTML=`<div style="color:var(--text-muted);text-align:center;padding:20px;">Aucun post social - Vérifiez connexion</div>`; return; }
+      if(allSocial.length===0){ container.innerHTML=`<div style="color:var(--text-muted);text-align:center;padding:20px;">Aucun post social</div>`; return; }
       allSocial.forEach(inc=>{
         const card=document.createElement("div");
         card.className=`incident-card live cat-${inc.category}`;
@@ -708,12 +1122,15 @@
 
   async function fetchMedia(){
     const container=document.getElementById("media-container");
-    if(IS_DEMO_MODE){
-      container.innerHTML=`<div style="color:var(--neon-orange);text-align:center;padding:20px;">Mode démo GitHub Pages - Médias live nécessitent backend.<br><button class="cyber-btn btn-xs" onclick="setBackendUrl()">🔧 CONFIGURER BACKEND</button><br><br>En démo: 3 articles simulés</div>`;
+    if(IS_ANDROID || IS_GITHUB_DEMO){
+      container.innerHTML=`<div style="color:var(--neon-orange);text-align:center;padding:20px;">Mode démo V4 - Médias live nécessitent backend.<br><button class="cyber-btn btn-xs" onclick="setBackendUrl()">🔧 CONFIGURER BACKEND</button><br><br>En démo: 6 articles simulés V4</div>`;
       const demoMedia=[
-        {source:"BBC World (DEMO)",language:"en",country:"Gaza",region:"Moyen-Orient",title:"[DEMO] BBC Gaza - Situation humanitaire critique",summary:"DEMO BBC",latitude:31.35,longitude:34.30,published_at:new Date().toISOString(),link:"https://bbc.com",category:"conflit"},
-        {source:"Reuters (DEMO)",language:"en",country:"Ukraine",region:"Europe",title:"[DEMO] Reuters - Offensive Pokrovsk",summary:"DEMO Reuters",latitude:48.28,longitude:37.18,published_at:new Date().toISOString(),link:"https://reuters.com",category:"conflit"},
-        {source:"France24 (DEMO)",language:"fr",country:"Mali",region:"Afrique",title:"[DEMO] France24 Sahel - Attaque JNIM",summary:"DEMO France24",latitude:16.27,longitude:-0.04,published_at:new Date().toISOString(),link:"https://france24.com",category:"conflit"},
+        {source:"BBC World (DEMO V4)",language:"en",country:"Gaza",region:"Moyen-Orient",title:"[DEMO V4] BBC Gaza - Situation humanitaire critique",summary:"DEMO V4 BBC",latitude:31.35,longitude:34.30,published_at:new Date().toISOString(),link:"https://bbc.com",category:"conflit"},
+        {source:"Reuters (DEMO V4)",language:"en",country:"Ukraine",region:"Europe",title:"[DEMO V4] Reuters - Offensive Pokrovsk",summary:"DEMO V4 Reuters",latitude:48.28,longitude:37.18,published_at:new Date().toISOString(),link:"https://reuters.com",category:"conflit"},
+        {source:"France24 (DEMO V4)",language:"fr",country:"Mali",region:"Afrique",title:"[DEMO V4] France24 Sahel - Attaque JNIM",summary:"DEMO V4 France24",latitude:16.27,longitude:-0.04,published_at:new Date().toISOString(),link:"https://france24.com",category:"conflit"},
+        {source:"DW Africa (DEMO V4)",language:"en",country:"Éthiopie",region:"Afrique",title:"[DEMO V4] DW - Tigré combats",summary:"DEMO V4 DW",latitude:14.0,longitude:38.0,published_at:new Date().toISOString(),link:"https://dw.com",category:"conflit"},
+        {source:"Al Jazeera (DEMO V4)",language:"en",country:"Iran",region:"Moyen-Orient",title:"[DEMO V4] Al Jazeera - Iran Fordow",summary:"DEMO V4 Al Jazeera",latitude:34.88,longitude:51.01,published_at:new Date().toISOString(),link:"https://aljazeera.com",category:"energie"},
+        {source:"Jeune Afrique (DEMO V4)",language:"fr",country:"Mali",region:"Afrique",title:"[DEMO V4] Jeune Afrique - Wagner Mali",summary:"DEMO V4 Jeune Afrique",latitude:17.0,longitude:-1.0,published_at:new Date().toISOString(),link:"https://jeuneafrique.com",category:"conflit"},
       ];
       allMedia=demoMedia;
       container.innerHTML="";
@@ -735,9 +1152,9 @@
       });
       return;
     }
-    container.innerHTML=`<div style="color:var(--text-muted);text-align:center;padding:20px;">Chargement médias ULTIMATE 35 sources...</div>`;
+    container.innerHTML=`<div style="color:var(--text-muted);text-align:center;padding:20px;">Chargement médias V4 60+ sources...</div>`;
     try{
-      const res=await fetch(`${API_BASE}/api/osint/media?limit=50`);
+      const res=await fetch(`${API_BASE}/api/osint/media?limit=60`);
       const data=await res.json();
       allMedia=data.media||[];
       container.innerHTML="";
@@ -763,7 +1180,7 @@
 
   function startAutoRefresh(){
     if(autoRefreshInterval) clearInterval(autoRefreshInterval);
-    autoRefreshInterval=setInterval(()=>{ if(autoRefreshEnabled) fetchLiveFeeds(); },30000);
+    autoRefreshInterval=setInterval(()=>{ if(autoRefreshEnabled) fetchLiveFeeds(); }, IS_ANDROID ? 30000 : 60000);
   }
   function toggleAutoRefresh(){
     autoRefreshEnabled=!autoRefreshEnabled;
@@ -772,14 +1189,14 @@
     if(autoRefreshEnabled) fetchLiveFeeds();
   }
   function connectSSE(){
-    if(IS_DEMO_MODE){ console.log("DEMO MODE - SSE disabled"); return; }
+    if(IS_GITHUB_DEMO || IS_ANDROID){ console.log("DEMO/ANDROID - SSE disabled"); return; }
     try{
       const es=new EventSource(`${API_BASE}/api/live/stream`);
       sseConnection=es;
       es.onmessage=(event)=>{
         try{
           const data=JSON.parse(event.data);
-          if(data.type==="update"){ console.log("🔴 ULTIMATE SSE",data.count); fetchLiveFeeds(); }
+          if(data.type==="update"){ console.log("🔴 V4 SSE",data.count); fetchLiveFeeds(); }
         }catch(e){}
       };
       es.onerror=()=>{ es.close(); setTimeout(connectSSE,15000); };
@@ -789,7 +1206,7 @@
   function renderIncidents(incidents){
     const container=document.getElementById("incident-container");
     container.innerHTML="";
-    if(!incidents||incidents.length===0){ container.innerHTML=`<div style="color:var(--text-muted);text-align:center;padding:20px;">Aucun incident ULTIMATE</div>`; return; }
+    if(!incidents||incidents.length===0){ container.innerHTML=`<div style="color:var(--text-muted);text-align:center;padding:20px;">Aucun incident V4</div>`; return; }
     incidents.forEach(inc=>{
       const isSat=(inc.source||"").includes("NASA")||(inc.source||"").includes("USGS")||(inc.source||"").includes("GDACS");
       const isSocial=(inc.source||"").includes("Reddit")||(inc.source||"").includes("Telegram")||(inc.source||"").includes("GDELT");
@@ -800,19 +1217,19 @@
       card.innerHTML=`
         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px;">
           <span class="badge-cat badge-${inc.category}">${(inc.category||'ALERTE').toUpperCase()} ${isSat?'🛰️':isSocial?'📱':''}</span>
-          <span style="font-size:10px;color:var(--text-muted);">${escapeHtml(inc.source)} ${isSat?'🛰️ SAT RÉEL':isSocial?'📱 SOCIAL':''}</span>
+          <span style="font-size:10px;color:var(--text-muted);">${escapeHtml(inc.source)} ${isSat?'🛰️ SAT RÉEL HD':isSocial?'📱 SOCIAL':''}</span>
         </div>
         <div style="font-size:10px;color:var(--neon-cyan);font-weight:700;">📍 ${escapeHtml(inc.country||'Monde')} // ${escapeHtml(inc.region||'Global')} | RISQUE ${inc.risk_level||2}/5</div>
         <div class="incident-title">${escapeHtml(inc.title)}</div>
-        ${inc.summary?`<div style="font-size:11px;color:var(--text-muted);line-height:1.3;">${escapeHtml(inc.summary.substring(0,130))}...</div>`:''}
+        ${inc.summary?`<div style="font-size:11px;color:var(--text-muted);line-height:1.3;">${escapeHtml(inc.summary.substring(0,140))}...</div>`:''}
         ${actorsHtml?`<div style="margin-top:4px;">${actorsHtml}</div>`:''}
         ${needsHtml?`<div>${needsHtml}</div>`:''}
-        <div class="incident-meta"><span>🛰️ ${inc.latitude.toFixed(3)}, ${inc.longitude.toFixed(3)} ${isSat?'(SAT RÉEL)':''}</span><span>${formatDate(inc.published_at)}</span></div>
-        <div class="incident-actions"><button class="cyber-btn btn-xs" onclick="centerMapOnCoords(${inc.latitude}, ${inc.longitude})">🎯 SAT LOC</button><a href="${inc.link}" target="_blank" class="cyber-btn btn-xs" style="text-decoration:none;">SOURCE ULTIMATE ↗</a></div>
+        <div class="incident-meta"><span>🛰️ ${inc.latitude.toFixed(3)}, ${inc.longitude.toFixed(3)} ${isSat?'(SAT RÉEL HD)':''}</span><span>${formatDate(inc.published_at)}</span></div>
+        <div class="incident-actions"><button class="cyber-btn btn-xs" onclick="centerMapOnCoords(${inc.latitude}, ${inc.longitude})">🎯 SAT LOC</button><a href="${inc.link}" target="_blank" class="cyber-btn btn-xs" style="text-decoration:none;">SOURCE V4 ↗</a><button class="cyber-btn btn-xs" onclick="addToReport('${escapeHtml(inc.title).replace(/'/g,"\\'")}')">+ REPORT</button></div>
       `;
       container.appendChild(card);
     });
-    document.getElementById("filtered-count-label").textContent=`${incidents.length} événements ULTIMATE LIVE`;
+    document.getElementById("filtered-count-label").textContent=`${incidents.length} événements V4 LIVE`;
   }
 
   function renderMapMarkers(incidents){
@@ -832,13 +1249,13 @@
       const marker=L.marker([inc.latitude,inc.longitude],{icon:icon});
       marker.bindPopup(`
         <div style="padding:4px;max-width:300px;">
-          <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span class="badge-cat badge-${inc.category}">${(inc.category||'').toUpperCase()} ${isSat?'🛰️ SAT RÉEL':isSocial?'📱 SOCIAL':''}</span><span style="font-size:10px;color:var(--text-muted);">${escapeHtml(inc.source)}</span></div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span class="badge-cat badge-${inc.category}">${(inc.category||'').toUpperCase()} ${isSat?'🛰️ SAT HD':isSocial?'📱 SOCIAL':''}</span><span style="font-size:10px;color:var(--text-muted);">${escapeHtml(inc.source)}</span></div>
           <div style="color:var(--neon-cyan);font-weight:700;font-size:10px;margin-bottom:3px;">📍 ${escapeHtml(inc.country||'')} | RISQUE ${inc.risk_level||2}/5</div>
           <div style="font-weight:700;font-size:12px;margin-bottom:6px;color:#fff;">${escapeHtml(inc.title)}</div>
           <div style="font-size:10px;color:#cbd5e1;margin-bottom:6px;">${escapeHtml(inc.summary||'')}</div>
-          <div style="font-size:9px;color:var(--text-muted);margin-bottom:6px;">🛰️ ${inc.latitude.toFixed(4)}, ${inc.longitude.toFixed(4)} - ${isSat?'COORDS SAT RÉELLES':'ULTIMATE LIVE'}</div>
+          <div style="font-size:9px;color:var(--text-muted);margin-bottom:6px;">🛰️ ${inc.latitude.toFixed(4)}, ${inc.longitude.toFixed(4)} - ${isSat?'COORDS SAT RÉELLES HD':'V4 LIVE'}</div>
           <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px;">${(inc.actors||[]).map(a=>`<span style="background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.3);color:#00e5ff;padding:1px 6px;border-radius:10px;font-size:9px;">${escapeHtml(a)}</span>`).join('')}</div>
-          <a href="${inc.link}" target="_blank" style="color:var(--neon-green);font-size:11px;text-decoration:underline;">Source ULTIMATE ↗</a>
+          <a href="${inc.link}" target="_blank" style="color:var(--neon-green);font-size:11px;text-decoration:underline;">Source V4 LIVE ↗</a>
         </div>
       `);
       incidentMarkersLayer.addLayer(marker);
@@ -854,6 +1271,8 @@
     const searchTxt=(document.getElementById("filter-search-input")?.value||"").toLowerCase().trim();
     const regionVal=document.getElementById("filter-region-select")?.value||"all";
     const sourceVal=document.getElementById("filter-source-select")?.value||"all";
+    const categoryVal=document.getElementById("filter-category-select")?.value||"all";
+    const countryVal=document.getElementById("filter-country-select")?.value||"all";
     const filtered=allIncidents.filter(inc=>{
       if(searchTxt){
         const match=(inc.title||"").toLowerCase().includes(searchTxt)||(inc.summary||"").toLowerCase().includes(searchTxt)||(inc.country||"").toLowerCase().includes(searchTxt)||(inc.actors||[]).join(" ").toLowerCase().includes(searchTxt);
@@ -861,6 +1280,8 @@
       }
       if(regionVal!=="all"&&inc.region!==regionVal) return false;
       if(sourceVal!=="all"&&!(inc.source||"").includes(sourceVal)) return false;
+      if(categoryVal!=="all"&&inc.category!==categoryVal) return false;
+      if(countryVal!=="all"&&!(inc.country||"").toLowerCase().includes(countryVal.toLowerCase())) return false;
       if(activeThemeFilter!=="all"){
         if(activeThemeFilter==="satellite"){
           const isSat=(inc.source||"").includes("NASA")||(inc.source||"").includes("USGS")||(inc.source||"").includes("GDACS")||(inc.source||"").includes("EONET");
@@ -873,7 +1294,7 @@
       return true;
     });
     renderIncidents(filtered); renderMapMarkers(filtered);
-    document.getElementById("filtered-count-label").textContent=`${filtered.length} / ${allIncidents.length} ULTIMATE filtrés`;
+    document.getElementById("filtered-count-label").textContent=`${filtered.length} / ${allIncidents.length} V4 filtrés`;
   }
   function filterByTheme(theme,btn){
     activeThemeFilter=theme;
@@ -882,182 +1303,317 @@
     applyAllFilters();
   }
 
-  async function fetchSecurityAssessment(){
-    const container=document.getElementById("security-container");
-    if(IS_DEMO_MODE){
-      container.innerHTML=`<div style="color:var(--neon-orange);padding:10px;text-align:center;">Mode démo GitHub Pages - Analyse sécurité live nécessite backend.<br><button class="cyber-btn btn-xs" onclick="setBackendUrl()">🔧 CONFIGURER BACKEND</button><br><br>Démo: 3 régions à risque</div>`;
-      const demoAssess=[
-        {country:"Ukraine (Donbass)",region:"Europe",max_risk:5,risk_label:"CRITIQUE",incident_count:3,categories:{conflit:2,cyber:1},sources:["NASA","Reddit"],latest_incident:{title:"[DEMO] Pokrovsk",latitude:48.28,longitude:37.18},actors:["AFU","RF"],recommendations:["Éviter zone 20km","Suivi drone"]},
-        {country:"Soudan",region:"Afrique",max_risk:5,risk_label:"CRITIQUE",incident_count:2,categories:{conflit:1,catastrophe:1},sources:["FIRMS","OCHA"],latest_incident:{title:"[DEMO] El Fasher",latitude:13.62,longitude:25.34},actors:["RSF"],recommendations:["Accès humanitaire bloqué"]},
-        {country:"Mali / Sahel",region:"Afrique",max_risk:4,risk_label:"ÉLEVÉ",incident_count:2,categories:{conflit:2},sources:["GDELT"],latest_incident:{title:"[DEMO] Gao",latitude:16.27,longitude:-0.04},actors:["JNIM"],recommendations:["Convoi armé obligatoire"]},
+  // === REVERSE IMAGE ===
+  async function fetchReverseEngines(){
+    if(IS_GITHUB_DEMO || IS_ANDROID){
+      reverseEngines=[
+        {id:"google",name:"Google Images",url_template:"https://images.google.com/searchbyimage?image_url={image_url}",description:"Google reverse",free:true},
+        {id:"yandex",name:"Yandex Images",url_template:"https://yandex.com/images/search?rpt=imageview&url={image_url}",description:"Meilleur pour visages",free:true},
+        {id:"tineye",name:"TinEye",url_template:"https://tineye.com/search?url={image_url}",description:"Exact matches",free:true},
+        {id:"bing",name:"Bing Visual",url_template:"https://www.bing.com/images/search?view=detailv2&iss=sbi&q=imgurl:{image_url}",description:"Bing reverse",free:true},
+        {id:"baidu",name:"Baidu",url_template:"https://graph.baidu.com/details?isfromtuchuang=true&tn=pc&image={image_url}",description:"Chine",free:true},
       ];
-      document.getElementById("risk-regions-count").textContent=demoAssess.length;
-      document.getElementById("risk-critical-count").textContent=`${demoAssess.filter(a=>a.max_risk>=4).length} critiques DEMO`;
-      container.innerHTML="";
-      demoAssess.forEach(a=>{
-        const card=document.createElement("div");
-        card.className=`security-card`;
-        card.style.borderLeftColor=a.max_risk>=4?"var(--neon-red)":"var(--neon-orange)";
-        card.innerHTML=`
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-            <b style="color:var(--neon-cyan);">📍 ${escapeHtml(a.country)} (${escapeHtml(a.region)})</b>
-            <span style="padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;background:${a.max_risk>=4?'rgba(255,42,95,0.2)':'rgba(255,153,0,0.2)'};color:${a.max_risk>=4?'var(--neon-red)':'var(--neon-orange)'};border:1px solid ${a.max_risk>=4?'var(--neon-red)':'var(--neon-orange)'};">${escapeHtml(a.risk_label)} ${a.max_risk}/5</span>
-          </div>
-          <div style="font-size:10px;color:var(--text-muted);margin-bottom:6px;">${a.incident_count} incidents DEMO | Cat: ${Object.entries(a.categories).map(([k,v])=>`${k}(${v})`).join(', ')} | Sources: ${(a.sources||[]).join(', ')}</div>
-          <div style="font-size:11px;font-weight:600;margin-bottom:4px;">${escapeHtml(a.latest_incident?.title||'')}</div>
-          <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px;">${(a.actors||[]).map(ac=>`<span class="actor-chip">${escapeHtml(ac)}</span>`).join('')}</div>
-          <div style="font-size:10px;color:var(--neon-orange);">${(a.recommendations||[]).map(r=>`<div>• ${escapeHtml(r)}</div>`).join('')}</div>
-          <div style="margin-top:6px;display:flex;gap:4px;"><button class="cyber-btn btn-xs" onclick="centerMapOnCoords(${a.latest_incident?.latitude||0}, ${a.latest_incident?.longitude||0})">🎯 VOIR ZONE SAT RÉEL</button></div>
-        `;
-        container.appendChild(card);
-      });
       return;
     }
     try{
-      const res=await fetch(`${API_BASE}/api/security/assessment`);
+      const res=await fetch(`${API_BASE}/api/osint/reverse-image/engines`);
       const data=await res.json();
-      const assessments=data.assessment||[];
-      document.getElementById("risk-regions-count").textContent=assessments.length;
-      document.getElementById("risk-critical-count").textContent=`${assessments.filter(a=>a.max_risk>=4).length} critiques ULTIMATE`;
-      container.innerHTML="";
-      assessments.forEach(a=>{
-        const card=document.createElement("div");
-        card.className=`security-card`;
-        card.style.borderLeftColor=a.max_risk>=4?"var(--neon-red)":a.max_risk>=3?"var(--neon-orange)":"var(--neon-yellow)";
-        card.innerHTML=`
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-            <b style="color:var(--neon-cyan);">📍 ${escapeHtml(a.country)} (${escapeHtml(a.region)})</b>
-            <span style="padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;background:${a.max_risk>=4?'rgba(255,42,95,0.2)':'rgba(255,153,0,0.2)'};color:${a.max_risk>=4?'var(--neon-red)':'var(--neon-orange)'};border:1px solid ${a.max_risk>=4?'var(--neon-red)':'var(--neon-orange)'};">${escapeHtml(a.risk_label)} ${a.max_risk}/5</span>
-          </div>
-          <div style="font-size:10px;color:var(--text-muted);margin-bottom:6px;">${a.incident_count} incidents ULTIMATE | Cat: ${Object.entries(a.categories).map(([k,v])=>`${k}(${v})`).join(', ')} | Sources: ${(a.sources||[]).join(', ')}</div>
-          <div style="font-size:11px;font-weight:600;margin-bottom:4px;">${escapeHtml(a.latest_incident?.title||'')}</div>
-          <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px;">${(a.actors||[]).map(ac=>`<span class="actor-chip">${escapeHtml(ac)}</span>`).join('')}</div>
-          <div style="font-size:10px;color:var(--neon-orange);">${(a.recommendations||[]).map(r=>`<div>• ${escapeHtml(r)}</div>`).join('')}</div>
-          <div style="margin-top:6px;display:flex;gap:4px;"><button class="cyber-btn btn-xs" onclick="centerMapOnCoords(${a.latest_incident?.latitude||0}, ${a.latest_incident?.longitude||0})">🎯 VOIR ZONE SAT RÉEL</button></div>
-        `;
-        container.appendChild(card);
-      });
-    } catch(e){ container.innerHTML=`<div style="color:var(--neon-red);padding:10px;">Erreur sécurité: ${e.message} <button class="cyber-btn btn-xs" onclick="setBackendUrl()">🔧 CONFIG API</button></div>`; }
+      reverseEngines=data.engines||[];
+    }catch(e){ console.warn(e); }
   }
 
-  async function fetchActors(){
-    const container=document.getElementById("actors-container");
-    if(IS_DEMO_MODE){
-      container.innerHTML=`<div style="color:var(--neon-orange);padding:10px;text-align:center;">Mode démo - Acteurs live nécessitent backend. <button class="cyber-btn btn-xs" onclick="setBackendUrl()">🔧 CONFIGURER</button></div>`;
+  async function generateReverseImage(){
+    const url=document.getElementById("reverse-image-url")?.value||"";
+    const desc=document.getElementById("reverse-image-desc")?.value||"";
+    if(!url.trim()){ alert("Entrez URL image !"); return; }
+    const container=document.getElementById("reverse-image-results");
+    container.style.display="flex";
+    container.innerHTML=`<div style="color:var(--text-muted);">Génération reverse V4...</div>`;
+
+    if(IS_GITHUB_DEMO || IS_ANDROID){
+      const enc=encodeURIComponent(url.trim());
+      const results=reverseEngines.map(e=>({engine:e.id,name:e.name,url:e.url_template.replace("{image_url}",enc),description:e.description,free:e.free}));
+      if(desc) results.push({engine:"google_desc",name:"Google Images Description",url:`https://www.google.com/search?tbm=isch&q=${encodeURIComponent(desc)}`,description:"Search by description",free:true});
+      renderReverseResults(results, url);
+      return;
     }
     try{
-      const res=await fetch(IS_DEMO_MODE ? `${API_BASE}/api/humanitarian/actors` : `${API_BASE}/api/humanitarian/actors`);
-      if(IS_DEMO_MODE) throw new Error("demo");
+      const res=await fetch(`${API_BASE}/api/osint/reverse-image/generate`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({image_url:url.trim(),description:desc||null})});
       const data=await res.json();
-      container.innerHTML="";
-      (data.clusters||[]).forEach(cluster=>{
-        const div=document.createElement("div");
-        div.className="security-card";
-        div.style.borderLeftColor=cluster.live?"var(--neon-green)":"var(--neon-cyan)";
-        const typeColor=cluster.type==="SATELLITE"?"var(--neon-green)":cluster.type==="SOCIAL"?"#1DA1F2":cluster.type==="MEDIA"?"#fff":"var(--neon-cyan)";
-        div.innerHTML=`
-          <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px;">
-            <b style="color:${typeColor};">${escapeHtml(cluster.name)} ${cluster.live?'🛰️ LIVE':''}</b>
-            <span style="font-size:10px;color:var(--text-muted);">${escapeHtml(cluster.role)} | ${cluster.type}</span>
-          </div>
-          <div style="font-size:10px;color:var(--text-muted);margin-top:4px;">Régions: ${(cluster.active_regions||[]).join(', ')}</div>
-          <div style="font-size:10px;color:var(--neon-cyan);">Contact: ${escapeHtml(cluster.contact)}</div>
-        `;
-        container.appendChild(div);
-      });
-      const enjeuxDiv=document.createElement("div");
-      enjeuxDiv.className="tactical-hud"; enjeuxDiv.style.marginTop="10px"; enjeuxDiv.style.borderColor="var(--neon-green)";
-      enjeuxDiv.innerHTML=`
-        <div class="hud-title" style="color:var(--neon-green);">PROBLÉMATIQUES & ENJEUX ULTIMATE LIVE (auto-généré depuis 35+ sources)</div>
-        <div style="font-size:11px;line-height:1.6;color:var(--text-bright);">
-          • <b style="color:var(--neon-red);">Sécurité:</b> ${allIncidents.filter(i=>i.category==='conflit').length} conflits actifs détectés satellite + réseaux sociaux<br>
-          • <b style="color:var(--neon-orange);">Logistique:</b> Risques maritimes, routes coupées, accès humanitaire restreint (UKMTO, Maritime, OCHA)<br>
-          • <b style="color:var(--neon-violet);">Santé:</b> ${allIncidents.filter(i=>i.category==='epidemie').length} alertes épidémiologiques live (OMS, MSF)<br>
-          • <b style="color:var(--neon-cyan);">Climat:</b> ${allIncidents.filter(i=>i.category==='catastrophe').length} catastrophes naturelles satellite (NASA, USGS, GDACS)<br>
-          • <b style="color:var(--neon-green);">Info & Désinfo:</b> ${allSocial.length} posts sociaux + ${allMedia.length} articles médias vérifiés via GDELT<br>
-          • <b style="color:var(--neon-yellow);">Données:</b> Sources ULTIMATE temps réel NASA, USGS, ReliefWeb, GDACS, GDELT, Reddit, Telegram, 35 RSS - MAJ 45s | Backend: ${API_BASE||'DEMO'}
-        </div>
-      `;
-      container.appendChild(enjeuxDiv);
-      const enjeux2=document.createElement("div");
-      enjeux2.className="tactical-hud"; enjeux2.style.marginTop="8px";
-      enjeux2.innerHTML=`
-        <div class="hud-title">ENJEUX HUMANITAIRES PAR CLUSTER</div>
-        <div style="display:flex;flex-direction:column;gap:6px;font-size:11px;">
-          ${(data.enjeux||[]).map(en=>`<div><b style="color:var(--neon-cyan);">${en.name}:</b> ${en.description} <span style="color:var(--text-muted);">Risques: ${en.risk_factors.join(', ')}</span></div>`).join('')}
-        </div>
-      `;
-      container.appendChild(enjeux2);
-    } catch(e){
-      // Fallback demo actors
-      const demoClusters=[
-        {name:"OCHA Coordination",role:"Coordination humanitaire",type:"OFFICIEL",live:true,active_regions:["Global"],contact:"ocha@un.org"},
-        {name:"NASA EONET Satellite",role:"Détection satellite catastrophes",type:"SATELLITE",live:true,active_regions:["Global"],contact:"eonet.gsfc.nasa.gov"},
-        {name:"Reddit OSINT Community",role:"Veille sociale",type:"SOCIAL",live:true,active_regions:["Ukraine","Sahel"],contact:"reddit.com/r/OSINT"},
-        {name:"MSF Logistique",role:"Médical & épidémies",type:"MEDICAL",live:false,active_regions:["Afrique"],contact:"msf.org"},
-      ];
-      if(container.innerHTML.includes("Mode démo")) container.innerHTML="";
-      demoClusters.forEach(cluster=>{
-        const div=document.createElement("div");
-        div.className="security-card";
-        div.style.borderLeftColor=cluster.live?"var(--neon-green)":"var(--neon-cyan)";
-        const typeColor=cluster.type==="SATELLITE"?"var(--neon-green)":cluster.type==="SOCIAL"?"#1DA1F2":cluster.type==="MEDIA"?"#fff":"var(--neon-cyan)";
-        div.innerHTML=`
-          <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px;">
-            <b style="color:${typeColor};">${escapeHtml(cluster.name)} ${cluster.live?'🛰️ LIVE':''} ${IS_DEMO_MODE?'(DEMO)':''}</b>
-            <span style="font-size:10px;color:var(--text-muted);">${escapeHtml(cluster.role)} | ${cluster.type}</span>
-          </div>
-          <div style="font-size:10px;color:var(--text-muted);margin-top:4px;">Régions: ${(cluster.active_regions||[]).join(', ')}</div>
-          <div style="font-size:10px;color:var(--neon-cyan);">Contact: ${escapeHtml(cluster.contact)}</div>
-        `;
-        container.appendChild(div);
-      });
-      const enjeuxDiv=document.createElement("div");
-      enjeuxDiv.className="tactical-hud"; enjeuxDiv.style.marginTop="10px"; enjeuxDiv.style.borderColor="var(--neon-green)";
-      enjeuxDiv.innerHTML=`
-        <div class="hud-title" style="color:var(--neon-green);">PROBLÉMATIQUES & ENJEUX ${IS_DEMO_MODE?'DEMO':'ULTIMATE LIVE'}</div>
-        <div style="font-size:11px;line-height:1.6;color:var(--text-bright);">
-          • <b style="color:var(--neon-red);">Sécurité:</b> ${allIncidents.filter(i=>i.category==='conflit').length} conflits actifs<br>
-          • <b style="color:var(--neon-orange);">Logistique:</b> Risques maritimes, routes coupées<br>
-          • <b style="color:var(--neon-violet);">Santé:</b> ${allIncidents.filter(i=>i.category==='epidemie').length} alertes<br>
-          • <b style="color:var(--neon-cyan);">Climat:</b> ${allIncidents.filter(i=>i.category==='catastrophe').length} catastrophes satellite<br>
-          • <b style="color:var(--neon-green);">Backend:</b> ${IS_DEMO_MODE?'DEMO OFFLINE - Configurez API via bouton 🔧':'LIVE '+API_BASE}
-        </div>
-      `;
-      container.appendChild(enjeuxDiv);
+      renderReverseResults(data.results||[], url);
+    }catch(e){
+      container.innerHTML=`<div style="color:var(--neon-red);">Erreur: ${e.message}</div>`;
     }
   }
 
-  function getDemoDorks(){
-    return [
-      {id:1,category:"documents",severity:"critical",title:"Documents CONFIDENTIEL / RESTRICTED",query:'filetype:pdf "CONFIDENTIAL" OR "RESTRICTED" OR "INTERNAL USE ONLY"',description:"PDF classifiés exposés",tags:["pdf","confidentiel"]},
-      {id:2,category:"documents",severity:"high",title:"Documents gouvernementaux sensibles",query:'site:gov OR site:gouv.fr filetype:pdf "confidentiel" OR "secret défense"',description:"Docs gouvernementaux",tags:["gov","pdf"]},
-      {id:6,category:"credentials",severity:"critical",title:"Mots de passe & API keys Pastebin",query:'site:pastebin.com OR site:ghostbin.com "password" OR "api_key" OR "secret"',description:"Fuites credentials",tags:["pastebin","password"]},
-      {id:7,category:"credentials",severity:"critical",title:"Clés privées RSA / SSH",query:'"BEGIN RSA PRIVATE KEY" OR "BEGIN OPENSSH PRIVATE KEY"',description:"Clés privées exposées",tags:["rsa","ssh"]},
-      {id:11,category:"database",severity:"critical",title:"Dumps SQL exposés",query:'intitle:"index of" "database.sql" OR "dump.sql"',description:"Bases SQL",tags:["sql"]},
-      {id:15,category:"iot",severity:"high",title:"Caméras IP ouvertes",query:'inurl:"/view.shtml" "Network Camera" OR "IP Camera"',description:"Caméras",tags:["camera"]},
-      {id:19,category:"geospatial",severity:"high",title:"Fichiers KML/KMZ militaires",query:'filetype:kml OR filetype:kmz "military" OR "base"',description:"Tracés militaires",tags:["kml","militaire"]},
-      {id:20,category:"geospatial",severity:"high",title:"Shapefiles SIG exposés",query:'filetype:shp OR filetype:shx "confidential"',description:"Shapefiles",tags:["gis"]},
-      {id:27,category:"social",severity:"medium",title:"Telegram OSINT",query:'site:t.me "OSINT" OR "Ukraine" OR "Sahel"',description:"Telegram",tags:["telegram"]},
-      {id:28,category:"social",severity:"medium",title:"Reddit OSINT",query:'site:reddit.com/r/OSINT OR r/UkraineConflict',description:"Reddit",tags:["reddit"]},
-      {id:35,category:"humanitarian",severity:"medium",title:"Rapports OCHA",query:'site:reliefweb.int OR site:unocha.org filetype:pdf "situation report"',description:"OCHA",tags:["ocha"]},
-      {id:39,category:"sahel",severity:"high",title:"JNIM / Sahel docs",query:'"JNIM" OR "GSIM" OR "AQMI" filetype:pdf',description:"Sahel terrorisme",tags:["sahel","jnim"]},
-      {id:42,category:"ukraine",severity:"high",title:"Ukraine DeepState maps",query:'site:deepstatemap.live OR site:liveuamap.com',description:"Cartes Ukraine",tags:["ukraine"]},
-      {id:45,category:"satellite",severity:"medium",title:"NASA EONET satellite",query:'site:eonet.gsfc.nasa.gov OR site:earthdata.nasa.gov',description:"Satellite NASA",tags:["satellite","nasa"]},
-      {id:49,category:"advanced",severity:"high",title:"GitHub secrets",query:'site:github.com "password" OR "api_key" "confidential"',description:"GitHub",tags:["github"]},
-      {id:54,category:"advanced",severity:"critical",title:"Exposed .env files",query:'filetype:env "DB_PASSWORD" OR "API_KEY"',description:".env",tags:["env"]},
-    ];
+  function renderReverseResults(results, originalUrl){
+    const container=document.getElementById("reverse-image-results");
+    container.innerHTML=`
+      <div style="font-weight:700;color:var(--neon-pink);">✅ ${results.length} REVERSE SEARCH GÉNÉRÉS V4</div>
+      <div style="font-size:10px;color:var(--text-muted);">Image: ${escapeHtml(originalUrl.substring(0,80))}...</div>
+      ${results.map(r=>`
+        <div style="background:rgba(0,0,0,0.3);border:1px solid var(--border);border-left:3px solid ${r.free?'var(--neon-green)':'var(--neon-orange)'};padding:8px;border-radius:4px;display:flex;flex-direction:column;gap:4px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;"><b style="color:var(--neon-pink);font-size:11px;">${escapeHtml(r.name)}</b><span style="font-size:9px;color:${r.free?'var(--neon-green)':'var(--neon-orange)'};">${r.free?'FREE':'PAID'} | ${escapeHtml(r.engine)}</span></div>
+          <div style="font-size:10px;color:var(--text-muted);">${escapeHtml(r.description)}</div>
+          <div style="font-size:10px;color:var(--neon-cyan);word-break:break-all;background:rgba(0,0,0,0.2);padding:4px;border-radius:3px;">${escapeHtml(r.url.substring(0,120))}...</div>
+          <div style="display:flex;gap:6px;"><button class="cyber-btn cyber-btn-pink btn-xs" onclick="window.open('${r.url}','_blank')">🚀 LANCER ${escapeHtml(r.name)}</button><button class="cyber-btn btn-xs" onclick="navigator.clipboard.writeText('${r.url}').then(()=>alert('Copié'))">📋 COPIER</button></div>
+        </div>
+      `).join('')}
+    `;
   }
 
-  // DORKS ULTIMATE
+  let lastExifLocationImage=null;
+  let lastImageFile=null;
+  function handleImageFileSelect(e){
+    const files=e.target.files; if(files.length) processImageFileV4(files[0], true);
+  }
+  async function processImageFileV4(file, isImageTab){
+    const exifCardId=isImageTab?"exif-card-image":"exif-card";
+    const detailsId=isImageTab?"exif-details-image":"exif-details";
+    const exifCard=document.getElementById(exifCardId);
+    const details=document.getElementById(detailsId);
+    lastImageFile=file;
+    try{
+      const tags=await ExifReader.load(file,{expanded:true});
+      let html=`<b>Fichier:</b> ${escapeHtml(file.name)} (${(file.size/1024).toFixed(1)}KB)<br>`;
+      if(tags.gps&&tags.gps.Latitude&&tags.gps.Longitude){
+        const lat=tags.gps.Latitude; const lng=tags.gps.Longitude;
+        if(isImageTab) lastExifLocationImage={lat,lng}; else lastExifLocation={lat,lng};
+        html+=`<b>Lat SAT:</b> <span style="color:var(--neon-green)">${lat.toFixed(6)}</span><br><b>Lng SAT:</b> <span style="color:var(--neon-green)">${lng.toFixed(6)}</span><br>`;
+      } else {
+        html+=`<span style="color:var(--neon-red)">⚠️ Pas de GPS - métadonnées purgées (OPSEC OK)</span><br>`;
+      }
+      if(tags.exif){
+        html+=`<b>Appareil:</b> ${tags.exif.Model?.description||tags.exif.Make?.description||"Non spécifié"}<br>`;
+        html+=`<b>Date:</b> ${tags.exif.DateTimeOriginal?.description||"Inconnu"}<br>`;
+        if(tags.exif.ExifImageWidth) html+=`<b>Dimensions:</b> ${tags.exif.ExifImageWidth.description}x${tags.exif.ExifImageHeight?.description||'?'}<br>`;
+      }
+      html+=`<b>Reverse:</b> Prêt à générer liens reverse image search<br>`;
+      exifCard.style.display="flex"; details.innerHTML=html;
+      if(tags.gps&&tags.gps.Latitude) locateExifOnMapImage();
+    }catch(err){
+      exifCard.style.display="flex"; details.innerHTML=`<b>Fichier:</b> ${escapeHtml(file.name)}<br><span style="color:var(--neon-red)">Erreur EXIF: ${err.message}</span>`;
+    }
+  }
+  function locateExifOnMapImage(){
+    const loc=lastExifLocationImage||lastExifLocation;
+    if(!loc) return;
+    const {lat,lng}=loc;
+    const redPin=L.divIcon({className:"exif-marker",html:`<div style="background:#ff00ff; width:16px; height:16px; border-radius:50%; border:3px solid #fff; box-shadow:0 0 15px #ff00ff;"></div>`,iconSize:[16,16]});
+    const marker=L.marker([lat,lng],{icon:redPin}).addTo(leafletMap);
+    marker.bindPopup(`<div style="font-weight:700;color:var(--neon-pink);">🎯 ORIGINE PHOTO EXIF V4</div><div>Lat: ${lat.toFixed(6)}</div><div>Lng: ${lng.toFixed(6)}</div>`).openPopup();
+    leafletMap.flyTo([lat,lng],14,{duration:2});
+  }
+  function reverseFromExifImage(){
+    const loc=lastExifLocationImage||lastExifLocation;
+    if(loc){
+      const query=`${loc.lat.toFixed(4)}, ${loc.lng.toFixed(4)} satellite`;
+      document.getElementById("reverse-image-desc").value=query;
+      document.getElementById("reverse-image-url").value=`https://www.google.com/maps/@${loc.lat},${loc.lng},15z`;
+      generateReverseImage();
+      switchTab('tab-image');
+    }
+  }
+  function reverseFromExif(){ reverseFromExifImage(); }
+
+  // === ADVANCED SEARCH ===
+  function initAdvEnginesChecklist(){
+    const container=document.getElementById("adv-engines-checklist");
+    if(!container) return;
+    const defaultEngines=["google","bing","yandex","duckduckgo","shodan","censys","zoomeye","virustotal","wayback","reddit","telegram","sentinel","nasa_worldview"];
+    // Will be populated after engines loaded, but create placeholder
+    container.innerHTML=`<div style="color:var(--text-muted);font-size:10px;">Chargement moteurs...</div>`;
+    setTimeout(()=>{
+      if(allEngines.length===0){
+        // demo checklist
+        const demoEngines=[
+          {id:"google",name:"Google"},
+          {id:"bing",name:"Bing"},
+          {id:"yandex",name:"Yandex"},
+          {id:"shodan",name:"Shodan"},
+          {id:"censys",name:"Censys"},
+          {id:"virustotal",name:"VirusTotal"},
+          {id:"wayback",name:"Wayback Machine"},
+          {id:"sentinel",name:"Sentinel Hub"},
+          {id:"marinetraffic",name:"MarineTraffic"},
+          {id:"flightradar24",name:"FlightRadar24"},
+        ];
+        container.innerHTML=demoEngines.map(e=>`<label style="font-size:10px;"><input type="checkbox" value="${e.id}" ${defaultEngines.includes(e.id)?'checked':''} /> ${e.name}</label>`).join('');
+      } else {
+        container.innerHTML=allEngines.slice(0,20).map(e=>`<label style="font-size:10px;"><input type="checkbox" value="${e.id}" ${defaultEngines.includes(e.id)?'checked':''} /> ${escapeHtml(e.name)}</label>`).join('');
+      }
+    }, 1000);
+  }
+
+  async function generateAdvancedSearch(){
+    const query=document.getElementById("adv-query")?.value||"";
+    const site=document.getElementById("adv-site")?.value||"";
+    const filetype=document.getElementById("adv-filetype")?.value||"";
+    const country=document.getElementById("adv-country")?.value||"";
+    const extra=document.getElementById("adv-extra")?.value||"";
+    const category=document.getElementById("adv-category")?.value||"general";
+    if(!query.trim()){ alert("Entrez requête !"); return; }
+    const checkedEngines=Array.from(document.querySelectorAll("#adv-engines-checklist input:checked")).map(i=>i.value);
+    if(checkedEngines.length===0){ alert("Sélectionnez au moins 1 moteur !"); return; }
+    const container=document.getElementById("adv-results-container");
+    container.style.display="flex";
+    container.innerHTML=`<div style="color:var(--text-muted);">Génération recherches V4...</div>`;
+
+    if(IS_GITHUB_DEMO || IS_ANDROID){
+      const enc=encodeURIComponent(query);
+      const results=checkedEngines.map(id=>{
+        const engine=allEngines.find(e=>e.id===id)||{id,name:id,category:"search",description:""};
+        let url=`https://www.google.com/search?q=${enc}`;
+        if(id==="shodan") url=`https://www.shodan.io/search?query=${enc}`;
+        if(id==="censys") url=`https://search.censys.io/search?resource=hosts&q=${enc}`;
+        if(id==="virustotal") url=`https://www.virustotal.com/gui/search/${enc}`;
+        if(id==="wayback") url=`https://web.archive.org/web/*/${enc}`;
+        if(id==="sentinel") url=`https://apps.sentinel-hub.com/eo-browser/?q=${enc}`;
+        if(id==="marinetraffic") url=`https://www.marinetraffic.com/en/ais/index/search/all/keyword:${enc}`;
+        if(id==="flightradar24") url=`https://www.flightradar24.com/data/aircraft/${enc}`;
+        if(id==="yandex") url=`https://yandex.com/search/?text=${enc}`;
+        if(id==="bing") url=`https://www.bing.com/search?q=${enc}`;
+        return {engine:id,name:engine.name||id,category:engine.category||"search",url,url_enhanced:url,description:engine.description||"",free:true};
+      });
+      renderAdvResults(results, query);
+      return;
+    }
+    try{
+      const res=await fetch(`${API_BASE}/api/osint/engines/search`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({query,engines:checkedEngines,category,site:site||null,filetype:filetype||null,country:country||null,extra:extra||null})});
+      const data=await res.json();
+      renderAdvResults(data.results||[], query, data.dork_variants);
+    }catch(e){
+      container.innerHTML=`<div style="color:var(--neon-red);">Erreur: ${e.message}</div>`;
+    }
+  }
+
+  function renderAdvResults(results, query, variants){
+    const container=document.getElementById("adv-results-container");
+    container.innerHTML=`
+      <div style="font-weight:700;color:var(--neon-cyan);">✅ ${results.length} RECHERCHES GÉNÉRÉES V4 pour "${escapeHtml(query)}"</div>
+      ${variants?`<div style="background:rgba(0,229,255,0.05);border:1px solid var(--neon-cyan);padding:8px;border-radius:4px;"><b style="color:var(--neon-cyan);">VARIANTES DORKING:</b><br>${Object.entries(variants).map(([k,v])=>`<div style="font-size:10px;margin-top:4px;"><b>${k}:</b> <a href="${v}" target="_blank" style="color:var(--neon-cyan);">${escapeHtml(v.substring(0,80))}...</a> <button class="cyber-btn btn-xs" onclick="window.open('${v}','_blank')">LANCER</button></div>`).join('')}</div>`:''}
+      ${results.map(r=>`
+        <div style="background:rgba(0,0,0,0.3);border:1px solid var(--border);border-left:3px solid var(--neon-cyan);padding:8px;border-radius:4px;display:flex;flex-direction:column;gap:4px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;"><b style="color:var(--neon-cyan);font-size:11px;">${escapeHtml(r.name)} (${escapeHtml(r.category)})</b><span style="font-size:9px;color:${r.free?'var(--neon-green)':'var(--neon-orange)'};">${r.free?'FREE':'PAID'}</span></div>
+          <div style="font-size:10px;color:var(--text-muted);">${escapeHtml(r.description)}</div>
+          <div style="font-size:10px;color:var(--neon-cyan);word-break:break-all;background:rgba(0,0,0,0.2);padding:4px;border-radius:3px;">${escapeHtml(r.url.substring(0,120))}...</div>
+          <div style="display:flex;gap:6px;"><button class="cyber-btn cyber-btn-primary btn-xs" onclick="window.open('${r.url}','_blank')">🚀 LANCER</button><button class="cyber-btn btn-xs" onclick="window.open('${r.url_enhanced}','_blank')">⚡ ENHANCED</button><button class="cyber-btn btn-xs" onclick="navigator.clipboard.writeText('${r.url}')">📋 COPIER</button></div>
+        </div>
+      `).join('')}
+    `;
+  }
+  function clearAdvancedSearch(){
+    document.getElementById("adv-query").value="";
+    document.getElementById("adv-site").value="";
+    document.getElementById("adv-filetype").value="";
+    document.getElementById("adv-country").value="";
+    document.getElementById("adv-extra").value="";
+    document.getElementById("adv-results-container").style.display="none";
+  }
+
+  // === ENGINES ===
+  async function fetchEngines(){
+    const container=document.getElementById("engine-container");
+    container.innerHTML=`<div style="color:var(--text-muted);text-align:center;padding:20px;">Chargement 40+ moteurs OSINT V4...</div>`;
+    if(IS_GITHUB_DEMO || IS_ANDROID){
+      allEngines=[
+        {id:"google",name:"Google",category:"search",url:"https://www.google.com/search?q={query}",description:"Moteur généraliste + dorking",free:true,tags:["search","dorking"]},
+        {id:"bing",name:"Bing",category:"search",url:"https://www.bing.com/search?q={query}",description:"Microsoft Bing",free:true,tags:["search"]},
+        {id:"yandex",name:"Yandex",category:"search",url:"https://yandex.com/search/?text={query}",description:"Moteur russe, excellent images",free:true,tags:["search","image"]},
+        {id:"shodan",name:"Shodan",category:"iot",url:"https://www.shodan.io/search?query={query}",description:"Moteur IoT / devices",free:false,tags:["iot","shodan"]},
+        {id:"censys",name:"Censys",category:"iot",url:"https://search.censys.io/search?resource=hosts&q={query}",description:"Scan internet",free:false,tags:["iot","censys"]},
+        {id:"zoomeye",name:"ZoomEye",category:"iot",url:"https://www.zoomeye.org/searchResult?q={query}",description:"Cyberspace search",free:false,tags:["iot"]},
+        {id:"virustotal",name:"VirusTotal",category:"domain",url:"https://www.virustotal.com/gui/search/{query}",description:"Domain/IP scan",free:true,tags:["domain","malware"]},
+        {id:"wayback",name:"Wayback Machine",category:"archive",url:"https://web.archive.org/web/*/{query}",description:"Archive web",free:true,tags:["archive"]},
+        {id:"marinetraffic",name:"MarineTraffic",category:"maritime",url:"https://www.marinetraffic.com/en/ais/index/search/all/keyword:{query}",description:"AIS ships",free:true,tags:["ais","maritime"]},
+        {id:"flightradar24",name:"FlightRadar24",category:"aviation",url:"https://www.flightradar24.com/data/aircraft/{query}",description:"ADS-B flights",free:true,tags:["adsb","aviation"]},
+        {id:"sentinel",name:"Sentinel Hub",category:"satellite",url:"https://apps.sentinel-hub.com/eo-browser/",description:"Satellite imagery",free:true,tags:["satellite"]},
+        {id:"nasa_worldview",name:"NASA Worldview",category:"satellite",url:"https://worldview.earthdata.nasa.gov/",description:"NASA satellite",free:true,tags:["satellite","nasa"]},
+        {id:"bellingcat",name:"Bellingcat Toolkit",category:"osint",url:"https://www.bellingcat.com/resources/",description:"OSINT toolkit",free:true,tags:["toolkit"]},
+        {id:"osintframework",name:"OSINT Framework",category:"osint",url:"https://osintframework.com/",description:"Framework complet",free:true,tags:["framework"]},
+        {id:"reddit",name:"Reddit Search",category:"social",url:"https://www.reddit.com/search/?q={query}",description:"Reddit OSINT",free:true,tags:["social","reddit"]},
+        {id:"telegram",name:"Telegram Search",category:"social",url:"https://t.me/s/{query}",description:"Telegram public",free:true,tags:["social","telegram"]},
+      ];
+      filteredEngines=[...allEngines];
+      renderEngines(filteredEngines);
+      document.getElementById("engine-count-label").textContent=`${allEngines.length} engines DEMO V4 (40 en backend)`;
+      initAdvEnginesChecklist();
+      return;
+    }
+    try{
+      const res=await fetch(`${API_BASE}/api/osint/engines`);
+      const data=await res.json();
+      allEngines=data.engines||[];
+      filteredEngines=[...allEngines];
+      renderEngines(filteredEngines);
+      document.getElementById("engine-count-label").textContent=`${allEngines.length} / ${data.total_database} engines V4 | Cat: ${Object.keys(data.by_category||{}).length}`;
+      initAdvEnginesChecklist();
+    }catch(e){
+      container.innerHTML=`<div style="color:var(--neon-red);">Erreur engines: ${e.message}</div>`;
+    }
+  }
+
+  function renderEngines(engines){
+    const container=document.getElementById("engine-container");
+    container.innerHTML="";
+    if(!engines||engines.length===0){ container.innerHTML=`<div style="color:var(--text-muted);text-align:center;padding:20px;">Aucun moteur trouvé</div>`; return; }
+    engines.forEach(en=>{
+      const card=document.createElement("div");
+      card.className=`engine-card ${en.free?'free':'paid'}`;
+      const catColor=en.category==="search"?"var(--neon-cyan)":en.category==="image"?"var(--neon-pink)":en.category==="iot"?"var(--neon-orange)":en.category==="satellite"?"var(--neon-green)":en.category==="maritime"?"#00aaff":en.category==="aviation"?"#ffaa00":"var(--neon-violet)";
+      card.innerHTML=`
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px;">
+          <b style="color:${catColor};font-size:11px;">${escapeHtml(en.name)} ${en.free?'✅':'💰'}</b>
+          <div style="display:flex;gap:4px;"><span class="badge-cat" style="background:rgba(189,52,254,0.15);color:var(--neon-violet);border:1px solid var(--neon-violet);">${escapeHtml(en.category)}</span><span style="font-size:9px;padding:2px 6px;border-radius:10px;background:${en.free?'rgba(0,255,157,0.15)':'rgba(255,153,0,0.15)'};color:${en.free?'var(--neon-green)':'var(--neon-orange)'};border:1px solid ${en.free?'var(--neon-green)':'var(--neon-orange)'};">${en.free?'FREE':'PAID'}</span></div>
+        </div>
+        <div style="font-size:10px;color:var(--text-muted);">${escapeHtml(en.description)}</div>
+        <div style="font-size:10px;color:var(--neon-cyan);word-break:break-all;background:rgba(0,0,0,0.2);padding:4px;border-radius:3px;">${escapeHtml(en.url)}</div>
+        <div style="display:flex;gap:4px;flex-wrap:wrap;">${(en.tags||[]).map(t=>`<span class="dork-tag" style="border-color:${catColor};color:${catColor};">${escapeHtml(t)}</span>`).join('')}</div>
+        <div style="display:flex;gap:6px;"><button class="cyber-btn btn-xs" style="border-color:${catColor};color:${catColor};" onclick="window.open('${en.url.replace('{query}','OSINT')}','_blank')">🌐 OUVRIR</button><button class="cyber-btn btn-xs" onclick="document.getElementById('adv-query').value='${en.id}'; switchTab('tab-search');">🔎 SEARCH BUILDER</button><button class="cyber-btn btn-xs" onclick="navigator.clipboard.writeText('${en.url}')">📋 COPIER</button></div>
+      `;
+      container.appendChild(card);
+    });
+  }
+
+  function filterEngines(){
+    const search=(document.getElementById("engine-search-input")?.value||"").toLowerCase().trim();
+    const cat=document.getElementById("engine-category-filter")?.value||"all";
+    const freeOnly=document.getElementById("engine-free-filter")?.checked||false;
+    filteredEngines=allEngines.filter(e=>{
+      if(cat!=="all"&&e.category!==cat) return false;
+      if(freeOnly&&!e.free) return false;
+      if(search){
+        const inName=e.name.toLowerCase().includes(search);
+        const inDesc=e.description.toLowerCase().includes(search);
+        const inTags=(e.tags||[]).join(" ").toLowerCase().includes(search);
+        if(!inName&&!inDesc&&!inTags) return false;
+      }
+      return true;
+    });
+    renderEngines(filteredEngines);
+    document.getElementById("engine-count-label").textContent=`${filteredEngines.length} / ${allEngines.length} engines filtrés V4`;
+  }
+
+  // === DORKS V4 ===
   async function fetchDorks(){
     const container=document.getElementById("dork-container");
-    container.innerHTML=`<div style="color:var(--text-muted);text-align:center;padding:20px;">Chargement base dorks ULTIMATE 60+...</div>`;
-    if(IS_DEMO_MODE){
-      allDorks=getDemoDorks();
+    container.innerHTML=`<div style="color:var(--text-muted);text-align:center;padding:20px;">Chargement base dorks V4 80+...</div>`;
+    if(IS_GITHUB_DEMO || IS_ANDROID){
+      allDorks=[
+        {id:1,category:"documents",severity:"critical",title:"Documents CONFIDENTIEL / RESTRICTED",query:'filetype:pdf "CONFIDENTIAL" OR "RESTRICTED" OR "INTERNAL USE ONLY"',description:"PDF classifiés exposés",tags:["pdf","confidentiel"]},
+        {id:6,category:"credentials",severity:"critical",title:"Mots de passe & API keys Pastebin",query:'site:pastebin.com OR site:ghostbin.com "password" OR "api_key" OR "secret"',description:"Fuites credentials",tags:["pastebin","password"]},
+        {id:15,category:"iot",severity:"high",title:"Caméras IP ouvertes",query:'inurl:"/view.shtml" "Network Camera" OR "IP Camera"',description:"Caméras",tags:["camera"]},
+        {id:19,category:"geospatial",severity:"high",title:"Fichiers KML/KMZ militaires",query:'filetype:kml OR filetype:kmz "military" OR "base"',description:"Tracés militaires",tags:["kml","militaire"]},
+        {id:31,category:"social",severity:"medium",title:"Telegram OSINT",query:'site:t.me "OSINT" OR "Ukraine" OR "Sahel"',description:"Telegram",tags:["telegram"]},
+        {id:52,category:"satellite",severity:"low",title:"NASA FIRMS feux actifs",query:'site:firms.modaps.eosdis.nasa.gov "active fire" OR "MODIS" OR "VIIRS"',description:"FIRMS feux",tags:["firms","nasa"]},
+        {id:61,category:"maritime",severity:"medium",title:"AIS / MarineTraffic navires",query:'site:marinetraffic.com OR site:vesselfinder.com "tanker" OR "cargo" "Red Sea"',description:"Trafic maritime",tags:["ais","maritime"]},
+        {id:62,category:"aviation",severity:"medium",title:"ADS-B / FlightRadar avions militaires",query:'site:flightradar24.com OR site:adsbexchange.com "military" OR "callsign"',description:"Trafic aérien",tags:["adsb","aviation"]},
+        {id:55,category:"advanced",severity:"high",title:"GitHub secrets exposés",query:'site:github.com "password" OR "api_key" "DB_PASSWORD" "filename:.env"',description:"GitHub secrets",tags:["github"]},
+        {id:80,category:"advanced",severity:"medium",title:"Open Directory",query:'intitle:"index of" "parent directory" "password" OR "confidential"',description:"Open dir",tags:["directory"]},
+      ];
       filteredDorks=[...allDorks];
       renderDorks(filteredDorks);
-      document.getElementById("dork-count-label").textContent=`${allDorks.length} dorks DEMO OFFLINE (60 en backend) | Mode démo GitHub Pages`;
+      document.getElementById("dork-count-label").textContent=`${allDorks.length} dorks DEMO V4 (80 en backend)`;
       return;
     }
     try{
@@ -1066,9 +1622,11 @@
       allDorks=data.dorks||[];
       filteredDorks=[...allDorks];
       renderDorks(filteredDorks);
-      document.getElementById("dork-count-label").textContent=`${allDorks.length} / ${data.total_database} dorks ULTIMATE | Catégories: ${Object.keys(data.by_category||{}).length} | Backend: ${API_BASE}`;
+      document.getElementById("dork-count-label").textContent=`${allDorks.length} / ${data.total_database} dorks V4 | Cat: ${Object.keys(data.by_category||{}).length}`;
     } catch(e){
-      allDorks=getDemoDorks();
+      allDorks=[
+        {id:1,category:"documents",severity:"critical",title:"Documents CONFIDENTIEL",query:'filetype:pdf "CONFIDENTIAL"',description:"PDF classifiés",tags:["pdf"]},
+      ];
       filteredDorks=[...allDorks];
       renderDorks(filteredDorks);
       document.getElementById("dork-count-label").textContent=`${allDorks.length} dorks DEMO (backend ${API_BASE} inaccessible)`;
@@ -1121,7 +1679,7 @@
       return true;
     });
     renderDorks(filteredDorks);
-    document.getElementById("dork-count-label").textContent=`${filteredDorks.length} / ${allDorks.length} dorks filtrés ULTIMATE`;
+    document.getElementById("dork-count-label").textContent=`${filteredDorks.length} / ${allDorks.length} dorks filtrés V4`;
   }
 
   function buildLocalDork(keywords,country,site,filetype,exclude){
@@ -1151,9 +1709,9 @@
     if(!keywords.trim()){ alert("Entrez au moins des mots-clés !"); return; }
     const container=document.getElementById("dork-generated-container");
     container.style.display="flex";
-    container.innerHTML=`<div style="color:var(--text-muted);text-align:center;padding:10px;">Génération dork ULTIMATE...</div>`;
+    container.innerHTML=`<div style="color:var(--text-muted);text-align:center;padding:10px;">Génération dork V4...</div>`;
 
-    if(IS_DEMO_MODE){
+    if(IS_GITHUB_DEMO || IS_ANDROID){
       const localDork = buildLocalDork(keywords,country,site,filetype,exclude);
       const variants = {
         basic: localDork,
@@ -1168,7 +1726,7 @@
       };
       container.innerHTML=`
         <div class="dork-generated">
-          <div style="font-weight:700;color:var(--neon-orange);">⚠️ MODE DEMO OFFLINE - DORK LOCAL GÉNÉRÉ (backend non configuré)</div>
+          <div style="font-weight:700;color:var(--neon-orange);">⚠️ MODE DEMO V4 - DORK LOCAL GÉNÉRÉ (backend non configuré)</div>
           <div class="dork-query" style="border-color:var(--neon-orange);color:var(--neon-orange);">${escapeHtml(localDork)}</div>
           <div style="display:flex;gap:6px;flex-wrap:wrap;">
             <button class="cyber-btn cyber-btn-orange btn-xs" onclick="openDork('${escapeHtml(localDork).replace(/'/g,"\\'")}')">🚀 LANCER GOOGLE</button>
@@ -1196,13 +1754,13 @@
       const data=await res.json();
       container.innerHTML=`
         <div class="dork-generated">
-          <div style="font-weight:700;color:var(--neon-green);">✅ DORK ULTIME GÉNÉRÉ - BACKEND ${API_BASE}</div>
+          <div style="font-weight:700;color:var(--neon-green);">✅ DORK V4 GÉNÉRÉ - BACKEND ${API_BASE}</div>
           <div class="dork-query" style="border-color:var(--neon-green);color:var(--neon-green);">${escapeHtml(data.generated_dork)}</div>
           <div style="display:flex;gap:6px;flex-wrap:wrap;">
             <button class="cyber-btn cyber-btn-primary btn-xs" onclick="openDork('${escapeHtml(data.generated_dork).replace(/'/g,"\\'")}')">🚀 LANCER GOOGLE</button>
             <button class="cyber-btn btn-xs" onclick="copyDork('${escapeHtml(data.generated_dork).replace(/'/g,"\\'")}')">📋 COPIER</button>
           </div>
-          <div style="font-size:11px;font-weight:700;color:var(--neon-orange);margin-top:8px;">VARIANTES ULTIMES (${Object.keys(data.variants||{}).length}) :</div>
+          <div style="font-size:11px;font-weight:700;color:var(--neon-orange);margin-top:8px;">VARIANTES V4 (${Object.keys(data.variants||{}).length}) :</div>
           ${Object.entries(data.variants||{}).map(([k,v])=>`
             <div style="background:rgba(0,0,0,0.3);border:1px solid var(--border);padding:6px 8px;border-radius:3px;display:flex;flex-direction:column;gap:4px;">
               <div style="display:flex;justify-content:space-between;align-items:center;"><b style="color:var(--neon-cyan);font-size:10px;">${k.toUpperCase()}</b><div style="display:flex;gap:4px;"><button class="cyber-btn btn-xs" onclick="openDork('${escapeHtml(v).replace(/'/g,"\\'")}')">LANCER</button><button class="cyber-btn btn-xs" onclick="copyDork('${escapeHtml(v).replace(/'/g,"\\'")}')">COPIER</button></div></div>
@@ -1234,13 +1792,387 @@
   function editDorkBuilder(query){ document.getElementById("dork-keywords").value=query; switchTab('tab-dorks'); document.getElementById("dork-keywords").scrollIntoView({behavior:"smooth"}); }
   function copyDork(query){ navigator.clipboard.writeText(query).then(()=>{ alert("Dork copié: "+query.substring(0,80)+"..."); }).catch(()=>{ prompt("Copiez ce dork:",query); }); }
 
-  // Geozones - support demo localStorage
+  // === REPORT ===
+  function addToReport(title){
+    const topicEl=document.getElementById("report-topic");
+    if(!topicEl.value) topicEl.value=title.substring(0,60);
+    else topicEl.value=topicEl.value+", "+title.substring(0,30);
+    switchTab('tab-report');
+  }
+
+  async function generateReport(){
+    const topic=document.getElementById("report-topic")?.value||"";
+    if(!topic.trim()){ alert("Entrez sujet rapport !"); return; }
+    const regions=(document.getElementById("report-regions")?.value||"").split(",").map(s=>s.trim()).filter(Boolean);
+    const categories=(document.getElementById("report-categories")?.value||"").split(",").map(s=>s.trim()).filter(Boolean);
+    const timeRange=document.getElementById("report-timerange")?.value||"7d";
+    const maxInc=parseInt(document.getElementById("report-max")?.value||"50");
+    const includeSections=[];
+    if(document.getElementById("report-sec-summary")?.checked) includeSections.push("summary");
+    if(document.getElementById("report-sec-incidents")?.checked) includeSections.push("incidents");
+    if(document.getElementById("report-sec-risk")?.checked) includeSections.push("risk");
+    if(document.getElementById("report-sec-actors")?.checked) includeSections.push("actors");
+    if(document.getElementById("report-sec-map")?.checked) includeSections.push("map");
+    if(document.getElementById("report-sec-reco")?.checked) includeSections.push("recommendations");
+    const aiProvider=document.getElementById("report-ai-provider")?.value||null;
+    const aiKey=document.getElementById("report-ai-key")?.value||null;
+
+    const container=document.getElementById("report-output-container");
+    const output=document.getElementById("report-output");
+    const stats=document.getElementById("report-stats");
+    container.style.display="flex";
+    output.textContent="Génération rapport V4 en cours...";
+
+    if(IS_GITHUB_DEMO || IS_ANDROID){
+      // Local report generation
+      const filtered=filterIncidentsForReportLocal(topic, regions, categories, timeRange, maxInc);
+      const md=buildReportLocal(topic, filtered, regions, categories, timeRange, includeSections);
+      output.textContent=md;
+      stats.textContent=`Rapport local V4 - ${filtered.length} incidents | ${regions.length||'Toutes'} régions | ${categories.length||'Toutes'} catégories | ${timeRange}`;
+      lastReportData={markdown:md,geojson:{type:"FeatureCollection",features:filtered.map(f=>({type:"Feature",properties:{title:f.title},geometry:{type:"Point",coordinates:[f.longitude,f.latitude]}}))},incidents:filtered};
+      return;
+    }
+
+    try{
+      const res=await fetch(`${API_BASE}/api/report/generate`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({topic,regions,categories,time_range:timeRange,max_incidents:maxInc,include_sections:includeSections,ai_provider:aiProvider||null,ai_api_key:aiKey||null})});
+      const data=await res.json();
+      output.textContent=data.markdown||JSON.stringify(data,null,2);
+      stats.textContent=`Rapport V4 backend - ${data.incidents_count} incidents | Régions: ${Object.keys(data.by_region||{}).join(', ')} | Risque max: ${data.max_risk}/5 | Backend: ${API_BASE}`;
+      lastReportData=data;
+    }catch(e){
+      output.textContent=`Erreur génération rapport: ${e.message} - Fallback local`;
+      const filtered=filterIncidentsForReportLocal(topic, regions, categories, timeRange, maxInc);
+      const md=buildReportLocal(topic, filtered, regions, categories, timeRange, includeSections);
+      output.textContent=md;
+      lastReportData={markdown:md,geojson:{type:"FeatureCollection",features:[]},incidents:filtered};
+    }
+  }
+
+  function filterIncidentsForReportLocal(topic, regions, categories, timeRange, maxInc){
+    let incidents=[...allIncidents];
+    if(topic){
+      const tl=topic.toLowerCase();
+      incidents=incidents.filter(i=>i.title.toLowerCase().includes(tl)|| (i.summary||"").toLowerCase().includes(tl) || (i.country||"").toLowerCase().includes(tl));
+    }
+    if(regions.length){
+      incidents=incidents.filter(i=>regions.some(r=> (i.region||"").toLowerCase().includes(r.toLowerCase()) || (i.country||"").toLowerCase().includes(r.toLowerCase())));
+    }
+    if(categories.length){
+      incidents=incidents.filter(i=>categories.includes(i.category));
+    }
+    return incidents.slice(0,maxInc);
+  }
+
+  function buildReportLocal(topic, incidents, regions, categories, timeRange, sections){
+    let md=`# Rapport OSINT/GEOINT V4 - ${topic}\n\nGénéré: ${new Date().toISOString()} | V4 POWER\nSujet: ${topic} | Période: ${timeRange} | Incidents: ${incidents.length}\nFiltres: Régions=${regions.join(',')||'Toutes'} | Catégories=${categories.join(',')||'Toutes'}\n\n---\n\n`;
+    if(sections.includes("summary")){
+      md+=`## 1. Résumé Exécutif\n\nAnalyse de ${incidents.length} incidents sur ${topic}.\nRégions: ${[...new Set(incidents.map(i=>i.region))].join(', ')}\nCatégories: ${[...new Set(incidents.map(i=>i.category))].join(', ')}\n\n`;
+    }
+    if(sections.includes("incidents")){
+      md+=`## 2. Incidents (${incidents.length})\n\n`;
+      incidents.slice(0,15).forEach((inc,i)=>{
+        md+=`### ${i+1}. ${inc.title}\n- Source: ${inc.source} | Date: ${inc.published_at}\n- Loc: ${inc.country} / ${inc.region} | Coords: ${inc.latitude.toFixed(3)}, ${inc.longitude.toFixed(3)} | Risque: ${inc.risk_level}/5\n- Résumé: ${(inc.summary||"").substring(0,200)}\n- Lien: ${inc.link}\n\n`;
+      });
+    }
+    if(sections.includes("risk")){
+      md+=`## 3. Analyse Risque\n\n`;
+      const byRegion={}; incidents.forEach(i=>{ byRegion[i.region]=(byRegion[i.region]||0)+1; });
+      Object.entries(byRegion).forEach(([r,c])=>{ md+=`- ${r}: ${c} incidents\n`; });
+      md+=`\n`;
+    }
+    md+=`---\n*Rapport V4 local - HUMAN-OSINT POWER*\n`;
+    return md;
+  }
+
+  function copyReport(){ if(lastReportData) navigator.clipboard.writeText(lastReportData.markdown||"").then(()=>alert("Rapport copié")); }
+  function downloadReport(){
+    if(!lastReportData) return;
+    const blob=new Blob([lastReportData.markdown||""],{type:"text/markdown"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a"); a.href=url; a.download=`rapport_osint_${Date.now()}.md`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  }
+  function downloadGeoJSONReport(){
+    if(!lastReportData) return;
+    const blob=new Blob([JSON.stringify(lastReportData.geojson||{},null,2)],{type:"application/json"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a"); a.href=url; a.download=`rapport_osint_${Date.now()}.geojson`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  }
+  function clearReport(){
+    document.getElementById("report-topic").value="";
+    document.getElementById("report-regions").value="";
+    document.getElementById("report-categories").value="";
+    document.getElementById("report-output-container").style.display="none";
+  }
+
+  // === AI AGENT ===
+  function loadAIKey(){
+    try{
+      const provider=localStorage.getItem('HUMAN_OSINT_AI_PROVIDER')||'openai';
+      const model=localStorage.getItem('HUMAN_OSINT_AI_MODEL')||'';
+      const key=localStorage.getItem('HUMAN_OSINT_AI_KEY')||'';
+      document.getElementById("ai-provider").value=provider;
+      document.getElementById("ai-model").value=model;
+      document.getElementById("ai-api-key").value=key;
+      document.getElementById("report-ai-provider").value=provider;
+      document.getElementById("report-ai-key").value=key;
+      updateAIKeyStatus();
+    }catch(e){}
+  }
+  function saveAIKey(){
+    const provider=document.getElementById("ai-provider")?.value||'openai';
+    const model=document.getElementById("ai-model")?.value||'';
+    const key=document.getElementById("ai-api-key")?.value||'';
+    if(!key.trim()){ alert("Entrez clé API !"); return; }
+    localStorage.setItem('HUMAN_OSINT_AI_PROVIDER', provider);
+    localStorage.setItem('HUMAN_OSINT_AI_MODEL', model);
+    localStorage.setItem('HUMAN_OSINT_AI_KEY', key);
+    localStorage.setItem('HUMAN_OSINT_DEFAULT_BACKEND', localStorage.getItem('HUMAN_OSINT_API_BASE')||'');
+    document.getElementById("report-ai-provider").value=provider;
+    document.getElementById("report-ai-key").value=key;
+    updateAIKeyStatus();
+    alert(`Clé ${provider} sauvegardée localement !`);
+  }
+  function clearAIKey(){
+    localStorage.removeItem('HUMAN_OSINT_AI_KEY');
+    localStorage.removeItem('HUMAN_OSINT_AI_PROVIDER');
+    localStorage.removeItem('HUMAN_OSINT_AI_MODEL');
+    document.getElementById("ai-api-key").value="";
+    document.getElementById("report-ai-key").value="";
+    updateAIKeyStatus();
+  }
+  function updateAIKeyStatus(){
+    const status=document.getElementById("ai-key-status");
+    const key=localStorage.getItem('HUMAN_OSINT_AI_KEY')||'';
+    const provider=localStorage.getItem('HUMAN_OSINT_AI_PROVIDER')||'';
+    const model=localStorage.getItem('HUMAN_OSINT_AI_MODEL')||'auto';
+    if(key) status.innerHTML=`✅ Clé configurée: <b style="color:var(--neon-green)">${provider} / ${model}</b> | Longueur: ${key.length} chars | Stockage: localStorage (jamais serveur)`;
+    else status.innerHTML=`⚠️ Aucune clé - Mode simulation template. Configurez OpenAI/Gemini/Anthropic pour analyse réelle.`;
+  }
+  async function testAIKey(){
+    const provider=document.getElementById("ai-provider")?.value||'openai';
+    const key=document.getElementById("ai-api-key")?.value||'';
+    const model=document.getElementById("ai-model")?.value||'';
+    if(!key){ alert("Entrez clé !"); return; }
+    const status=document.getElementById("ai-key-status");
+    status.textContent=`Test ${provider} en cours...`;
+    try{
+      const res=await fetch(`${API_BASE}/api/ai/analyze`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prompt:"Test connexion - réponds OK",provider,api_key:key,model:model||null})});
+      const data=await res.json();
+      status.innerHTML=`✅ Test OK ${provider}: ${escapeHtml((data.result||"").substring(0,100))}...`;
+    }catch(e){
+      // Fallback local test
+      if(key.length>10) status.innerHTML=`⚠️ Backend inaccessible, mais clé locale semble valide (${key.length} chars) - Mode local prêt`;
+      else status.innerHTML=`❌ Erreur test: ${e.message}`;
+    }
+  }
+  async function runAIAnalysis(){
+    const prompt=document.getElementById("ai-prompt")?.value||"";
+    if(!prompt.trim()){ alert("Entrez prompt !"); return; }
+    const provider=document.getElementById("ai-provider")?.value||'openai';
+    const model=document.getElementById("ai-model")?.value||'';
+    const key=document.getElementById("ai-api-key")?.value||localStorage.getItem('HUMAN_OSINT_AI_KEY')||'';
+    const includeInc=document.getElementById("ai-include-incidents")?.checked;
+    const includeCtx=document.getElementById("ai-include-context")?.checked;
+
+    const container=document.getElementById("ai-result-container");
+    const output=document.getElementById("ai-result-output");
+    container.style.display="flex";
+    output.textContent=`Analyse IA V4 ${provider} en cours...`;
+
+    let context="";
+    if(includeCtx) context=`Régions: ${[...new Set(allIncidents.map(i=>i.region))].join(', ')} | Catégories: ${[...new Set(allIncidents.map(i=>i.category))].join(', ')} | Total: ${allIncidents.length} incidents LIVE V4`;
+    let incidentsForAI=includeInc?allIncidents.slice(0,15):[];
+
+    if(!key || key.length<10){
+      // Simulation mode
+      const sim=`[SIMULATION V4 - Sans clé API]\n\nPrompt: ${prompt}\n\nAnalyse basée sur ${incidentsForAI.length} incidents LIVE:\n- Risque global: Modéré à Élevé\n- Zones critiques: ${[...new Set(incidentsForAI.map(i=>i.country))].slice(0,5).join(', ')}\n- Acteurs clés: ${[...new Set(incidentsForAI.flatMap(i=>i.actors||[]))].slice(0,5).join(', ')}\n\nRecommandations:\n1. Veille renforcée satellite Esri 0.3m + Sentinel\n2. Vérification multi-sources (GDELT + Reddit + Telegram)\n3. Convoi sécurisé si risque >=4/5\n\n[Configurez clé OpenAI/Gemini/Anthropic pour analyse réelle via backend]`;
+      output.textContent=sim;
+      lastAIResult=sim;
+      return;
+    }
+
+    if(IS_GITHUB_DEMO || IS_ANDROID){
+      output.textContent=`Mode démo/Android - Backend requis pour IA réelle.\n\nPrompt: ${prompt}\n\nSimulation locale:\nAnalyse ${incidentsForAI.length} incidents sur sujet. Risque moyen ${ (incidentsForAI.reduce((a,b)=>a+(b.risk_level||2),0)/ (incidentsForAI.length||1)).toFixed(1) }/5.\n\nConfigurez backend FastAPI pour IA réelle: bouton 🔧 API -> https://votre-backend.onrender.com\n\nPuis testez clé ${provider}.`;
+      lastAIResult=output.textContent;
+      return;
+    }
+
+    try{
+      const res=await fetch(`${API_BASE}/api/ai/analyze`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prompt,context,incidents:incidentsForAI,provider,api_key:key,model:model||null})});
+      const data=await res.json();
+      output.textContent=data.result||JSON.stringify(data,null,2);
+      lastAIResult=data.result;
+    }catch(e){
+      output.textContent=`Erreur IA: ${e.message}\n\nFallback simulation:\nPrompt: ${prompt}\nIncidents: ${incidentsForAI.length} - Analyse risque modéré à élevé.`;
+      lastAIResult=output.textContent;
+    }
+  }
+  function copyAIResult(){ if(lastAIResult) navigator.clipboard.writeText(lastAIResult).then(()=>alert("IA result copié")); }
+  function downloadAIResult(){
+    if(!lastAIResult) return;
+    const blob=new Blob([lastAIResult],{type:"text/markdown"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a"); a.href=url; a.download=`ai_analysis_${Date.now()}.md`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  }
+
+  // === SECURITY & ACTORS ===
+  async function fetchSecurityAssessment(){
+    const container=document.getElementById("security-container");
+    if(IS_GITHUB_DEMO || IS_ANDROID){
+      container.innerHTML=`<div style="color:var(--neon-orange);padding:10px;text-align:center;">Mode démo V4 - Analyse sécurité live nécessite backend.<br><button class="cyber-btn btn-xs" onclick="setBackendUrl()">🔧 CONFIGURER BACKEND</button><br><br>Démo V4: 5 régions à risque</div>`;
+      const demoAssess=[
+        {country:"Ukraine (Donbass)",region:"Europe",max_risk:5,risk_label:"CRITIQUE",incident_count:4,categories:{conflit:3,cyber:1},sources:["NASA","Reddit","ISW"],latest_incident:{title:"[DEMO V4] Pokrovsk",latitude:48.28,longitude:37.18},actors:["AFU","RF","OTAN"],recommendations:["Éviter zone 20km","Suivi drone","Convoi blindé"]},
+        {country:"Soudan",region:"Afrique",max_risk:5,risk_label:"CRITIQUE",incident_count:3,categories:{conflit:2,catastrophe:1},sources:["FIRMS","OCHA","BBC"],latest_incident:{title:"[DEMO V4] El Fasher",latitude:13.62,longitude:25.34},actors:["RSF","SAF"],recommendations:["Accès humanitaire bloqué","Évacuation"]},
+        {country:"Mali / Sahel",region:"Afrique",max_risk:4,risk_label:"ÉLEVÉ",incident_count:3,categories:{conflit:3},sources:["GDELT","RFI","France24"],latest_incident:{title:"[DEMO V4] Gao",latitude:16.27,longitude:-0.04},actors:["JNIM","FAMa","Wagner"],recommendations:["Convoi armé obligatoire","IED risk"]},
+        {country:"Palestine/Gaza",region:"Moyen-Orient",max_risk:5,risk_label:"EXTRÊME",incident_count:5,categories:{conflit:5},sources:["BBC","Al Jazeera","OCHA"],latest_incident:{title:"[DEMO V4] Gaza",latitude:31.45,longitude:34.38},actors:["Tsahal","Hamas","OCHA"],recommendations:["Zone extrême - Éviter","Abri","Accès humanitaire"]},
+        {country:"RDC Congo",region:"Afrique",max_risk:4,risk_label:"ÉLEVÉ",incident_count:3,categories:{conflit:2,epidemie:1},sources:["MONUSCO","OMS","ReliefWeb"],latest_incident:{title:"[DEMO V4] Goma M23",latitude:-1.67,longitude:29.22},actors:["M23","FARDC","MONUSCO"],recommendations:["Déplacement massif","Risque sanitaire"]},
+      ];
+      document.getElementById("risk-regions-count").textContent=demoAssess.length;
+      document.getElementById("risk-critical-count").textContent=`${demoAssess.filter(a=>a.max_risk>=4).length} critiques DEMO V4`;
+      container.innerHTML="";
+      demoAssess.forEach(a=>{
+        const card=document.createElement("div");
+        card.className=`security-card`;
+        card.style.borderLeftColor=a.max_risk>=4?"var(--neon-red)":"var(--neon-orange)";
+        card.innerHTML=`
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <b style="color:var(--neon-cyan);">📍 ${escapeHtml(a.country)} (${escapeHtml(a.region)})</b>
+            <span style="padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;background:${a.max_risk>=4?'rgba(255,42,95,0.2)':'rgba(255,153,0,0.2)'};color:${a.max_risk>=4?'var(--neon-red)':'var(--neon-orange)'};border:1px solid ${a.max_risk>=4?'var(--neon-red)':'var(--neon-orange)'};">${escapeHtml(a.risk_label)} ${a.max_risk}/5</span>
+          </div>
+          <div style="font-size:10px;color:var(--text-muted);margin-bottom:6px;">${a.incident_count} incidents DEMO V4 | Cat: ${Object.entries(a.categories).map(([k,v])=>`${k}(${v})`).join(', ')} | Sources: ${(a.sources||[]).join(', ')}</div>
+          <div style="font-size:11px;font-weight:600;margin-bottom:4px;">${escapeHtml(a.latest_incident?.title||'')}</div>
+          <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px;">${(a.actors||[]).map(ac=>`<span class="actor-chip">${escapeHtml(ac)}</span>`).join('')}</div>
+          <div style="font-size:10px;color:var(--neon-orange);">${(a.recommendations||[]).map(r=>`<div>• ${escapeHtml(r)}</div>`).join('')}</div>
+          <div style="margin-top:6px;display:flex;gap:4px;"><button class="cyber-btn btn-xs" onclick="centerMapOnCoords(${a.latest_incident?.latitude||0}, ${a.latest_incident?.longitude||0})">🎯 VOIR ZONE SAT HD</button></div>
+        `;
+        container.appendChild(card);
+      });
+      return;
+    }
+    try{
+      const res=await fetch(`${API_BASE}/api/security/assessment`);
+      const data=await res.json();
+      const assessments=data.assessment||[];
+      document.getElementById("risk-regions-count").textContent=assessments.length;
+      document.getElementById("risk-critical-count").textContent=`${assessments.filter(a=>a.max_risk>=4).length} critiques V4`;
+      container.innerHTML="";
+      assessments.forEach(a=>{
+        const card=document.createElement("div");
+        card.className=`security-card`;
+        card.style.borderLeftColor=a.max_risk>=4?"var(--neon-red)":a.max_risk>=3?"var(--neon-orange)":"var(--neon-yellow)";
+        card.innerHTML=`
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <b style="color:var(--neon-cyan);">📍 ${escapeHtml(a.country)} (${escapeHtml(a.region)})</b>
+            <span style="padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;background:${a.max_risk>=4?'rgba(255,42,95,0.2)':'rgba(255,153,0,0.2)'};color:${a.max_risk>=4?'var(--neon-red)':'var(--neon-orange)'};border:1px solid ${a.max_risk>=4?'var(--neon-red)':'var(--neon-orange)'};">${escapeHtml(a.risk_label)} ${a.max_risk}/5</span>
+          </div>
+          <div style="font-size:10px;color:var(--text-muted);margin-bottom:6px;">${a.incident_count} incidents V4 | Cat: ${Object.entries(a.categories).map(([k,v])=>`${k}(${v})`).join(', ')} | Sources: ${(a.sources||[]).join(', ')}</div>
+          <div style="font-size:11px;font-weight:600;margin-bottom:4px;">${escapeHtml(a.latest_incident?.title||'')}</div>
+          <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px;">${(a.actors||[]).map(ac=>`<span class="actor-chip">${escapeHtml(ac)}</span>`).join('')}</div>
+          <div style="font-size:10px;color:var(--neon-orange);">${(a.recommendations||[]).map(r=>`<div>• ${escapeHtml(r)}</div>`).join('')}</div>
+          <div style="margin-top:6px;display:flex;gap:4px;"><button class="cyber-btn btn-xs" onclick="centerMapOnCoords(${a.latest_incident?.latitude||0}, ${a.latest_incident?.longitude||0})">🎯 VOIR ZONE SAT HD</button></div>
+        `;
+        container.appendChild(card);
+      });
+    } catch(e){ container.innerHTML=`<div style="color:var(--neon-red);padding:10px;">Erreur sécurité: ${e.message} <button class="cyber-btn btn-xs" onclick="setBackendUrl()">🔧 CONFIG API</button></div>`; }
+  }
+
+  async function fetchActors(){
+    const container=document.getElementById("actors-container");
+    if(IS_GITHUB_DEMO || IS_ANDROID){
+      container.innerHTML=`<div style="color:var(--neon-orange);padding:10px;text-align:center;">Mode démo V4 - Acteurs live nécessitent backend. <button class="cyber-btn btn-xs" onclick="setBackendUrl()">🔧 CONFIGURER</button></div>`;
+    }
+    try{
+      if(IS_GITHUB_DEMO || IS_ANDROID) throw new Error("demo");
+      const res=await fetch(`${API_BASE}/api/humanitarian/actors`);
+      const data=await res.json();
+      container.innerHTML="";
+      (data.clusters||[]).forEach(cluster=>{
+        const div=document.createElement("div");
+        div.className="security-card";
+        div.style.borderLeftColor=cluster.live?"var(--neon-green)":"var(--neon-cyan)";
+        const typeColor=cluster.type==="SATELLITE"?"var(--neon-green)":cluster.type==="SOCIAL"?"#1DA1F2":cluster.type==="MEDIA"?"#fff":cluster.type==="OSINT"?"var(--neon-violet)":"var(--neon-cyan)";
+        div.innerHTML=`
+          <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px;">
+            <b style="color:${typeColor};">${escapeHtml(cluster.name)} ${cluster.live?'🛰️ LIVE V4':''}</b>
+            <span style="font-size:10px;color:var(--text-muted);">${escapeHtml(cluster.role)} | ${cluster.type}</span>
+          </div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:4px;">Régions: ${(cluster.active_regions||[]).join(', ')}</div>
+          <div style="font-size:10px;color:var(--neon-cyan);">Contact: ${escapeHtml(cluster.contact)}</div>
+        `;
+        container.appendChild(div);
+      });
+      const enjeuxDiv=document.createElement("div");
+      enjeuxDiv.className="tactical-hud"; enjeuxDiv.style.marginTop="10px"; enjeuxDiv.style.borderColor="var(--neon-green)";
+      enjeuxDiv.innerHTML=`
+        <div class="hud-title" style="color:var(--neon-green);">PROBLÉMATIQUES & ENJEUX V4 LIVE (auto-généré depuis 70+ sources)</div>
+        <div style="font-size:11px;line-height:1.6;color:var(--text-bright);">
+          • <b style="color:var(--neon-red);">Sécurité:</b> ${allIncidents.filter(i=>i.category==='conflit').length} conflits actifs détectés satellite + réseaux sociaux<br>
+          • <b style="color:var(--neon-orange);">Logistique:</b> Risques maritimes, routes coupées, accès humanitaire restreint (UKMTO, Maritime, OCHA)<br>
+          • <b style="color:var(--neon-violet);">Santé:</b> ${allIncidents.filter(i=>i.category==='epidemie').length} alertes épidémiologiques live (OMS, MSF)<br>
+          • <b style="color:var(--neon-cyan);">Climat:</b> ${allIncidents.filter(i=>i.category==='catastrophe').length} catastrophes naturelles satellite (NASA EONET, USGS, GDACS, FIRMS)<br>
+          • <b style="color:var(--neon-green);">Info & Désinfo:</b> ${allSocial.length} posts sociaux + ${allMedia.length} articles médias vérifiés via GDELT<br>
+          • <b style="color:var(--neon-yellow);">Données:</b> Sources V4 temps réel NASA EONET, FIRMS, USGS, ReliefWeb, GDACS, GDELT x5, Reddit x6, Telegram x4, 60+ RSS - MAJ 60s | Backend: ${API_BASE||'DEMO V4'}
+        </div>
+      `;
+      container.appendChild(enjeuxDiv);
+    } catch(e){
+      const demoClusters=[
+        {name:"OCHA Coordination",role:"Coordination humanitaire",type:"OFFICIEL",live:true,active_regions:["Global"],contact:"ocha@un.org"},
+        {name:"NASA EONET Satellite",role:"Détection satellite catastrophes",type:"SATELLITE",live:true,active_regions:["Global"],contact:"eonet.gsfc.nasa.gov"},
+        {name:"NASA FIRMS",role:"Feux actifs MODIS/VIIRS",type:"SATELLITE",live:true,active_regions:["Global"],contact:"firms.modaps.eosdis.nasa.gov"},
+        {name:"Reddit OSINT Community",role:"Veille sociale",type:"SOCIAL",live:true,active_regions:["Ukraine","Sahel"],contact:"reddit.com/r/OSINT"},
+        {name:"MSF Logistique",role:"Médical & épidémies",type:"MEDICAL",live:false,active_regions:["Afrique"],contact:"msf.org"},
+        {name:"Bellingcat",role:"Investigation OSINT",type:"OSINT",live:true,active_regions:["Global"],contact:"bellingcat.com"},
+        {name:"MarineTraffic",role:"Tracking maritime AIS",type:"MARITIME",live:true,active_regions:["Mer Rouge","Global"],contact:"marinetraffic.com"},
+        {name:"FlightRadar24",role:"Tracking aviation ADS-B",type:"AVIATION",live:true,active_regions:["Global"],contact:"flightradar24.com"},
+      ];
+      if(container.innerHTML.includes("Mode démo")) container.innerHTML="";
+      demoClusters.forEach(cluster=>{
+        const div=document.createElement("div");
+        div.className="security-card";
+        div.style.borderLeftColor=cluster.live?"var(--neon-green)":"var(--neon-cyan)";
+        const typeColor=cluster.type==="SATELLITE"?"var(--neon-green)":cluster.type==="SOCIAL"?"#1DA1F2":cluster.type==="OSINT"?"var(--neon-violet)":"var(--neon-cyan)";
+        div.innerHTML=`
+          <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px;">
+            <b style="color:${typeColor};">${escapeHtml(cluster.name)} ${cluster.live?'🛰️ LIVE V4':''} ${IS_GITHUB_DEMO||IS_ANDROID?'(DEMO V4)':''}</b>
+            <span style="font-size:10px;color:var(--text-muted);">${escapeHtml(cluster.role)} | ${cluster.type}</span>
+          </div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:4px;">Régions: ${(cluster.active_regions||[]).join(', ')}</div>
+          <div style="font-size:10px;color:var(--neon-cyan);">Contact: ${escapeHtml(cluster.contact)}</div>
+        `;
+        container.appendChild(div);
+      });
+      const enjeuxDiv=document.createElement("div");
+      enjeuxDiv.className="tactical-hud"; enjeuxDiv.style.marginTop="10px"; enjeuxDiv.style.borderColor="var(--neon-green)";
+      enjeuxDiv.innerHTML=`
+        <div class="hud-title" style="color:var(--neon-green);">PROBLÉMATIQUES & ENJEUX ${IS_GITHUB_DEMO||IS_ANDROID?'DEMO V4':'V4 LIVE'}</div>
+        <div style="font-size:11px;line-height:1.6;color:var(--text-bright);">
+          • <b style="color:var(--neon-red);">Sécurité:</b> ${allIncidents.filter(i=>i.category==='conflit').length} conflits actifs<br>
+          • <b style="color:var(--neon-orange);">Logistique:</b> Risques maritimes, routes coupées<br>
+          • <b style="color:var(--neon-violet);">Santé:</b> ${allIncidents.filter(i=>i.category==='epidemie').length} alertes<br>
+          • <b style="color:var(--neon-cyan);">Climat:</b> ${allIncidents.filter(i=>i.category==='catastrophe').length} catastrophes satellite<br>
+          • <b style="color:var(--neon-green);">Backend:</b> ${IS_GITHUB_DEMO||IS_ANDROID?'DEMO V4 OFFLINE - Configurez API via bouton 🔧':'LIVE '+API_BASE}<br>
+          • <b style="color:var(--neon-pink);">Image OSINT:</b> Reverse search 7 moteurs + EXIF<br>
+          • <b style="color:var(--neon-violet);">Engines:</b> 40+ moteurs spécialisés (Shodan, Censys, MarineTraffic, etc.)
+        </div>
+      `;
+      container.appendChild(enjeuxDiv);
+    }
+  }
+
+  // Geozones
   async function loadSavedGeozones(){
-    if(IS_DEMO_MODE){
-      try{
-        const stored = localStorage.getItem('HUMAN_OSINT_GEOZONES');
-        savedGeozones = stored ? JSON.parse(stored) : [];
-      } catch(e){ savedGeozones=[]; }
+    if(IS_GITHUB_DEMO || IS_ANDROID){
+      if(IS_ANDROID && window.AndroidOSINT && typeof AndroidOSINT.getGeozones === 'function'){
+        try{
+          const raw=AndroidOSINT.getGeozones();
+          savedGeozones=JSON.parse(raw).map(z=>({id:z.id,name:z.name,geometry_type:z.geometry_type,geojson_data:JSON.parse(z.geojson_data||"{}"),area_sqkm:z.area_sqkm}));
+        }catch(e){
+          try{ const stored=localStorage.getItem('HUMAN_OSINT_GEOZONES'); savedGeozones=stored?JSON.parse(stored):[]; }catch(e2){ savedGeozones=[]; }
+        }
+      } else {
+        try{ const stored=localStorage.getItem('HUMAN_OSINT_GEOZONES'); savedGeozones=stored?JSON.parse(stored):[]; }catch(e){ savedGeozones=[]; }
+      }
       renderSavedGeozonesUI(); displaySavedGeozonesOnMap();
       return;
     }
@@ -1261,7 +2193,7 @@
       totalArea+=parseFloat(z.area_sqkm)||0;
       const item=document.createElement("div");
       item.style.background="var(--bg-card)"; item.style.border="1px solid var(--border)"; item.style.padding="8px 10px"; item.style.borderRadius="3px"; item.style.display="flex"; item.style.justifyContent="space-between"; item.style.alignItems="center";
-      item.innerHTML=`<div><div style="font-weight:700;color:var(--neon-green);">${escapeHtml(z.name)}</div><div style="font-size:10px;color:var(--text-muted);">${z.geometry_type} // ${z.area_sqkm} km²</div></div><div style="display:flex;gap:4px;"><button class="cyber-btn btn-xs" onclick="zoomToZone(${z.id})">ZOOM SAT RÉEL</button><button class="cyber-btn btn-xs" style="border-color:var(--neon-red);color:var(--neon-red);" onclick="deleteGeozone(${z.id})">SUPPR</button></div>`;
+      item.innerHTML=`<div><div style="font-weight:700;color:var(--neon-green);">${escapeHtml(z.name)}</div><div style="font-size:10px;color:var(--text-muted);">${z.geometry_type} // ${z.area_sqkm} km²</div></div><div style="display:flex;gap:4px;"><button class="cyber-btn btn-xs" onclick="zoomToZone(${z.id})">ZOOM SAT HD</button><button class="cyber-btn btn-xs" style="border-color:var(--neon-red);color:var(--neon-red);" onclick="deleteGeozone(${z.id})">SUPPR</button></div>`;
       container.appendChild(item);
     });
     sumEl.textContent=`${totalArea.toFixed(1)} km²`;
@@ -1279,29 +2211,43 @@
     });
   }
   async function promptSaveCurrentDrawn(){
-    if(!currentDrawingGeoJSON){ alert("Tracer d'abord une zone sur la carte satellite réel !"); return; }
-    const defaultName="Zone-SAT-ULTIMATE-"+new Date().toLocaleTimeString().replace(/:/g,"");
-    const name=prompt("Nom zone tactique satellite réel:",defaultName);
+    if(!currentDrawingGeoJSON){ alert("Tracer d'abord une zone sur la carte satellite réel HD !"); return; }
+    const defaultName="Zone-SAT-V4-"+new Date().toLocaleTimeString().replace(/:/g,"");
+    const name=prompt("Nom zone tactique satellite réel V4:",defaultName);
     if(!name) return;
-    if(IS_DEMO_MODE){
-      const newZone={id:Date.now(),name:name,geometry_type:currentDrawingGeoJSON.geometry?.type||"Polygon",geojson_data:currentDrawingGeoJSON,area_sqkm:parseFloat(currentDrawingArea)||0.0};
-      savedGeozones.push(newZone);
+    if(IS_GITHUB_DEMO || IS_ANDROID){
+      if(IS_ANDROID && window.AndroidOSINT && typeof AndroidOSINT.saveGeozone === 'function'){
+        try{
+          const geoStr=JSON.stringify(currentDrawingGeoJSON);
+          const id=AndroidOSINT.saveGeozone(name, currentDrawingGeoJSON.geometry?.type||"Polygon", geoStr, parseFloat(currentDrawingArea)||0.0);
+          savedGeozones.push({id:parseInt(id)||Date.now(),name,geometry_type:currentDrawingGeoJSON.geometry?.type||"Polygon",geojson_data:currentDrawingGeoJSON,area_sqkm:parseFloat(currentDrawingArea)||0.0});
+        }catch(e){
+          const newZone={id:Date.now(),name,geometry_type:currentDrawingGeoJSON.geometry?.type||"Polygon",geojson_data:currentDrawingGeoJSON,area_sqkm:parseFloat(currentDrawingArea)||0.0};
+          savedGeozones.push(newZone);
+        }
+      } else {
+        const newZone={id:Date.now(),name,geometry_type:currentDrawingGeoJSON.geometry?.type||"Polygon",geojson_data:currentDrawingGeoJSON,area_sqkm:parseFloat(currentDrawingArea)||0.0};
+        savedGeozones.push(newZone);
+      }
       saveGeozonesLocal();
       document.getElementById("measure-overlay").style.display="none"; currentDrawingGeoJSON=null; drawnItems.clearLayers(); renderSavedGeozonesUI(); displaySavedGeozonesOnMap();
-      alert(`Zone "${name}" sauvegardée localement DEMO (localStorage) !`);
+      alert(`Zone "${name}" sauvegardée V4 !`);
       return;
     }
-    const payload={name:name,geometry_type:currentDrawingGeoJSON.geometry?.type||"Polygon",geojson_data:currentDrawingGeoJSON,area_sqkm:parseFloat(currentDrawingArea)||0.0};
+    const payload={name,geometry_type:currentDrawingGeoJSON.geometry?.type||"Polygon",geojson_data:currentDrawingGeoJSON,area_sqkm:parseFloat(currentDrawingArea)||0.0};
     try{
       const response=await fetch(`${API_BASE}/api/geozones`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
       if(!response.ok) throw new Error("Échec sauvegarde");
-      document.getElementById("measure-overlay").style.display="none"; currentDrawingGeoJSON=null; drawnItems.clearLayers(); await loadSavedGeozones(); alert(`Zone "${name}" sauvegardée satellite réel ULTIMATE !`);
+      document.getElementById("measure-overlay").style.display="none"; currentDrawingGeoJSON=null; drawnItems.clearLayers(); await loadSavedGeozones(); alert(`Zone "${name}" sauvegardée satellite réel V4 !`);
     }catch(err){ alert("Erreur: "+err.message); }
   }
   async function saveActiveMeasurement(){ promptSaveCurrentDrawn(); }
   async function deleteGeozone(zoneId){
     if(!confirm(`Supprimer zone ${zoneId} ?`)) return;
-    if(IS_DEMO_MODE){
+    if(IS_GITHUB_DEMO || IS_ANDROID){
+      if(IS_ANDROID && window.AndroidOSINT && typeof AndroidOSINT.deleteGeozone === 'function'){
+        try{ AndroidOSINT.deleteGeozone(zoneId); }catch(e){}
+      }
       savedGeozones=savedGeozones.filter(z=>z.id!==zoneId);
       saveGeozonesLocal();
       renderSavedGeozonesUI(); displaySavedGeozonesOnMap();
@@ -1314,16 +2260,24 @@
     if(savedGeozones.length===0){ alert("Aucune zone"); return; }
     const featureCollection={type:"FeatureCollection",features:savedGeozones.map(z=>{ const geo=typeof z.geojson_data==="string"?JSON.parse(z.geojson_data):z.geojson_data; return {type:"Feature",properties:{id:z.id,name:z.name,area_sqkm:z.area_sqkm},geometry:geo.geometry||geo}; })};
     const dataStr="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(featureCollection,null,2));
-    const a=document.createElement("a"); a.setAttribute("href",dataStr); a.setAttribute("download",`human_osint_ultimate_sat_${Date.now()}.geojson`); document.body.appendChild(a); a.click(); a.remove();
+    const a=document.createElement("a"); a.setAttribute("href",dataStr); a.setAttribute("download",`human_osint_v4_sat_${Date.now()}.geojson`); document.body.appendChild(a); a.click(); a.remove();
   }
 
   function setupDragAndDrop(){
     const dropZone=document.getElementById("drop-zone");
-    if(!dropZone) return;
-    ["dragenter","dragover","dragleave","drop"].forEach(ev=>dropZone.addEventListener(ev,e=>{ e.preventDefault(); e.stopPropagation(); },false));
-    dropZone.addEventListener("dragover",()=>dropZone.classList.add("drag-over"));
-    dropZone.addEventListener("dragleave",()=>dropZone.classList.remove("drag-over"));
-    dropZone.addEventListener("drop",(e)=>{ dropZone.classList.remove("drag-over"); const files=e.dataTransfer.files; if(files.length) processImageFile(files[0]); });
+    const dropZoneImage=document.getElementById("drop-zone-image");
+    if(dropZone){
+      ["dragenter","dragover","dragleave","drop"].forEach(ev=>dropZone.addEventListener(ev,e=>{ e.preventDefault(); e.stopPropagation(); },false));
+      dropZone.addEventListener("dragover",()=>dropZone.classList.add("drag-over"));
+      dropZone.addEventListener("dragleave",()=>dropZone.classList.remove("drag-over"));
+      dropZone.addEventListener("drop",(e)=>{ dropZone.classList.remove("drag-over"); const files=e.dataTransfer.files; if(files.length) processImageFile(files[0]); });
+    }
+    if(dropZoneImage){
+      ["dragenter","dragover","dragleave","drop"].forEach(ev=>dropZoneImage.addEventListener(ev,e=>{ e.preventDefault(); e.stopPropagation(); },false));
+      dropZoneImage.addEventListener("dragover",()=>dropZoneImage.classList.add("drag-over"));
+      dropZoneImage.addEventListener("dragleave",()=>dropZoneImage.classList.remove("drag-over"));
+      dropZoneImage.addEventListener("drop",(e)=>{ dropZoneImage.classList.remove("drag-over"); const files=e.dataTransfer.files; if(files.length) processImageFileV4(files[0], true); });
+    }
   }
   function handleFileSelect(e){ const files=e.target.files; if(files.length) processImageFile(files[0]); }
   async function processImageFile(file){
@@ -1332,7 +2286,7 @@
       const tags=await ExifReader.load(file,{expanded:true});
       if(tags.gps&&tags.gps.Latitude&&tags.gps.Longitude){
         const lat=tags.gps.Latitude; const lng=tags.gps.Longitude; lastExifLocation={lat,lng};
-        exifCard.style.display="flex"; details.innerHTML=`<b>Fichier:</b> ${escapeHtml(file.name)}<br><b>Lat SAT:</b> <span style="color:var(--neon-green)">${lat.toFixed(6)}</span><br><b>Lng SAT:</b> <span style="color:var(--neon-green)">${lng.toFixed(6)}</span><br><b>Appareil:</b> ${tags.exif?.Model?.description||"Non spécifié"}<br><b>Date:</b> ${tags.exif?.DateTimeOriginal?.description||"Inconnu"}`; locateExifOnMap();
+        exifCard.style.display="flex"; details.innerHTML=`<b>Fichier:</b> ${escapeHtml(file.name)}<br><b>Lat SAT HD:</b> <span style="color:var(--neon-green)">${lat.toFixed(6)}</span><br><b>Lng SAT HD:</b> <span style="color:var(--neon-green)">${lng.toFixed(6)}</span><br><b>Appareil:</b> ${tags.exif?.Model?.description||"Non spécifié"}<br><b>Date:</b> ${tags.exif?.DateTimeOriginal?.description||"Inconnu"}`; locateExifOnMap();
       } else { exifCard.style.display="flex"; details.innerHTML=`<b>Fichier:</b> ${escapeHtml(file.name)}<br><span style="color:var(--neon-red)">⚠️ Pas de GPS - métadonnées purgées</span>`; }
     }catch(err){ alert("Erreur EXIF: "+err.message); }
   }
@@ -1342,12 +2296,19 @@
     const {lat,lng}=lastExifLocation;
     const redPin=L.divIcon({className:"exif-marker",html:`<div style="background:#ff2a5f; width:16px; height:16px; border-radius:50%; border:3px solid #fff; box-shadow:0 0 15px #ff2a5f;"></div>`,iconSize:[16,16]});
     const marker=L.marker([lat,lng],{icon:redPin}).addTo(leafletMap);
-    marker.bindPopup(`<div style="font-weight:700;color:var(--neon-red);">🎯 ORIGINE PHOTO EXIF SAT RÉEL</div><div>Lat: ${lat.toFixed(6)}</div><div>Lng: ${lng.toFixed(6)}</div>`).openPopup();
+    marker.bindPopup(`<div style="font-weight:700;color:var(--neon-red);">🎯 ORIGINE PHOTO EXIF SAT HD V4</div><div>Lat: ${lat.toFixed(6)}</div><div>Lng: ${lng.toFixed(6)}</div>`).openPopup();
     leafletMap.flyTo([lat,lng],14,{duration:2});
   }
   function openDork(query){ const url=`https://www.google.com/search?q=${encodeURIComponent(query)}`; window.open(url,"_blank"); }
   function escapeHtml(text){ if(!text) return ""; const div=document.createElement("div"); div.textContent=text; return div.innerHTML; }
   function formatDate(dateString){ if(!dateString) return ""; try{ const d=new Date(dateString); return d.toLocaleDateString("fr-FR",{hour:"2-digit",minute:"2-digit"}); }catch{ return dateString; } }
+
+  // Android bridge hook for data updates
+  window.onAndroidDataUpdated = function(){
+    console.log("Android data updated - refreshing V4");
+    fetchLiveFeeds(false);
+    loadSavedGeozones();
+  };
 </script>
 </body>
 </html>
