@@ -412,8 +412,10 @@ Chaque section suit la même trame : *à quoi ça sert*, *comment s'en servir*,
 ## 10. Tests
 
 ```bash
-# Backend : import réel + schéma de persistance sur SQLite
-python -c "import main"
+# Backend : surface des modules (noms indéfinis, registres, helpers)
+python tests/test_backend_surface.py
+
+# Schéma de persistance sur SQLite
 python tests/test_storage.py
 
 # Le même banc contre un vrai PostgreSQL
@@ -432,6 +434,16 @@ cd tests && API_URL=http://127.0.0.1:8000 npm test
 PostgreSQL. Le mode `--postgres` pose `OSINT_DB_STRICT=1`, donc une base
 injoignable fait échouer le banc au lieu de le dégrader silencieusement en
 SQLite : un « PostgreSQL 47/47 » signifie bien que PostgreSQL a tourné.
+
+`tests/test_backend_surface.py` existe à cause d'un incident précis : un patch
+v4.2 avait supprimé `GEO_HOTSPOTS`, `KEYWORDS_CATEGORY`, `extract_geo`,
+`classify`, `actors_from_text` et `needs_from_cat` de `main.py` alors que douze
+sites d'appel y référaient encore. `import main` continuait de fonctionner —
+ces noms n'explosent que lorsque les chemins d'ingestion GDELT / Reddit /
+Telegram s'exécutent réellement — et seul le step CI « Syntax check » l'avait
+vu. Le banc contient un détecteur de noms non liés écrit en stdlib, **validé
+contre la révision cassée** : un linter qui renvoie toujours une liste vide
+passerait tous les tests sans rien garder.
 
 Le banc jsdom vérifie notamment la projection Web Mercator de
 `computeTileRange()` contre une implémentation indépendante écrite avec la

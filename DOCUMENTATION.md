@@ -708,6 +708,52 @@ and PostgreSQL and never lets a database error reach the API.
 Returns:
     A DB-API connection with mapping-style row access.
 
+### `extract_geo(text)`
+
+Guess a ``(latitude, longitude)`` pair from free text.
+
+Looks for an explicit ``lat,lon`` pattern first, then falls back to a
+coarse region centroid so that every incident can be plotted on the map.
+
+Args:
+    text: Headline or summary to inspect.
+
+Returns:
+    Tuple ``(latitude, longitude)`` as floats.
+
+### `classify(text, source)`
+
+Map a headline onto one of the platform risk categories.
+
+Args:
+    text: Headline or summary.
+    source: Originating source name, used to break ties.
+
+Returns:
+    One of ``conflit``, ``catastrophe``, ``epidemie``, ``energie``,
+    ``cyber`` or ``protest``.
+
+### `actors_from_text(text, region)`
+
+Extract the actors named in a headline.
+
+Args:
+    text: Headline or summary.
+    region: Region label, used to widen the candidate list.
+
+Returns:
+    Deduplicated list of actor names (states, armed groups, agencies).
+
+### `needs_from_cat(cat)`
+
+Derive the humanitarian needs implied by a category.
+
+Args:
+    cat: Category produced by :func:`classify`.
+
+Returns:
+    List of need labels such as ``Abri``, ``Médical`` or ``Eau``.
+
 ### `fetch_eonet()`
 
 Fetch active natural events from the NASA EONET API.
@@ -2044,8 +2090,10 @@ Chaque section suit la même trame : *à quoi ça sert*, *comment s'en servir*,
 ## 10. Tests
 
 ```bash
-# Backend : import réel + schéma de persistance sur SQLite
-python -c "import main"
+# Backend : surface des modules (noms indéfinis, registres, helpers)
+python tests/test_backend_surface.py
+
+# Schéma de persistance sur SQLite
 python tests/test_storage.py
 
 # Le même banc contre un vrai PostgreSQL
@@ -2064,6 +2112,16 @@ cd tests && API_URL=http://127.0.0.1:8000 npm test
 PostgreSQL. Le mode `--postgres` pose `OSINT_DB_STRICT=1`, donc une base
 injoignable fait échouer le banc au lieu de le dégrader silencieusement en
 SQLite : un « PostgreSQL 47/47 » signifie bien que PostgreSQL a tourné.
+
+`tests/test_backend_surface.py` existe à cause d'un incident précis : un patch
+v4.2 avait supprimé `GEO_HOTSPOTS`, `KEYWORDS_CATEGORY`, `extract_geo`,
+`classify`, `actors_from_text` et `needs_from_cat` de `main.py` alors que douze
+sites d'appel y référaient encore. `import main` continuait de fonctionner —
+ces noms n'explosent que lorsque les chemins d'ingestion GDELT / Reddit /
+Telegram s'exécutent réellement — et seul le step CI « Syntax check » l'avait
+vu. Le banc contient un détecteur de noms non liés écrit en stdlib, **validé
+contre la révision cassée** : un linter qui renvoie toujours une liste vide
+passerait tous les tests sans rien garder.
 
 Le banc jsdom vérifie notamment la projection Web Mercator de
 `computeTileRange()` contre une implémentation indépendante écrite avec la

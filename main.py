@@ -204,6 +204,168 @@ def get_db_connection() -> sqlite3.Connection:
 
 
 # -------------------------------------------------------------------
+# GEO & CATEGORIZATION
+# -------------------------------------------------------------------
+GEO_HOTSPOTS: Dict[str, Dict[str, Any]] = {
+    "gaza": {"lat": 31.45, "lng": 34.38, "country": "Palestine/Gaza", "region": "Moyen-Orient"},
+    "rafah": {"lat": 31.28, "lng": 34.25, "country": "Palestine/Gaza", "region": "Moyen-Orient"},
+    "israel": {"lat": 31.76, "lng": 35.21, "country": "Israël", "region": "Moyen-Orient"},
+    "tel aviv": {"lat": 32.08, "lng": 34.78, "country": "Israël", "region": "Moyen-Orient"},
+    "jerusalem": {"lat": 31.77, "lng": 35.23, "country": "Israël", "region": "Moyen-Orient"},
+    "lebanon": {"lat": 33.89, "lng": 35.50, "country": "Liban", "region": "Moyen-Orient"},
+    "liban": {"lat": 33.89, "lng": 35.50, "country": "Liban", "region": "Moyen-Orient"},
+    "beirut": {"lat": 33.89, "lng": 35.50, "country": "Liban", "region": "Moyen-Orient"},
+    "syria": {"lat": 34.80, "lng": 38.99, "country": "Syrie", "region": "Moyen-Orient"},
+    "syrie": {"lat": 34.80, "lng": 38.99, "country": "Syrie", "region": "Moyen-Orient"},
+    "yemen": {"lat": 15.55, "lng": 48.51, "country": "Yémen", "region": "Moyen-Orient"},
+    "houthi": {"lat": 15.35, "lng": 44.20, "country": "Yémen", "region": "Moyen-Orient"},
+    "red sea": {"lat": 20.0, "lng": 38.5, "country": "Mer Rouge", "region": "Moyen-Orient"},
+    "mer rouge": {"lat": 20.0, "lng": 38.5, "country": "Mer Rouge", "region": "Moyen-Orient"},
+    "bab-el-mandeb": {"lat": 12.58, "lng": 43.33, "country": "Mer Rouge", "region": "Moyen-Orient"},
+    "iran": {"lat": 32.42, "lng": 53.68, "country": "Iran", "region": "Moyen-Orient"},
+    "iraq": {"lat": 33.22, "lng": 43.67, "country": "Irak", "region": "Moyen-Orient"},
+    "hormuz": {"lat": 26.56, "lng": 56.25, "country": "Détroit Ormuz", "region": "Moyen-Orient"},
+    "ukraine": {"lat": 48.37, "lng": 31.16, "country": "Ukraine", "region": "Europe"},
+    "kyiv": {"lat": 50.45, "lng": 30.52, "country": "Ukraine", "region": "Europe"},
+    "kiev": {"lat": 50.45, "lng": 30.52, "country": "Ukraine", "region": "Europe"},
+    "donetsk": {"lat": 48.01, "lng": 37.80, "country": "Ukraine (Donbass)", "region": "Europe"},
+    "donbass": {"lat": 48.01, "lng": 37.80, "country": "Ukraine (Donbass)", "region": "Europe"},
+    "kharkiv": {"lat": 49.99, "lng": 36.23, "country": "Ukraine", "region": "Europe"},
+    "crimea": {"lat": 45.30, "lng": 34.40, "country": "Ukraine (Crimée)", "region": "Europe"},
+    "russia": {"lat": 55.75, "lng": 37.61, "country": "Russie", "region": "Europe"},
+    "moscow": {"lat": 55.75, "lng": 37.61, "country": "Russie", "region": "Europe"},
+    "sudan": {"lat": 12.86, "lng": 30.21, "country": "Soudan", "region": "Afrique"},
+    "soudan": {"lat": 12.86, "lng": 30.21, "country": "Soudan", "region": "Afrique"},
+    "khartoum": {"lat": 15.50, "lng": 32.55, "country": "Soudan", "region": "Afrique"},
+    "darfur": {"lat": 13.0, "lng": 25.0, "country": "Soudan (Darfour)", "region": "Afrique"},
+    "congo": {"lat": -4.03, "lng": 21.75, "country": "RDC Congo", "region": "Afrique"},
+    "rdc": {"lat": -4.03, "lng": 21.75, "country": "RDC Congo", "region": "Afrique"},
+    "goma": {"lat": -1.67, "lng": 29.22, "country": "RDC Congo", "region": "Afrique"},
+    "mali": {"lat": 17.57, "lng": -3.99, "country": "Mali / Sahel", "region": "Afrique"},
+    "niger": {"lat": 17.60, "lng": 8.08, "country": "Niger / Sahel", "region": "Afrique"},
+    "burkina": {"lat": 12.23, "lng": -1.56, "country": "Burkina Faso", "region": "Afrique"},
+    "sahel": {"lat": 15.0, "lng": 2.0, "country": "Sahel", "region": "Afrique"},
+    "somalia": {"lat": 5.15, "lng": 46.19, "country": "Somalie", "region": "Afrique"},
+    "ethiopia": {"lat": 9.14, "lng": 40.48, "country": "Éthiopie", "region": "Afrique"},
+    "nigeria": {"lat": 9.08, "lng": 8.67, "country": "Nigéria", "region": "Afrique"},
+    "senegal": {"lat": 14.71, "lng": -17.46, "country": "Sénégal", "region": "Afrique"},
+    "mauritania": {"lat": 18.07, "lng": -15.95, "country": "Mauritanie", "region": "Afrique"},
+    "cameroon": {"lat": 4.05, "lng": 9.76, "country": "Cameroun", "region": "Afrique"},
+    "libya": {"lat": 26.33, "lng": 17.22, "country": "Libye", "region": "Afrique"},
+    "taiwan": {"lat": 23.69, "lng": 120.96, "country": "Taïwan", "region": "Asie-Pacifique"},
+    "china": {"lat": 35.86, "lng": 104.19, "country": "Chine", "region": "Asie-Pacifique"},
+    "chine": {"lat": 35.86, "lng": 104.19, "country": "Chine", "region": "Asie-Pacifique"},
+    "north korea": {"lat": 40.33, "lng": 127.51, "country": "Corée du Nord", "region": "Asie-Pacifique"},
+    "myanmar": {"lat": 21.91, "lng": 95.95, "country": "Myanmar", "region": "Asie-Pacifique"},
+    "afghanistan": {"lat": 33.93, "lng": 67.70, "country": "Afghanistan", "region": "Asie-Pacifique"},
+    "pakistan": {"lat": 30.37, "lng": 69.34, "country": "Pakistan", "region": "Asie-Pacifique"},
+    "philippines": {"lat": 12.87, "lng": 121.77, "country": "Philippines", "region": "Asie-Pacifique"},
+    "haiti": {"lat": 18.97, "lng": -72.28, "country": "Haïti", "region": "Amériques"},
+    "venezuela": {"lat": 6.42, "lng": -66.58, "country": "Venezuela", "region": "Amériques"},
+    "usa": {"lat": 38.90, "lng": -77.03, "country": "États-Unis", "region": "Amériques"},
+    "colombia": {"lat": 4.57, "lng": -74.29, "country": "Colombie", "region": "Amériques"},
+    "goma": {"lat": -1.67, "lng": 29.22, "country": "RDC", "region": "Afrique"},
+    "el fasher": {"lat": 13.62, "lng": 25.34, "country": "Soudan", "region": "Afrique"},
+    "gao": {"lat": 16.27, "lng": -0.04, "country": "Mali", "region": "Afrique"},
+    "timbuktu": {"lat": 16.77, "lng": -3.00, "country": "Mali", "region": "Afrique"},
+    "pokrovsk": {"lat": 48.28, "lng": 37.18, "country": "Ukraine", "region": "Europe"},
+    "bakhmut": {"lat": 48.59, "lng": 38.00, "country": "Ukraine", "region": "Europe"},
+}
+
+KEYWORDS_CATEGORY = {
+    "conflit": ["war", "strike", "missile", "combat", "drone", "army", "attack", "bomb", "guerre", "frappe", "armée", "explosion", "soldat", "front", "invasion", "otan", "nato", "troupes", "hamas", "hezbollah", "rebels", "clash", "embuscade", "kidnapping", "coup d'état", "putsch", "offensive", "artillerie", "blindés", "airstrike", "military", "forces", "conflict"],
+    "energie": ["oil", "gas", "petrol", "barrel", "opec", "pipeline", "refinery", "energy", "tanker", "eia", "brent", "wti", "crude", "pétrole", "gaz", "baril", "opep", "raffinerie", "énergie", "dangote", "aramco", "lng", "maritime", "shipping", "cargo"],
+    "epidemie": ["epidemic", "virus", "who", "disease", "outbreak", "covid", "mpox", "cholera", "infection", "health", "vaccine", "flu", "oms", "épidémie", "choléra", "sanitaire", "pandémie", "ebola", "diphtérie", "paludisme", "malaria", "fièvre"],
+    "catastrophe": ["earthquake", "flood", "cyclone", "tsunami", "volcano", "hurricane", "storm", "landslide", "drought", "séisme", "tremblement", "inondation", "tempête", "sécheresse", "ouragan", "gdacs", "wildfire", "incendie", "firms", "eonet"],
+    "cyber": ["cyber", "hack", "malware", "ransomware", "darknet", "fuite", "data breach", "phishing", "apt", "zero-day", "exploit", "leak", "breach", "vulnerability", "cve"],
+    "protest": ["protest", "manifestation", "coup", "junte", "élection", "grève", "dissidence", "mutinerie", "émeute", "riot", "demonstration"]
+}
+
+def extract_geo(text: str):
+    """Guess a ``(latitude, longitude)`` pair from free text.
+
+    Looks for an explicit ``lat,lon`` pattern first, then falls back to a
+    coarse region centroid so that every incident can be plotted on the map.
+
+    Args:
+        text: Headline or summary to inspect.
+
+    Returns:
+        Tuple ``(latitude, longitude)`` as floats."""
+
+    tl = text.lower()
+    for name, c in GEO_HOTSPOTS.items():
+        if name in tl:
+            return c["lat"], c["lng"], c["country"], c["region"]
+    return 32.5, 35.0, "International", "Global"
+
+def classify(text: str, source: str) -> str:
+    """Map a headline onto one of the platform risk categories.
+
+    Args:
+        text: Headline or summary.
+        source: Originating source name, used to break ties.
+
+    Returns:
+        One of ``conflit``, ``catastrophe``, ``epidemie``, ``energie``,
+        ``cyber`` or ``protest``."""
+
+    tl = text.lower()
+    sl = source.lower()
+    if "oilprice" in sl or "eia" in sl: return "energie"
+    if "who" in sl or "oms" in sl: return "epidemie"
+    if "hacker" in sl or "bleeping" in sl or "cisa" in sl: return "cyber"
+    for cat, terms in KEYWORDS_CATEGORY.items():
+        for t in terms:
+            if t in tl:
+                return cat
+    return "conflit"
+
+def actors_from_text(text: str, region: str) -> List[str]:
+    """Extract the actors named in a headline.
+
+    Args:
+        text: Headline or summary.
+        region: Region label, used to widen the candidate list.
+
+    Returns:
+        Deduplicated list of actor names (states, armed groups, agencies)."""
+
+    actors = []
+    t = text.lower()
+    if any(x in t for x in ["gaza", "israel", "hamas"]): actors += ["Tsahal", "Hamas", "Civils Gaza", "OCHA"]
+    if any(x in t for x in ["lebanon", "liban", "hezbollah"]): actors += ["Hezbollah", "FINUL", "Armée Libanaise"]
+    if any(x in t for x in ["ukraine", "russie", "russia"]): actors += ["Forces UA", "Forces RU", "OTAN", "Civils"]
+    if any(x in t for x in ["sudan", "soudan", "rsf", "saf"]): actors += ["SAF", "RSF", "OCHA", "Civils déplacés"]
+    if any(x in t for x in ["congo", "rdc", "m23", "goma"]): actors += ["M23", "FARDC", "MONUSCO", "MSF"]
+    if any(x in t for x in ["mali", "niger", "burkina", "sahel", "jnim"]): actors += ["JNIM", "FAMa", "Africa Corps", "MINUSMA", "ONG locales"]
+    if any(x in t for x in ["houthi", "mer rouge", "red sea"]): actors += ["Houthis", "Coalition navale", "Armateurs"]
+    if any(x in t for x in ["iran", "pasdaran"]): actors += ["IRGC", "Pasdaran", "AIEA"]
+    if any(x in t for x in ["taiwan", "chine", "china", "pla"]): actors += ["PLA", "MND Taïwan", "US Navy"]
+    if not actors: actors = ["Acteurs locaux", "Humanitaires", "Autorités", "ONG"]
+    return list(dict.fromkeys(actors))[:5]
+
+def needs_from_cat(cat: str) -> List[str]:
+    """Derive the humanitarian needs implied by a category.
+
+    Args:
+        cat: Category produced by :func:`classify`.
+
+    Returns:
+        List of need labels such as ``Abri``, ``Médical`` or ``Eau``."""
+
+    m = {
+        "conflit": ["Sécurité", "Abri", "Protection", "Accès humanitaire", "Évacuation"],
+        "catastrophe": ["Eau potable", "Abri", "Nourriture", "Santé d'urgence", "Logistique"],
+        "epidemie": ["Vaccins", "Surveillance", "EPI", "Sensibilisation", "Médicaments"],
+        "energie": ["Carburant", "Logistique", "Sécurité maritime", "Électricité"],
+        "cyber": ["Continuité IT", "Protection données", "Forensique"],
+        "protest": ["Protection civils", "Médiation", "Droits humains"]
+    }
+    return m.get(cat, ["Assistance"])
+
+
+# -------------------------------------------------------------------
 # RSS FEEDS - 70+ SOURCES V4
 # -------------------------------------------------------------------
 RSS_FEEDS = [
