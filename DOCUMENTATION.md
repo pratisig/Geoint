@@ -878,9 +878,28 @@ Returns:
     ``"live"`` when real sources answered, ``"fallback"`` when the
     generated demo dataset had to be used.
 
+### `prime_cache_in_background()`
+
+Fill the cache once at boot *without* delaying startup.
+
+The lifespan hook used to ``await`` :func:`prime_cache_synchronously`
+directly, next to a comment claiming a slow upstream could not block the
+startup health checks. That comment was wrong: FastAPI does not finish
+startup — and uvicorn therefore does not answer ``/api/health`` — until
+the pre-``yield`` part of the lifespan returns. Awaiting a first fetch
+that fans out to ~76 upstreams made both the CI health check and Render's
+``healthCheckPath`` time out whenever those upstreams were slow.
+
+Failures are logged rather than raised: a boot prime that dies must not
+take the service down, the background loop retries on its own cycle.
+
 ### `lifespan(app)`
 
-Application lifespan hook: initialise SQLite, prime the cache, start auto-update.
+Application lifespan hook: initialise storage, start auto-update.
+
+Returns immediately so ``/api/health`` answers while the first fetch —
+which fans out to ~76 upstreams — runs in the background. See
+:func:`prime_cache_in_background` for why the prime is not awaited.
 
 Args:
     app: The FastAPI instance being started.

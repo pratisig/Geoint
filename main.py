@@ -1141,12 +1141,48 @@ def prime_cache_synchronously():
         mode = "fallback"
     live_cache["last_updated"] = datetime.now(timezone.utc).isoformat()
     live_cache["content_hash"] = compute_content_hash(live_cache["incidents"])
+    # Release the slot reserved by the lifespan hook so the background loop's
+    # next cycle is free to run.
+    live_cache["is_refreshing"] = False
     return mode
+
+
+async def prime_cache_in_background() -> None:
+    """Fill the cache once at boot *without* delaying startup.
+
+    The lifespan hook used to ``await`` :func:`prime_cache_synchronously`
+    directly, next to a comment claiming a slow upstream could not block the
+    startup health checks. That comment was wrong: FastAPI does not finish
+    startup — and uvicorn therefore does not answer ``/api/health`` — until
+    the pre-``yield`` part of the lifespan returns. Awaiting a first fetch
+    that fans out to ~76 upstreams made both the CI health check and Render's
+    ``healthCheckPath`` time out whenever those upstreams were slow.
+
+    Failures are logged rather than raised: a boot prime that dies must not
+    take the service down, the background loop retries on its own cycle.
+    """
+    try:
+        loop = asyncio.get_event_loop()
+        mode = await loop.run_in_executor(None, prime_cache_synchronously)
+        logger.info(
+            "Cache primed at boot in '%s' mode - %d incidents",
+            mode, len(live_cache["incidents"]),
+        )
+    except asyncio.CancelledError:
+        live_cache["is_refreshing"] = False
+        raise
+    except Exception as exc:  # noqa: BLE001 - a failed prime must not kill boot
+        live_cache["is_refreshing"] = False
+        logger.error("Boot cache priming failed: %s", exc)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Application lifespan hook: initialise SQLite, prime the cache, start auto-update.
+    """Application lifespan hook: initialise storage, start auto-update.
+
+    Returns immediately so ``/api/health`` answers while the first fetch —
+    which fans out to ~76 upstreams — runs in the background. See
+    :func:`prime_cache_in_background` for why the prime is not awaited.
 
     Args:
         app: The FastAPI instance being started.
@@ -1156,13 +1192,17 @@ async def lifespan(app: FastAPI):
         the background auto-update task is cancelled."""
 
     init_db()
-    loop = asyncio.get_event_loop()
-    # Prime in a thread so a slow upstream cannot block startup health checks.
-    mode = await loop.run_in_executor(None, prime_cache_synchronously)
-    logger.info(f"Cache primed at boot in '{mode}' mode - {len(live_cache['incidents'])} incidents")
+    # Reserve the refresh slot BEFORE either task starts, so background_loop's
+    # first iteration skips its own fetch instead of duplicating the priming
+    # work that is already in flight. prime_cache_synchronously releases it.
+    live_cache["is_refreshing"] = True
+    # Deliberately NOT awaited: the first fetch fans out to ~76 upstreams and,
+    # awaited here, would hold /api/health hostage until they all time out.
+    prime = asyncio.create_task(prime_cache_in_background())
     task = asyncio.create_task(background_loop())
     yield
     task.cancel()
+    prime.cancel()
 
 
 app = FastAPI(title="HUMAN-OSINT v4.2 ULTIMATE LIVE API", description="OSINT/GEOINT Power Platform - 70+ sources auto-updated + reverse image + advanced search + AI report", version=APP_VERSION, lifespan=lifespan)
