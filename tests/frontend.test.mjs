@@ -139,7 +139,7 @@ ok(!w.document.getElementById("help-modal").classList.contains("open"), "help pa
 
 console.log("\n=== 4. Documentation coverage ===");
 const fnCount = (html.match(/^\s*(?:async\s+)?function\s+\w+/gm) || []).length;
-ok(fnCount === 86, "86 documented JS functions present", "found " + fnCount);
+ok(fnCount === 112, "112 documented JS functions present", "found " + fnCount);
 const undoc = (() => {
   const ls = html.split("\n");
   const pat = /^\s*(?:async\s+)?function\s+(\w+)/;
@@ -196,5 +196,213 @@ if (errors.length) {
   console.log("\nJS errors captured during load:");
   errors.slice(0, 10).forEach(e => console.log("  " + e));
 }
-console.log(`\n──────── RESULT: ${pass} passed, ${fail} failed, ${skip} skipped ────────`);
-process.exit(fail ? 1 : 0);
+
+// =======================================================================
+// v4.2 — archive, export SIG, géocodage, identité, export HD, manuel
+// =======================================================================
+console.log("\n=== 8. v4.2 : nouveaux onglets et copyright ===");
+for (const id of ["tab-history", "tab-geocode", "tab-identity", "tab-manual"]) {
+  ok(!!w.document.getElementById(id), `pane #${id} exists`);
+}
+ok(/PratiSIG Consulting Services/.test(w.document.body.innerHTML), "copyright names PratiSIG Consulting Services");
+ok(/Youssoupha MBODJI/.test(w.document.body.innerHTML), "copyright names Youssoupha MBODJI");
+ok(/pratisg\.consulting@gmail\.com/.test(w.document.body.innerHTML), "copyright carries the contact address");
+ok(/Dakar, Sénégal/.test(w.document.body.innerHTML), "copyright carries the Dakar address");
+ok(w.document.querySelectorAll(".map-export-bar button").length >= 7, "map export bar offers HD + 4 GIS formats");
+
+console.log("\n=== 9. v4.2 : computeTileRange (projection Web Mercator) ===");
+const tileRange = (b, z) => w.eval(`computeTileRange(${JSON.stringify(b)}, ${z})`);
+const worldZ0 = tileRange({ south: -85, west: -180, north: 85, east: 180 }, 0);
+ok(worldZ0.minX === 0 && worldZ0.maxX === 0 && worldZ0.minY === 0 && worldZ0.maxY === 0,
+   "zoom 0 → a single tile covers the world", JSON.stringify(worldZ0));
+const worldZ3 = tileRange({ south: -85, west: -180, north: 85, east: 180 }, 3);
+ok(worldZ3.minX === 0 && worldZ3.maxX === 7 && worldZ3.minY === 0 && worldZ3.maxY === 7 && worldZ3.count === 64,
+   "zoom 3 → the full 8x8 grid", JSON.stringify(worldZ3));
+// An independent implementation of the same projection, written with the tan
+// form instead of the asinh form, used as the oracle.
+const oracle = (lat, lon, z) => {
+  const n = Math.pow(2, z);
+  const x = Math.floor(n * ((lon + 180) / 360));
+  const rad = lat * Math.PI / 180;
+  const y = Math.floor(n / 2 - n / (2 * Math.PI) * Math.log(Math.tan(Math.PI / 4 + rad / 2)));
+  return { x, y };
+};
+const spots = [[14.7167, -17.4677, "Dakar"], [0, 0, "null island"], [48.8566, 2.3522, "Paris"],
+               [35.6762, 139.6503, "Tokyo"], [-33.8688, 151.2093, "Sydney"], [64.1466, -21.9426, "Reykjavik"]];
+let projOk = true, projDetail = "";
+for (const [lat, lon, name] of spots) {
+  for (const z of [1, 5, 10, 14]) {
+    const got = tileRange({ south: lat, west: lon, north: lat, east: lon }, z);
+    const exp = oracle(lat, lon, z);
+    if (got.minX !== exp.x || got.minY !== exp.y) {
+      projOk = false; projDetail = `${name} z${z}: got ${got.minX}/${got.minY}, oracle ${exp.x}/${exp.y}`;
+    }
+  }
+}
+ok(projOk, "computeTileRange matches an independent slippy-map implementation (24 cases)", projDetail);
+ok(tileRange({ south: 10, west: 10, north: 20, east: 20 }, 8).count > 1, "a real area spans several tiles");
+
+console.log("\n=== 10. v4.2 : export SIG côté client ===");
+const rows = [
+  { id: 1, title: "Séisme à Dakar", summary: "Secousse; magnitude 5,2", link: "http://x/1", source: "USGS",
+    source_type: "earthquake", category: "catastrophe", region: "afrique", country: "Sénégal",
+    severity: "moderate", risk_level: 4, published_at: "2026-09-10T08:00:00Z", latitude: 14.7167, longitude: -17.4677,
+    actors: ["Croix-Rouge"], needs: ["abris"] },
+  { id: 2, title: "Sans coordonnées", summary: "x", link: "http://x/2", source: "BBC", source_type: "rss",
+    category: "conflit", region: "afrique", country: "Mali", severity: "low", risk_level: 2,
+    published_at: "2026-09-11T08:00:00Z", latitude: 0, longitude: 0, actors: [], needs: [] }
+];
+const gj = w.eval(`buildGeoJSON(${JSON.stringify(rows)})`);
+ok(gj.type === "FeatureCollection", "client GeoJSON is a FeatureCollection");
+ok(gj.features.length === 1, "a row without coordinates is skipped, not emitted at 0,0");
+ok(gj.features[0].geometry.coordinates[0] === -17.4677 && gj.features[0].geometry.coordinates[1] === 14.7167,
+   "GeoJSON coordinates are longitude-first (CRS84)");
+ok(gj.crs.properties.name === "urn:ogc:def:crs:OGC:1.3:CRS84", "GeoJSON declares CRS84");
+ok(gj.metadata.with_coordinates === 1 && gj.metadata.without_coordinates === 1, "GeoJSON metadata counts coordinates");
+const csv = w.eval(`buildCSV(${JSON.stringify(rows)})`);
+ok(csv.split("\n").length === 3, "client CSV has a header plus one row per incident");
+ok(csv.includes('"Secousse; magnitude 5,2"'), "CSV quotes values containing a semicolon");
+const kml = w.eval(`buildKML(${JSON.stringify(rows)})`);
+ok(kml.includes("<kml") && (kml.match(/<Placemark>/g) || []).length === 1, "client KML has one placemark for the geolocated row");
+ok(kml.includes("<coordinates>-17.4677,14.7167,0</coordinates>"), "KML coordinates are lon,lat,alt");
+const gpx = w.eval(`buildGPX(${JSON.stringify(rows)})`);
+ok(gpx.includes("<gpx") && (gpx.match(/<wpt /g) || []).length === 1, "client GPX has one waypoint");
+ok(gpx.includes('lat="14.7167" lon="-17.4677"'), "GPX carries lat/lon attributes");
+
+console.log("\n=== 11. v4.2 : manuel utilisateur (SEARCH / ENGINE / DORK) ===");
+w.eval("renderManual()");
+const manBody = w.document.getElementById("manual-body").innerHTML;
+const manNav = w.document.getElementById("manual-nav").innerHTML;
+for (const k of ["search", "engines", "dorks"]) {
+  ok(!!w.document.getElementById("man-" + k), `manual has a "${k}" section`);
+  ok(new RegExp(k, "i").test(manNav), `manual nav links "${k}"`);
+}
+ok(/site:|inurl:|intitle:|filetype:/.test(manBody), "SEARCH section explains the operators it generates");
+ok(/Shodan|Censys/.test(manBody), "ENGINES section names real engines");
+ok(/critical|high|medium|low/.test(manBody), "DORKS section explains the severity scale");
+ok(/légal|licite|loi/i.test(manBody), "manual states the legal framing for dorks");
+ok(manBody.includes("PratiSIG Consulting Services") && manBody.includes("pratisg.consulting@gmail.com"),
+   "manual ends with the copyright and contact");
+ok(w.document.querySelectorAll(".manual-sec").length >= 10, "manual covers every documented area");
+
+console.log("\n=== 12. v4.2 : formulaire d'identité adaptatif ===");
+const formFor = (kind) => {
+  w.document.getElementById("identity-kind").value = kind;
+  w.eval("renderIdentityForm()");
+  return w.document.getElementById("identity-form").innerHTML;
+};
+ok(/id="id-email"/.test(formFor("email")) && /id="id-mx"/.test(formFor("email")), "email form asks for the address and the MX check");
+ok(/id="id-phone"/.test(formFor("phone")) && /id="id-region"/.test(formFor("phone")), "phone form asks for the number and a default country");
+ok(/id="id-username"/.test(formFor("username")), "username form asks for the handle");
+ok(/id="id-name"/.test(formFor("person")) && /id="id-employer"/.test(formFor("person")), "person form asks for a name and optional employer");
+ok(!/id="id-username"/.test(formFor("email")), "switching tool replaces the previous form");
+
+console.log("\n=== 13. v4.2 : rendu du résultat d'identité ===");
+w.eval(`renderIdentityResult("email", ${JSON.stringify({
+  valid: true, local_part: "info.contact", domain: "mail.mailinator.com", is_disposable: true,
+  is_role_account: true, is_free_provider: true, gravatar_md5: "abc123",
+  derived_usernames: ["info", "contact"], mx: { domain: "mail.mailinator.com", exists: true,
+    records: [{ host: "mx1.mailinator.com", preference: 10 }], provider_guess: "Mailinator" },
+  gravatar_url: "https://example.invalid/a.png",
+  engines: [{ name: "Epieos", url: "https://epieos.com/?q=x", deep_link: true },
+            { name: "Truecaller", url: "https://www.truecaller.com", deep_link: false, copy: "+221771234567" }]
+})})`);
+const idOut = w.document.getElementById("identity-result").innerHTML;
+ok(/domaine jetable/.test(idOut), "identity result flags a disposable domain");
+ok(/compte générique/.test(idOut), "identity result flags a role account");
+ok(/mx1\.mailinator\.com/.test(idOut), "identity result shows the MX records");
+ok(idOut.includes('class="ident-link nolink"'), "engines without a deep link are marked as paste-the-value");
+ok(!/\{[a-z0-9_]+\}/.test(idOut), "no unfilled placeholder leaks into the rendered links");
+w.eval(`renderIdentityResult("phone", ${JSON.stringify({
+  valid: true, e164: "+221771234567", national: "77 123 45 67", country_code: 221,
+  region: "SN", type: "MOBILE", carrier_guess: "Orange Sénégal",
+  engines: [{ name: "WhatsApp", url: "https://wa.me/221771234567", deep_link: true }]
+})})`);
+const phOut = w.document.getElementById("identity-result").innerHTML;
+ok(/\+221771234567/.test(phOut), "phone result shows the E.164 number");
+ok(/wa\.me\/221771234567/.test(phOut), "phone result offers the WhatsApp link");
+w.eval(`renderIdentityResult("email", ${JSON.stringify({ error: "Adresse e-mail vide." })})`);
+ok(/Entrée refusée/.test(w.document.getElementById("identity-result").innerHTML), "an invalid input is reported, not silently accepted");
+
+console.log("\n=== 14. v4.2 : archive — rendu, pagination et export ===");
+w.eval(`renderHistory(${JSON.stringify(rows)})`);
+ok(w.document.querySelectorAll("#history-container .hist-row").length === 2, "archive list renders one row per incident");
+w.eval(`renderHistory([])`);
+ok(/Aucun événement/.test(w.document.getElementById("history-container").innerHTML), "an empty archive says so explicitly");
+w.document.getElementById("hist-category").value = "catastrophe";
+w.document.getElementById("hist-search").value = "séisme";
+w.document.getElementById("hist-from").value = "2026-09-01";
+w.document.getElementById("hist-to").value = "2026-09-30";
+const exportedUrl = w.eval(`(function(){ let u=null; const orig=HTMLAnchorElement.prototype.click;
+  HTMLAnchorElement.prototype.click=function(){ u=this.href; };
+  exportHistory("geojson"); HTMLAnchorElement.prototype.click=orig; return u; })()`);
+ok(/\/api\/export\/incidents\.geojson/.test(exportedUrl), "export targets the GeoJSON endpoint");
+ok(/category=catastrophe/.test(exportedUrl), "export carries the category filter");
+ok(/search=s%C3%A9isme/.test(exportedUrl), "export carries the free-text filter");
+ok(/date_from=2026-09-01/.test(exportedUrl) && /date_to=2026-09-30/.test(exportedUrl), "export carries the date range");
+ok(/limit=5000/.test(exportedUrl), "export asks for the whole archive, not just one page");
+w.eval(`pickHistoryDay("2026-09-10")`);
+ok(w.document.getElementById("hist-from").value === "2026-09-10" &&
+   w.document.getElementById("hist-to").value === "2026-09-10", "clicking a day chip narrows the range to that day");
+
+console.log("\n=== 15. v4.2 : géocodage ===");
+let geoQ = null;
+const realFetch = w.fetch;
+w.fetch = (url) => { geoQ = url; return Promise.resolve({ ok: true, json: () => Promise.resolve({ count: 0, results: [] }) }); };
+w.document.getElementById("geocode-q").value = "Dakar, Plateau";
+w.eval("runGeocode()");
+await new Promise(r => setTimeout(r, 80));
+ok(/\/api\/geocode\?q=Dakar%2C%20Plateau/.test(geoQ || ""), "a place name goes to the forward geocoder", String(geoQ));
+geoQ = null;
+w.document.getElementById("geocode-q").value = "14.7167, -17.4677";
+w.eval("runGeocode()");
+await new Promise(r => setTimeout(r, 80));
+ok(/\/api\/geocode\/reverse\?lat=14\.7167&lon=-17\.4677/.test(geoQ || ""),
+   "a pasted 'lat, lon' pair is auto-routed to the reverse geocoder", String(geoQ));
+w.eval(`renderGeocodeResults(${JSON.stringify({ count: 1, results: [{
+  latitude: 14.7167, longitude: -17.4677, display_name: "Dakar, Sénégal", type: "city",
+  country: "Sénégal", boundingbox: ["14.6", "14.8", "-17.5", "-17.3"] }] })})`);
+ok(/Dakar, Sénégal/.test(w.document.getElementById("geocode-results").innerHTML), "geocoding candidates are listed");
+ok(/14\.71670, -17\.46770/.test(w.document.getElementById("geocode-results").innerHTML), "candidates show 5-decimal coordinates");
+w.eval(`renderGeocodeResults(${JSON.stringify({ error: "Nominatim injoignable" })})`);
+ok(/Nominatim injoignable/.test(w.document.getElementById("geocode-results").innerHTML),
+   "a geocoding failure is reported with the backend's reason");
+w.fetch = realFetch;   // restore the real client before the live sections
+
+console.log("\n=== 16. v4.2 : export HD refuse une zone trop grande ===");
+w.eval(`activeMapMode = "2D"; cesiumViewer = null;
+  leafletMap = { getBounds: () => ({ getSouth: () => -80, getWest: () => -179,
+    getNorth: () => 80, getEast: () => 179 }), getZoom: () => 6 };`);
+w.eval("downloadBasemapImage(3)");
+await new Promise(r => setTimeout(r, 150));
+const hdStatus = w.document.getElementById("export-map-status").textContent;
+ok(/zone trop grande/.test(hdStatus), "an over-large HD export is refused with the tile count", hdStatus);
+ok(w.document.getElementById("export-map-status").style.display === "block", "the refusal is visible to the user");
+
+
+if (API_URL) {
+  console.log(`\n=== 17. v4.2 : intégration live (${API_URL}) ===`);
+  w.document.getElementById("hist-category").value = "all";
+  w.document.getElementById("hist-search").value = "";
+  w.document.getElementById("hist-from").value = "";
+  w.document.getElementById("hist-to").value = "";
+  await w.eval("loadHistory(0)");
+  const info = w.document.getElementById("history-page-info").textContent;
+  ok(/sur \d+ événement/.test(info), "loadHistory() against the live backend fills the pager", info);
+  ok(w.document.querySelectorAll("#history-container .hist-row").length > 0, "the live archive renders rows");
+  ok(/backend (sqlite|postgres)/.test(info), "the backend in use is shown to the operator", info);
+  await w.eval("loadHistoryStats()");
+  ok(/événements archivés/.test(w.document.getElementById("history-summary").textContent), "the archive summary loads");
+  const r = await fetch(API_URL.replace(/\/$/, "") + "/api/osint/identity/phone", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ number: "771234567", default_region: "SN" })
+  });
+  const ph = await r.json();
+  ok(ph.e164 === "+221771234567", "the backend normalises a bare Senegalese number to E.164", ph.e164);
+  ok(ph.engines.some(e => /wa\.me\/221771234567/.test(e.url)), "the backend produces the WhatsApp link");
+  w.eval(`renderIdentityResult("phone", ${JSON.stringify(ph)})`);
+  ok(/WhatsApp/.test(w.document.getElementById("identity-result").innerHTML), "the WhatsApp engine renders in the UI");
+} else skipped("v4.2 live integration (set API_URL to enable)");
+
+console.log(`\n──────── RESULT: ${pass} passed, ${fail} failed, ${skip} skipped ────────\n`);
+process.exit(fail === 0 ? 0 : 1);

@@ -3,7 +3,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends gcc && rm -rf /var/lib/apt/lists/*
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-COPY main.py index.html ./
+COPY main.py storage.py osint_tools.py index.html ./
 ENV PYTHONUNBUFFERED=1
 ENV PORT=8000
 EXPOSE 8000

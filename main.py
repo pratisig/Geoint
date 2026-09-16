@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-HUMAN-OSINT v4.0 ULTIMATE - OSINT/GEOINT Power Platform
+HUMAN-OSINT v4.2 ULTIMATE - OSINT/GEOINT Power Platform
 - 70+ RSS sources live, NASA EONET, USGS, GDACS, ReliefWeb, GDELT 5 queries, Reddit 6 subs, Telegram 5 channels
 - Reverse image search (Google, Yandex, TinEye, Bing, Baidu, KarmaDecay)
 - Advanced search engines (30+ OSINT engines: Shodan, Censys, ZoomEye, Hunter, IntelX, etc.)
@@ -37,6 +37,9 @@ try:
 except:
     HAS_BS4 = False
 
+import storage
+import osint_tools
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("HUMAN-OSINT-V4")
 
@@ -56,7 +59,7 @@ BACKGROUND_JITTER_SEC = int(os.getenv("OSINT_REFRESH_JITTER", "10"))
 # Keep at most this many incidents in memory (and persist them to SQLite).
 MAX_CACHED_INCIDENTS = int(os.getenv("OSINT_MAX_CACHE", "300"))
 
-APP_VERSION = "4.1.0"
+APP_VERSION = "4.2.0"
 
 live_cache: Dict[str, Any] = {
     "incidents": [],
@@ -174,214 +177,31 @@ def get_db_connection() -> sqlite3.Connection:
     return conn
 
 def init_db():
-    """Create the SQLite schema if it does not exist yet.
+    """Create the archive schema, delegating to the storage layer.
 
-    Idempotent: safe to call on every boot. Creates the ``incidents`` and
-    ``geozones`` tables plus the indexes used by the filter endpoints."""
+    Kept as a thin wrapper so the rest of the module (and existing callers)
+    do not have to know whether the backend is SQLite or PostgreSQL.
+    """
+    info = storage.init_schema()
+    logger.info(
+        "Storage ready: backend=%s archived=%d retention=%dd",
+        info["backend"], info["archived_incidents"], storage.RETENTION_DAYS,
+    )
+    return info
 
-    logger.info("Init DB v4.0...")
-    with get_db_connection() as conn:
-        cur = conn.cursor()
-        cur.execute("""
-            CREATE TABLE IF NOT EXISTS incidents (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                title TEXT NOT NULL,
-                link TEXT UNIQUE NOT NULL,
-                source TEXT NOT NULL,
-                source_type TEXT DEFAULT 'PRESSE',
-                category TEXT NOT NULL,
-                region TEXT DEFAULT 'Global',
-                country TEXT DEFAULT 'International',
-                latitude REAL NOT NULL,
-                longitude REAL NOT NULL,
-                published_at TEXT NOT NULL,
-                summary TEXT DEFAULT '',
-                severity TEXT DEFAULT 'medium',
-                actors TEXT DEFAULT '[]',
-                needs TEXT DEFAULT '[]',
-                risk_level INTEGER DEFAULT 2,
-                language TEXT DEFAULT 'fr',
-                verified BOOLEAN DEFAULT 0,
-                created_at TEXT NOT NULL
-            );
-        """)
-        cur.execute("""
-            CREATE TABLE IF NOT EXISTS geozones (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL,
-                geometry_type TEXT NOT NULL,
-                geojson_data TEXT NOT NULL,
-                area_sqkm REAL NOT NULL,
-                created_at TEXT NOT NULL
-            );
-        """)
-        cur.execute("CREATE INDEX IF NOT EXISTS idx_incidents_category ON incidents(category);")
-        cur.execute("CREATE INDEX IF NOT EXISTS idx_incidents_link ON incidents(link);")
-        cur.execute("CREATE INDEX IF NOT EXISTS idx_incidents_region ON incidents(region);")
-        cur.execute("CREATE INDEX IF NOT EXISTS idx_incidents_country ON incidents(country);")
-        conn.commit()
-    logger.info("DB ready v4.0")
 
-# -------------------------------------------------------------------
-# GEO & CATEGORIZATION
-# -------------------------------------------------------------------
-GEO_HOTSPOTS: Dict[str, Dict[str, Any]] = {
-    "gaza": {"lat": 31.45, "lng": 34.38, "country": "Palestine/Gaza", "region": "Moyen-Orient"},
-    "rafah": {"lat": 31.28, "lng": 34.25, "country": "Palestine/Gaza", "region": "Moyen-Orient"},
-    "israel": {"lat": 31.76, "lng": 35.21, "country": "Israël", "region": "Moyen-Orient"},
-    "tel aviv": {"lat": 32.08, "lng": 34.78, "country": "Israël", "region": "Moyen-Orient"},
-    "jerusalem": {"lat": 31.77, "lng": 35.23, "country": "Israël", "region": "Moyen-Orient"},
-    "lebanon": {"lat": 33.89, "lng": 35.50, "country": "Liban", "region": "Moyen-Orient"},
-    "liban": {"lat": 33.89, "lng": 35.50, "country": "Liban", "region": "Moyen-Orient"},
-    "beirut": {"lat": 33.89, "lng": 35.50, "country": "Liban", "region": "Moyen-Orient"},
-    "syria": {"lat": 34.80, "lng": 38.99, "country": "Syrie", "region": "Moyen-Orient"},
-    "syrie": {"lat": 34.80, "lng": 38.99, "country": "Syrie", "region": "Moyen-Orient"},
-    "yemen": {"lat": 15.55, "lng": 48.51, "country": "Yémen", "region": "Moyen-Orient"},
-    "houthi": {"lat": 15.35, "lng": 44.20, "country": "Yémen", "region": "Moyen-Orient"},
-    "red sea": {"lat": 20.0, "lng": 38.5, "country": "Mer Rouge", "region": "Moyen-Orient"},
-    "mer rouge": {"lat": 20.0, "lng": 38.5, "country": "Mer Rouge", "region": "Moyen-Orient"},
-    "bab-el-mandeb": {"lat": 12.58, "lng": 43.33, "country": "Mer Rouge", "region": "Moyen-Orient"},
-    "iran": {"lat": 32.42, "lng": 53.68, "country": "Iran", "region": "Moyen-Orient"},
-    "iraq": {"lat": 33.22, "lng": 43.67, "country": "Irak", "region": "Moyen-Orient"},
-    "hormuz": {"lat": 26.56, "lng": 56.25, "country": "Détroit Ormuz", "region": "Moyen-Orient"},
-    "ukraine": {"lat": 48.37, "lng": 31.16, "country": "Ukraine", "region": "Europe"},
-    "kyiv": {"lat": 50.45, "lng": 30.52, "country": "Ukraine", "region": "Europe"},
-    "kiev": {"lat": 50.45, "lng": 30.52, "country": "Ukraine", "region": "Europe"},
-    "donetsk": {"lat": 48.01, "lng": 37.80, "country": "Ukraine (Donbass)", "region": "Europe"},
-    "donbass": {"lat": 48.01, "lng": 37.80, "country": "Ukraine (Donbass)", "region": "Europe"},
-    "kharkiv": {"lat": 49.99, "lng": 36.23, "country": "Ukraine", "region": "Europe"},
-    "crimea": {"lat": 45.30, "lng": 34.40, "country": "Ukraine (Crimée)", "region": "Europe"},
-    "russia": {"lat": 55.75, "lng": 37.61, "country": "Russie", "region": "Europe"},
-    "moscow": {"lat": 55.75, "lng": 37.61, "country": "Russie", "region": "Europe"},
-    "sudan": {"lat": 12.86, "lng": 30.21, "country": "Soudan", "region": "Afrique"},
-    "soudan": {"lat": 12.86, "lng": 30.21, "country": "Soudan", "region": "Afrique"},
-    "khartoum": {"lat": 15.50, "lng": 32.55, "country": "Soudan", "region": "Afrique"},
-    "darfur": {"lat": 13.0, "lng": 25.0, "country": "Soudan (Darfour)", "region": "Afrique"},
-    "congo": {"lat": -4.03, "lng": 21.75, "country": "RDC Congo", "region": "Afrique"},
-    "rdc": {"lat": -4.03, "lng": 21.75, "country": "RDC Congo", "region": "Afrique"},
-    "goma": {"lat": -1.67, "lng": 29.22, "country": "RDC Congo", "region": "Afrique"},
-    "mali": {"lat": 17.57, "lng": -3.99, "country": "Mali / Sahel", "region": "Afrique"},
-    "niger": {"lat": 17.60, "lng": 8.08, "country": "Niger / Sahel", "region": "Afrique"},
-    "burkina": {"lat": 12.23, "lng": -1.56, "country": "Burkina Faso", "region": "Afrique"},
-    "sahel": {"lat": 15.0, "lng": 2.0, "country": "Sahel", "region": "Afrique"},
-    "somalia": {"lat": 5.15, "lng": 46.19, "country": "Somalie", "region": "Afrique"},
-    "ethiopia": {"lat": 9.14, "lng": 40.48, "country": "Éthiopie", "region": "Afrique"},
-    "nigeria": {"lat": 9.08, "lng": 8.67, "country": "Nigéria", "region": "Afrique"},
-    "senegal": {"lat": 14.71, "lng": -17.46, "country": "Sénégal", "region": "Afrique"},
-    "mauritania": {"lat": 18.07, "lng": -15.95, "country": "Mauritanie", "region": "Afrique"},
-    "cameroon": {"lat": 4.05, "lng": 9.76, "country": "Cameroun", "region": "Afrique"},
-    "libya": {"lat": 26.33, "lng": 17.22, "country": "Libye", "region": "Afrique"},
-    "taiwan": {"lat": 23.69, "lng": 120.96, "country": "Taïwan", "region": "Asie-Pacifique"},
-    "china": {"lat": 35.86, "lng": 104.19, "country": "Chine", "region": "Asie-Pacifique"},
-    "chine": {"lat": 35.86, "lng": 104.19, "country": "Chine", "region": "Asie-Pacifique"},
-    "north korea": {"lat": 40.33, "lng": 127.51, "country": "Corée du Nord", "region": "Asie-Pacifique"},
-    "myanmar": {"lat": 21.91, "lng": 95.95, "country": "Myanmar", "region": "Asie-Pacifique"},
-    "afghanistan": {"lat": 33.93, "lng": 67.70, "country": "Afghanistan", "region": "Asie-Pacifique"},
-    "pakistan": {"lat": 30.37, "lng": 69.34, "country": "Pakistan", "region": "Asie-Pacifique"},
-    "philippines": {"lat": 12.87, "lng": 121.77, "country": "Philippines", "region": "Asie-Pacifique"},
-    "haiti": {"lat": 18.97, "lng": -72.28, "country": "Haïti", "region": "Amériques"},
-    "venezuela": {"lat": 6.42, "lng": -66.58, "country": "Venezuela", "region": "Amériques"},
-    "usa": {"lat": 38.90, "lng": -77.03, "country": "États-Unis", "region": "Amériques"},
-    "colombia": {"lat": 4.57, "lng": -74.29, "country": "Colombie", "region": "Amériques"},
-    "goma": {"lat": -1.67, "lng": 29.22, "country": "RDC", "region": "Afrique"},
-    "el fasher": {"lat": 13.62, "lng": 25.34, "country": "Soudan", "region": "Afrique"},
-    "gao": {"lat": 16.27, "lng": -0.04, "country": "Mali", "region": "Afrique"},
-    "timbuktu": {"lat": 16.77, "lng": -3.00, "country": "Mali", "region": "Afrique"},
-    "pokrovsk": {"lat": 48.28, "lng": 37.18, "country": "Ukraine", "region": "Europe"},
-    "bakhmut": {"lat": 48.59, "lng": 38.00, "country": "Ukraine", "region": "Europe"},
-}
+def get_db_connection() -> sqlite3.Connection:
+    """Open a connection to the active storage backend.
 
-KEYWORDS_CATEGORY = {
-    "conflit": ["war", "strike", "missile", "combat", "drone", "army", "attack", "bomb", "guerre", "frappe", "armée", "explosion", "soldat", "front", "invasion", "otan", "nato", "troupes", "hamas", "hezbollah", "rebels", "clash", "embuscade", "kidnapping", "coup d'état", "putsch", "offensive", "artillerie", "blindés", "airstrike", "military", "forces", "conflict"],
-    "energie": ["oil", "gas", "petrol", "barrel", "opec", "pipeline", "refinery", "energy", "tanker", "eia", "brent", "wti", "crude", "pétrole", "gaz", "baril", "opep", "raffinerie", "énergie", "dangote", "aramco", "lng", "maritime", "shipping", "cargo"],
-    "epidemie": ["epidemic", "virus", "who", "disease", "outbreak", "covid", "mpox", "cholera", "infection", "health", "vaccine", "flu", "oms", "épidémie", "choléra", "sanitaire", "pandémie", "ebola", "diphtérie", "paludisme", "malaria", "fièvre"],
-    "catastrophe": ["earthquake", "flood", "cyclone", "tsunami", "volcano", "hurricane", "storm", "landslide", "drought", "séisme", "tremblement", "inondation", "tempête", "sécheresse", "ouragan", "gdacs", "wildfire", "incendie", "firms", "eonet"],
-    "cyber": ["cyber", "hack", "malware", "ransomware", "darknet", "fuite", "data breach", "phishing", "apt", "zero-day", "exploit", "leak", "breach", "vulnerability", "cve"],
-    "protest": ["protest", "manifestation", "coup", "junte", "élection", "grève", "dissidence", "mutinerie", "émeute", "riot", "demonstration"]
-}
-
-def extract_geo(text: str):
-    """Guess a ``(latitude, longitude)`` pair from free text.
-
-    Looks for an explicit ``lat,lon`` pattern first, then falls back to a
-    coarse region centroid so that every incident can be plotted on the map.
-
-    Args:
-        text: Headline or summary to inspect.
+    Retained for backwards compatibility with code that still speaks DB-API
+    directly. New code should use :mod:`storage`, which handles both SQLite
+    and PostgreSQL and never lets a database error reach the API.
 
     Returns:
-        Tuple ``(latitude, longitude)`` as floats."""
+        A DB-API connection with mapping-style row access.
+    """
+    return storage.connect()
 
-    tl = text.lower()
-    for name, c in GEO_HOTSPOTS.items():
-        if name in tl:
-            return c["lat"], c["lng"], c["country"], c["region"]
-    return 32.5, 35.0, "International", "Global"
-
-def classify(text: str, source: str) -> str:
-    """Map a headline onto one of the platform risk categories.
-
-    Args:
-        text: Headline or summary.
-        source: Originating source name, used to break ties.
-
-    Returns:
-        One of ``conflit``, ``catastrophe``, ``epidemie``, ``energie``,
-        ``cyber`` or ``protest``."""
-
-    tl = text.lower()
-    sl = source.lower()
-    if "oilprice" in sl or "eia" in sl: return "energie"
-    if "who" in sl or "oms" in sl: return "epidemie"
-    if "hacker" in sl or "bleeping" in sl or "cisa" in sl: return "cyber"
-    for cat, terms in KEYWORDS_CATEGORY.items():
-        for t in terms:
-            if t in tl:
-                return cat
-    return "conflit"
-
-def actors_from_text(text: str, region: str) -> List[str]:
-    """Extract the actors named in a headline.
-
-    Args:
-        text: Headline or summary.
-        region: Region label, used to widen the candidate list.
-
-    Returns:
-        Deduplicated list of actor names (states, armed groups, agencies)."""
-
-    actors = []
-    t = text.lower()
-    if any(x in t for x in ["gaza", "israel", "hamas"]): actors += ["Tsahal", "Hamas", "Civils Gaza", "OCHA"]
-    if any(x in t for x in ["lebanon", "liban", "hezbollah"]): actors += ["Hezbollah", "FINUL", "Armée Libanaise"]
-    if any(x in t for x in ["ukraine", "russie", "russia"]): actors += ["Forces UA", "Forces RU", "OTAN", "Civils"]
-    if any(x in t for x in ["sudan", "soudan", "rsf", "saf"]): actors += ["SAF", "RSF", "OCHA", "Civils déplacés"]
-    if any(x in t for x in ["congo", "rdc", "m23", "goma"]): actors += ["M23", "FARDC", "MONUSCO", "MSF"]
-    if any(x in t for x in ["mali", "niger", "burkina", "sahel", "jnim"]): actors += ["JNIM", "FAMa", "Africa Corps", "MINUSMA", "ONG locales"]
-    if any(x in t for x in ["houthi", "mer rouge", "red sea"]): actors += ["Houthis", "Coalition navale", "Armateurs"]
-    if any(x in t for x in ["iran", "pasdaran"]): actors += ["IRGC", "Pasdaran", "AIEA"]
-    if any(x in t for x in ["taiwan", "chine", "china", "pla"]): actors += ["PLA", "MND Taïwan", "US Navy"]
-    if not actors: actors = ["Acteurs locaux", "Humanitaires", "Autorités", "ONG"]
-    return list(dict.fromkeys(actors))[:5]
-
-def needs_from_cat(cat: str) -> List[str]:
-    """Derive the humanitarian needs implied by a category.
-
-    Args:
-        cat: Category produced by :func:`classify`.
-
-    Returns:
-        List of need labels such as ``Abri``, ``Médical`` or ``Eau``."""
-
-    m = {
-        "conflit": ["Sécurité", "Abri", "Protection", "Accès humanitaire", "Évacuation"],
-        "catastrophe": ["Eau potable", "Abri", "Nourriture", "Santé d'urgence", "Logistique"],
-        "epidemie": ["Vaccins", "Surveillance", "EPI", "Sensibilisation", "Médicaments"],
-        "energie": ["Carburant", "Logistique", "Sécurité maritime", "Électricité"],
-        "cyber": ["Continuité IT", "Protection données", "Forensique"],
-        "protest": ["Protection civils", "Médiation", "Droits humains"]
-    }
-    return m.get(cat, ["Assistance"])
 
 # -------------------------------------------------------------------
 # RSS FEEDS - 70+ SOURCES V4
@@ -1062,23 +882,12 @@ def fetch_all_comprehensive() -> Dict[str, List[Dict[str, Any]]]:
     duration = int((time.time()-start)*1000)
     logger.info(f"V4 LIVE: {len(unique)} total ({len(sat)} sat, {len(rss)} rss, {len(gdelt)} gdelt, {len(social)} social) in {duration}ms")
 
-    # Save to DB top 100
-    try:
-        conn = get_db_connection()
-        cur = conn.cursor()
-        now_iso = datetime.now(timezone.utc).isoformat()
-        for inc in unique[:120]:
-            try:
-                cur.execute("""
-                    INSERT OR REPLACE INTO incidents (title, link, source, source_type, category, region, country, latitude, longitude, published_at, summary, severity, actors, needs, risk_level, created_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (inc["title"], inc["link"], inc["source"], inc["source_type"], inc["category"], inc["region"], inc["country"], inc["latitude"], inc["longitude"], inc["published_at"], inc["summary"], inc["severity"], json.dumps(inc["actors"], ensure_ascii=False), json.dumps(inc["needs"], ensure_ascii=False), inc["risk_level"], now_iso))
-            except Exception as e:
-                logger.warning(f"DB error {e}")
-        conn.commit()
-        conn.close()
-    except Exception as e:
-        logger.warning(f"DB save error {e}")
+    # Persist every event to the archive so past events stay queryable.
+    # ON CONFLICT(link) keeps first_seen_at, so re-seen events are updated
+    # rather than reset (INSERT OR REPLACE would destroy that history).
+    arch = storage.archive_incidents(unique)
+    logger.info("Archive: %d written, %d skipped (backend=%s)",
+                arch["written"], arch["skipped"], storage.backend_name())
 
     return {"incidents": unique, "social": social, "media": media, "fallback_used": fallback_used}
 
@@ -1194,7 +1003,7 @@ async def lifespan(app: FastAPI):
     task.cancel()
 
 
-app = FastAPI(title="HUMAN-OSINT v4.1 ULTIMATE LIVE API", description="OSINT/GEOINT Power Platform - 70+ sources auto-updated + reverse image + advanced search + AI report", version=APP_VERSION, lifespan=lifespan)
+app = FastAPI(title="HUMAN-OSINT v4.2 ULTIMATE LIVE API", description="OSINT/GEOINT Power Platform - 70+ sources auto-updated + reverse image + advanced search + AI report", version=APP_VERSION, lifespan=lifespan)
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
 # -------------------------------------------------------------------
@@ -1208,7 +1017,7 @@ def health():
         JSON with service status, version, auto-update timing, cache sizes,
         aggregate stats and the per-source status map."""
 
-    return {"status": "V4.1 ULTIMATE LIVE", "version": APP_VERSION, "last_updated": live_cache["last_updated"], "next_refresh_at": live_cache.get("next_refresh_at"), "auto_update": True, "refresh_interval_sec": BACKGROUND_REFRESH_INTERVAL, "content_hash": live_cache.get("content_hash"), "last_error": live_cache.get("last_error"), "data_mode": live_cache.get("data_mode"), "cached_incidents": len(live_cache["incidents"]), "cached_social": len(live_cache["social"]), "cached_media": len(live_cache["media"]), "stats": live_cache["stats"], "mode": "V4.1 - AUTO-UPDATE + MAX SCRAPING + REVERSE IMAGE + OSINT ENGINES + AI REPORT", "rss_sources": len(RSS_FEEDS), "dorks_count": len(DORKS_DATABASE), "engines_count": len(OSINT_ENGINES), "sources_status": live_cache["sources_status"]}
+    return {"status": "V4.2 ULTIMATE LIVE", "version": APP_VERSION, "last_updated": live_cache["last_updated"], "next_refresh_at": live_cache.get("next_refresh_at"), "auto_update": True, "refresh_interval_sec": BACKGROUND_REFRESH_INTERVAL, "content_hash": live_cache.get("content_hash"), "last_error": live_cache.get("last_error"), "data_mode": live_cache.get("data_mode"), "cached_incidents": len(live_cache["incidents"]), "cached_social": len(live_cache["social"]), "cached_media": len(live_cache["media"]), "stats": live_cache["stats"], "mode": "V4.2 - AUTO-UPDATE + ARCHIVE + GIS + GEOCODING + IDENTITY + MAX SCRAPING + REVERSE IMAGE + OSINT ENGINES + AI REPORT", "rss_sources": len(RSS_FEEDS), "dorks_count": len(DORKS_DATABASE), "engines_count": len(OSINT_ENGINES), "sources_status": live_cache["sources_status"]}
 
 @app.get("/api/feeds/live")
 def get_live_feeds(limit: int = Query(80, ge=1, le=300), category: Optional[str] = None, region: Optional[str] = None, country: Optional[str] = None, search: Optional[str] = None):
@@ -1229,19 +1038,9 @@ def get_live_feeds(limit: int = Query(80, ge=1, le=300), category: Optional[str]
 
     incidents = live_cache["incidents"] or []
     if not incidents:
-        conn = get_db_connection()
-        cur = conn.cursor()
-        cur.execute("SELECT id, title, link, source, source_type, category, region, country, latitude, longitude, published_at, summary, severity, actors, needs, risk_level, created_at FROM incidents ORDER BY published_at DESC LIMIT ?", (limit,))
-        rows = cur.fetchall()
-        conn.close()
-        incidents = []
-        for r in rows:
-            d = dict(r)
-            try: d["actors"] = json.loads(d["actors"])
-            except: d["actors"] = []
-            try: d["needs"] = json.loads(d["needs"])
-            except: d["needs"] = []
-            incidents.append(d)
+        # Cold start: the live cache is still empty, serve the archive instead
+        # so the very first response is never a blank screen.
+        incidents = storage.search_archive(limit=limit)
     # Filters
     if category and category != "all":
         incidents = [i for i in incidents if i.get("category") == category]
@@ -1812,7 +1611,7 @@ def generate_report(req: ReportRequest):
 
     # Build markdown report
     md = f"# Rapport OSINT/GEOINT - {req.topic}\n\n"
-    md += f"**Généré:** {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')} | **Version:** v4.0 ULTIMATE\n"
+    md += f"**Généré:** {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')} | **Version:** v{APP_VERSION}\n"
     md += f"**Sujet:** {req.topic} | **Période:** {req.time_range} | **Incidents:** {len(incidents)}\n\n"
     md += f"**Filtres:** Régions={req.regions or 'Toutes'} | Catégories={req.categories or 'Toutes'}\n\n---\n\n"
 
@@ -1873,7 +1672,7 @@ def generate_report(req: ReportRequest):
     for src, cnt in sorted(by_source.items(), key=lambda x:x[1], reverse=True)[:15]:
         md += f"- {src}: {cnt} articles\n"
     md += f"\n**Total sources:** {len(RSS_FEEDS)} RSS + 5 satellite + 5 GDELT + 6 social = {len(RSS_FEEDS)+16} sources\n"
-    md += f"\n*Rapport généré par HUMAN-OSINT v4.0 ULTIMATE - OSINT/GEOINT Power Platform*\n"
+    md += f"\n*Rapport généré par HUMAN-OSINT v{APP_VERSION} - OSINT/GEOINT Power Platform*\n"
 
     # AI enhancement if key provided
     ai_enhanced = None
@@ -2009,41 +1808,103 @@ def ai_providers():
 # SECURITY & OTHER
 # -------------------------------------------------------------------
 @app.get("/api/incidents/history")
-def history(category: Optional[str] = Query(None), region: Optional[str] = Query(None), date: Optional[str] = Query(None), limit: int = Query(200, ge=1, le=500)):
-    """Query the persisted incident archive.
+def history(
+    category: Optional[str] = Query(None, description="Filtre par catégorie"),
+    region: Optional[str] = Query(None, description="Filtre par région"),
+    country: Optional[str] = Query(None, description="Filtre par pays (sous-chaîne)"),
+    source: Optional[str] = Query(None, description="Filtre par source (sous-chaîne)"),
+    search: Optional[str] = Query(None, description="Recherche plein texte"),
+    date: Optional[str] = Query(None, description="Jour précis YYYY-MM-DD"),
+    date_from: Optional[str] = Query(None, description="Début de période YYYY-MM-DD"),
+    date_to: Optional[str] = Query(None, description="Fin de période YYYY-MM-DD"),
+    min_risk: Optional[int] = Query(None, ge=1, le=5, description="Risque minimum"),
+    order: str = Query("desc", description="desc = plus récent d'abord"),
+    limit: int = Query(200, ge=1, le=2000),
+    offset: int = Query(0, ge=0),
+):
+    """Query the persisted event archive.
+
+    This is what makes past events consultable: every auto-update cycle
+    archives its events, so the feed can be browsed by day, by period or by
+    any combination of filters, long after the item left the live cache.
 
     Args:
-        category: Category filter.
+        category: Category filter, or ``all`` to disable.
         region: Region filter.
-        date: ISO date to restrict the query to a single day.
-        limit: Maximum number of rows (1-500).
+        country: Country substring filter.
+        source: Source substring filter.
+        search: Free-text filter over title, summary, country and source.
+        date: Restrict to a single day (``YYYY-MM-DD``).
+        date_from: Inclusive start of a period.
+        date_to: Inclusive end of a period.
+        min_risk: Minimum risk level, 1 to 5.
+        order: ``desc`` for newest first, ``asc`` for oldest first.
+        limit: Page size, up to 2000.
+        offset: Rows to skip, for pagination.
 
     Returns:
-        List of archived incident dictionaries."""
+        Mapping with the matching ``incidents``, the ``total`` count for the
+        same filters, the pagination echo and the storage backend in use.
+    """
+    if date and not date_from and not date_to:
+        date_from, date_to = date, date
+    incidents = storage.search_archive(
+        limit=limit, offset=offset, category=category, region=region, country=country,
+        search=search, date_from=date_from, date_to=date_to, source=source,
+        min_risk=min_risk, order=order,
+    )
+    total = storage.count_archive(
+        category=category, region=region, country=country, search=search,
+        date_from=date_from, date_to=date_to, source=source, min_risk=min_risk,
+    )
+    return {
+        "incidents": incidents,
+        "total": total,
+        "returned": len(incidents),
+        "limit": limit,
+        "offset": offset,
+        "backend": storage.backend_name(),
+        "filters": {"category": category, "region": region, "country": country, "source": source,
+                    "search": search, "date_from": date_from, "date_to": date_to, "min_risk": min_risk},
+    }
 
-    conn = get_db_connection()
-    cur = conn.cursor()
-    q = "SELECT id, title, link, source, source_type, category, region, country, latitude, longitude, published_at, summary, severity, actors, needs, risk_level, created_at FROM incidents WHERE 1=1"
-    params = []
-    if category and category.lower() != "all":
-        q += " AND category = ?"; params.append(category.lower())
-    if region and region.lower() != "all":
-        q += " AND region = ?"; params.append(region)
-    if date:
-        q += " AND published_at LIKE ?"; params.append(f"{date}%")
-    q += " ORDER BY published_at DESC, id DESC LIMIT ?"; params.append(limit)
-    cur.execute(q, params)
-    rows = cur.fetchall()
-    conn.close()
-    res = []
-    for r in rows:
-        d = dict(r)
-        try: d["actors"] = json.loads(d["actors"])
-        except: d["actors"] = []
-        try: d["needs"] = json.loads(d["needs"])
-        except: d["needs"] = []
-        res.append(d)
-    return res
+
+@app.get("/api/history/stats")
+def history_stats():
+    """Aggregate the archive for the history dashboard.
+
+    Returns:
+        Mapping with the archived total, the covered time range, the retention
+        policy and per-category/region/country/source/day breakdowns.
+    """
+    return storage.archive_stats()
+
+
+@app.get("/api/history/dates")
+def history_dates():
+    """List the days for which the archive holds events.
+
+    Returns:
+        Mapping with a ``dates`` list of ``{date, count}``, newest first, so
+        the UI can offer a date picker restricted to days that have data.
+    """
+    return {"dates": storage.archive_dates(), "backend": storage.backend_name()}
+
+
+@app.delete("/api/history/prune")
+def history_prune(days: Optional[int] = Query(None, ge=0, description="Rétention en jours")):
+    """Delete archived events older than the retention window.
+
+    Args:
+        days: Override for the ``OSINT_RETENTION_DAYS`` setting. ``0`` is a
+            no-op, never a full wipe.
+
+    Returns:
+        Mapping with the number of deleted rows and the remaining count.
+    """
+    deleted = storage.prune(days)
+    return {"deleted": deleted, "remaining": storage.count_archive(), "backend": storage.backend_name()}
+
 
 @app.get("/api/security/assessment")
 def security_assessment():
@@ -2189,37 +2050,37 @@ def create_geozone(zone: GeozoneCreate):
         zone: Validated :class:`GeozoneCreate` payload.
 
     Returns:
-        The stored zone as a :class:`GeozoneResponse`."""
+        The stored zone as a :class:`GeozoneResponse`.
 
-    now_iso = datetime.now(timezone.utc).isoformat()
+    Raises:
+        HTTPException: 500 when the row could not be written.
+    """
     raw_geojson = json.dumps(zone.geojson_data, ensure_ascii=False) if isinstance(zone.geojson_data, (dict, list)) else str(zone.geojson_data)
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute("INSERT INTO geozones (name, geometry_type, geojson_data, area_sqkm, created_at) VALUES (?, ?, ?, ?, ?)", (zone.name, zone.geometry_type, raw_geojson, zone.area_sqkm, now_iso))
-    conn.commit()
-    new_id = cur.lastrowid
-    conn.close()
-    try: parsed = json.loads(raw_geojson)
-    except: parsed = raw_geojson
-    return {"id": new_id, "name": zone.name, "geometry_type": zone.geometry_type, "geojson_data": parsed, "area_sqkm": zone.area_sqkm, "created_at": now_iso}
+    row = storage.save_geozone(zone.name, zone.geometry_type, raw_geojson, zone.area_sqkm)
+    if not row:
+        raise HTTPException(status_code=500, detail="geozone could not be saved")
+    try:
+        parsed = json.loads(raw_geojson)
+    except Exception:  # noqa: BLE001 - tolerate non-JSON payloads
+        parsed = raw_geojson
+    return {"id": row["id"], "name": row["name"], "geometry_type": row["geometry_type"],
+            "geojson_data": parsed, "area_sqkm": row["area_sqkm"], "created_at": row["created_at"]}
 
 @app.get("/api/geozones", response_model=List[GeozoneResponse])
 def get_geozones():
     """Return every persisted geozone.
 
     Returns:
-        List of :class:`GeozoneResponse` objects."""
-
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute("SELECT id, name, geometry_type, geojson_data, area_sqkm, created_at FROM geozones ORDER BY created_at DESC")
-    rows = cur.fetchall()
-    conn.close()
+        List of :class:`GeozoneResponse` objects, newest first.
+    """
     result = []
-    for row in rows:
-        try: parsed = json.loads(row["geojson_data"])
-        except: parsed = row["geojson_data"]
-        result.append({"id": row["id"], "name": row["name"], "geometry_type": row["geometry_type"], "geojson_data": parsed, "area_sqkm": row["area_sqkm"], "created_at": row["created_at"]})
+    for row in storage.list_geozones():
+        try:
+            parsed = json.loads(row["geojson_data"])
+        except Exception:  # noqa: BLE001
+            parsed = row["geojson_data"]
+        result.append({"id": row["id"], "name": row["name"], "geometry_type": row["geometry_type"],
+                       "geojson_data": parsed, "area_sqkm": row["area_sqkm"], "created_at": row["created_at"]})
     return result
 
 @app.delete("/api/geozones/{zone_id}")
@@ -2233,16 +2094,236 @@ def delete_geozone(zone_id: int):
         Acknowledgement mapping.
 
     Raises:
-        HTTPException: 404 when the identifier is unknown."""
+        HTTPException: 404 when the identifier is unknown.
+    """
+    if not storage.delete_geozone(zone_id):
+        raise HTTPException(status_code=404, detail="geozone not found")
+    return {"status": "deleted", "id": zone_id}
 
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute("DELETE FROM geozones WHERE id = ?", (zone_id,))
-    conn.commit()
-    affected = cur.rowcount
-    conn.close()
-    if affected == 0: raise HTTPException(status_code=404, detail=f"Zone {zone_id} non trouvée")
-    return {"status": "success", "message": f"Zone {zone_id} supprimée"}
+
+# -------------------------------------------------------------------
+# GIS EXPORT
+# -------------------------------------------------------------------
+@app.get("/api/export/incidents.{fmt}")
+def export_incidents(
+    fmt: str,
+    category: Optional[str] = Query(None),
+    region: Optional[str] = Query(None),
+    country: Optional[str] = Query(None),
+    source: Optional[str] = Query(None),
+    search: Optional[str] = Query(None),
+    date_from: Optional[str] = Query(None),
+    date_to: Optional[str] = Query(None),
+    min_risk: Optional[int] = Query(None, ge=1, le=5),
+    live_only: bool = Query(False, description="Exporter le cache live plutôt que l'archive"),
+    limit: int = Query(1000, ge=1, le=5000),
+):
+    """Export the event list, coordinates included, in a GIS format.
+
+    The same filters as :func:`history` apply, so an export always matches
+    what the user is looking at on screen.
+
+    Args:
+        fmt: One of ``geojson``, ``csv``, ``kml`` or ``gpx``.
+        category: Category filter.
+        region: Region filter.
+        country: Country substring filter.
+        source: Source substring filter.
+        search: Free-text filter.
+        date_from: Inclusive start date.
+        date_to: Inclusive end date.
+        min_risk: Minimum risk level.
+        live_only: Export the live cache instead of the whole archive.
+        limit: Maximum number of rows.
+
+    Returns:
+        A downloadable file response with the correct MIME type.
+
+    Raises:
+        HTTPException: 400 when the format is not supported.
+    """
+    from fastapi.responses import Response
+    fmt_norm = (fmt or "").lower().strip()
+    if fmt_norm not in osint_tools.EXPORT_FORMATS:
+        raise HTTPException(status_code=400, detail=f"format '{fmt}' inconnu, attendu: {sorted(osint_tools.EXPORT_FORMATS)}")
+    if live_only:
+        incidents = (live_cache["incidents"] or [])[:limit]
+    else:
+        incidents = storage.search_archive(limit=limit, category=category, region=region, country=country,
+                                           search=search, date_from=date_from, date_to=date_to,
+                                           source=source, min_risk=min_risk, order="desc")
+    mime, ext = osint_tools.EXPORT_FORMATS[fmt_norm]
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
+    try:
+        body = osint_tools.build_export(incidents, fmt_norm, name=f"HUMAN-OSINT {stamp}")
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    with_coords = sum(1 for i in incidents if (i.get("latitude") or i.get("longitude")))
+    logger.info("Export %s: %d rows (%d with coordinates)", fmt_norm, len(incidents), with_coords)
+    return Response(
+        content=body,
+        media_type=mime,
+        headers={"Content-Disposition": f'attachment; filename="human-osint-{stamp}.{ext}"',
+                 "X-Exported-Rows": str(len(incidents)),
+                 "X-Rows-With-Coordinates": str(with_coords)},
+    )
+
+
+@app.get("/api/export/formats")
+def export_formats():
+    """List the GIS export formats the API can produce.
+
+    Returns:
+        Mapping of format key to its MIME type, file extension, description
+        and the software that reads it.
+    """
+    details = {
+        "geojson": "GeoJSON 1.1 - QGIS, ArcGIS, geojson.io, Leaflet, Mapbox",
+        "csv": "CSV point-virgule UTF-8 BOM - Excel, LibreOffice, tableur",
+        "kml": "KML 2.2 - Google Earth, Google My Maps, QGIS",
+        "gpx": "GPX 1.1 - GPS, BaseCamp, Garmin, Wikiloc",
+    }
+    return {"formats": [{"key": k, "mime": v[0], "extension": v[1], "description": details.get(k, "")}
+                        for k, v in osint_tools.EXPORT_FORMATS.items()]}
+
+
+# -------------------------------------------------------------------
+# GEOCODING
+# -------------------------------------------------------------------
+@app.get("/api/geocode")
+def geocode_endpoint(q: str = Query(..., min_length=2, description="Lieu, adresse ou repère"),
+                     limit: int = Query(5, ge=1, le=10),
+                     language: str = Query("fr")):
+    """Resolve a place name, address or landmark to coordinates.
+
+    Proxied through the backend rather than called from the browser so the
+    Nominatim usage policy is respected (one request per second, a
+    User-Agent identifying the application) and to avoid CORS issues.
+
+    Args:
+        q: Free-text query.
+        limit: Maximum number of results.
+        language: Preferred language for the labels.
+
+    Returns:
+        Mapping with the results, each carrying coordinates, an address
+        breakdown and a bounding box for zooming.
+    """
+    return osint_tools.geocode(q, limit=limit, language=language)
+
+
+@app.get("/api/geocode/reverse")
+def reverse_geocode_endpoint(lat: float = Query(..., ge=-90, le=90),
+                             lon: float = Query(..., ge=-180, le=180),
+                             language: str = Query("fr")):
+    """Resolve coordinates to an address.
+
+    Args:
+        lat: Latitude in decimal degrees.
+        lon: Longitude in decimal degrees.
+        language: Preferred language for the label.
+
+    Returns:
+        Mapping with the resolved address and its parts.
+    """
+    return osint_tools.reverse_geocode(lat, lon, language=language)
+
+
+# -------------------------------------------------------------------
+# IDENTITY LOOKUPS
+# -------------------------------------------------------------------
+class EmailRequest(BaseModel):
+    """Payload for the e-mail analysis endpoint."""
+    email: str = Field(..., description="Adresse à analyser")
+    check_mx: bool = Field(True, description="Vérifier aussi les enregistrements MX")
+
+
+@app.post("/api/osint/identity/email")
+def identity_email(req: EmailRequest):
+    """Analyse an e-mail address and build every related lookup link.
+
+    Args:
+        req: Validated :class:`EmailRequest` payload.
+
+    Returns:
+        Mapping with the parsing result, flags (disposable, role account,
+        free provider), the Gravatar hash and the engine links. Optionally
+        the MX records proving the domain can receive mail.
+    """
+    result = osint_tools.analyze_email(req.email)
+    if req.check_mx and result.get("domain"):
+        result["mx"] = osint_tools.email_mx_records(result["domain"])
+    return result
+
+
+class PhoneRequest(BaseModel):
+    """Payload for the phone-number analysis endpoint."""
+    number: str = Field(..., description="Numéro, avec ou sans préfixe international")
+    default_region: str = Field("SN", description="Pays par défaut si pas de +")
+
+
+@app.post("/api/osint/identity/phone")
+def identity_phone(req: PhoneRequest):
+    """Normalise a phone number and build WhatsApp and lookup links.
+
+    Args:
+        req: Validated :class:`PhoneRequest` payload.
+
+    Returns:
+        Mapping with the E.164 form, country, line type, carrier hint, a
+        direct WhatsApp link and the reverse-lookup engines.
+    """
+    return osint_tools.analyze_phone(req.number, default_region=req.default_region)
+
+
+class UsernameRequest(BaseModel):
+    """Payload for the username lookup endpoint."""
+    username: str = Field(..., description="Pseudo à rechercher")
+
+
+@app.post("/api/osint/identity/username")
+def identity_username(req: UsernameRequest):
+    """Build profile URLs for a username across the monitored platforms.
+
+    Args:
+        req: Validated :class:`UsernameRequest` payload.
+
+    Returns:
+        Mapping with name variants and one ready-to-open URL per platform.
+    """
+    return osint_tools.analyze_username(req.username)
+
+
+class PersonRequest(BaseModel):
+    """Payload for the people-search endpoint."""
+    name: str = Field(..., description="Nom complet")
+    city: Optional[str] = Field(None, description="Ville, pour affiner")
+    country: Optional[str] = Field(None, description="Pays, pour affiner")
+    employer: Optional[str] = Field(None, description="Employeur, pour affiner")
+
+
+@app.post("/api/osint/identity/person")
+def identity_person(req: PersonRequest):
+    """Build people-search queries for a full name.
+
+    Args:
+        req: Validated :class:`PersonRequest` payload.
+
+    Returns:
+        Mapping with the composed query and the search-engine links.
+    """
+    return osint_tools.analyze_person(req.name, {"city": req.city, "country": req.country, "employer": req.employer})
+
+
+@app.get("/api/osint/identity/catalog")
+def identity_catalog():
+    """Describe every identity tool so the UI can render its own help.
+
+    Returns:
+        Mapping keyed by tool with the engine registries and a usage summary.
+    """
+    return osint_tools.identity_catalog()
+
 
 @app.get("/")
 def serve_index():
@@ -2254,12 +2335,12 @@ def serve_index():
     index_path = os.path.join(os.path.dirname(__file__), "index.html")
     if os.path.exists(index_path):
         return FileResponse(index_path, media_type="text/html")
-    return JSONResponse({"status": "HUMAN-OSINT v4.0 ULTIMATE LIVE", "version": "4.0 ULTIMATE - POWER TOOL", "endpoints": {"live": "/api/feeds/live", "social": "/api/osint/social", "media": "/api/osint/media", "comprehensive": "/api/osint/comprehensive", "dorks": "/api/dorks/all", "engines": "/api/osint/engines", "reverse_image": "/api/osint/reverse-image/engines", "report": "/api/report/generate", "ai": "/api/ai/providers"}, "rss_sources": len(RSS_FEEDS), "dorks": len(DORKS_DATABASE), "engines": len(OSINT_ENGINES), "mode": "V4 - Ultimate Power"})
+    return JSONResponse({"status": f"HUMAN-OSINT v{APP_VERSION} ULTIMATE LIVE", "version": APP_VERSION, "endpoints": {"live": "/api/feeds/live", "social": "/api/osint/social", "media": "/api/osint/media", "comprehensive": "/api/osint/comprehensive", "dorks": "/api/dorks/all", "engines": "/api/osint/engines", "reverse_image": "/api/osint/reverse-image/engines", "report": "/api/report/generate", "ai": "/api/ai/providers"}, "rss_sources": len(RSS_FEEDS), "dorks": len(DORKS_DATABASE), "engines": len(OSINT_ENGINES), "mode": "V4 - Ultimate Power"})
 
 if __name__ == "__main__":
     import uvicorn
     print("=================================================================")
-    print(" [HUMAN-OSINT v4.0 ULTIMATE] - POWER OSINT/GEOINT PLATFORM")
+    print(f" [HUMAN-OSINT v{APP_VERSION} ULTIMATE] - POWER OSINT/GEOINT PLATFORM")
     print(f" RSS Sources: {len(RSS_FEEDS)} | Dorks: {len(DORKS_DATABASE)} | Engines: {len(OSINT_ENGINES)}")
     print(" Live: NASA EONET + USGS + ReliefWeb + GDACS + FIRMS + GDELT x5 + Reddit x6 + Telegram x4 + 60 RSS")
     print(" Features: Reverse Image, Advanced Search, OSINT Engines, Report Generator, AI Agent")

@@ -1,8 +1,8 @@
-# HUMAN-OSINT v4.1 — Documentation
+# HUMAN-OSINT v4.2 — Documentation
 
 Document généré par `tools/generate_docs.py`. Ne pas éditer à la main :
-modifiez les docstrings dans `main.py` et les blocs JSDoc dans `index.html`,
-puis relancez le générateur.
+modifiez les docstrings dans `main.py`, `storage.py`, `osint_tools.py` et les
+blocs JSDoc dans `index.html`, puis relancez le générateur.
 
 ```bash
 uvicorn main:app --port 8000 &     # dans un autre terminal
@@ -19,6 +19,8 @@ partagent la même interface :
 | Livrable | Fichier | Rôle |
 |---|---|---|
 | Backend FastAPI | `main.py` | Scraping, agrégation, cache, auto-update, API |
+| Persistance | `storage.py` | Archive des événements, SQLite **ou** PostgreSQL selon `DATABASE_URL` |
+| Outils OSINT/SIG | `osint_tools.py` | Export GeoJSON/CSV/KML/GPX, géocodage, analyse d'identité |
 | Front-end web | `index.html` | SPA Leaflet 2D + Cesium 3D, servi par le backend ou GitHub Pages |
 | Application Android | `app/` | WebView embarquant la même SPA (`app/src/main/assets/osint/index.html`) |
 
@@ -52,6 +54,10 @@ Diagnostic complet : `GET /api/auto-update/status`.
 | `OSINT_REFRESH_JITTER` | `10` | Amplitude du jitter aléatoire ajouté à chaque cycle |
 | `OSINT_SSE_HEARTBEAT` | `15` | Période du heartbeat SSE, en secondes |
 | `OSINT_MAX_CACHE` | `300` | Nombre maximal d'incidents conservés en mémoire |
+| `DATABASE_URL` | _(vide)_ | Chaîne PostgreSQL. Dès qu'elle commence par `postgres://` ou `postgresql://`, l'archive part en PostgreSQL au lieu de SQLite |
+| `OSINT_DB_PATH` | `osint_database.db` | Chemin du fichier SQLite (ignoré quand `DATABASE_URL` est défini) |
+| `OSINT_RETENTION_DAYS` | `365` | Ancienneté au-delà de laquelle `prune()` supprime les événements archivés |
+| `OSINT_DB_STRICT` | _(vide)_ | À `1`, une base PostgreSQL injoignable lève une exception au lieu de basculer sur SQLite. Utilisé par les tests |
 
 > **Une seule instance** : le cache et le flux SSE vivent dans la mémoire du
 > processus. Avec plusieurs instances, un client connecté à l'une ne verrait
@@ -60,9 +66,106 @@ Diagnostic complet : `GET /api/auto-update/status`.
 
 ---
 
-## 2. Références de l'API
+## 2. Nouveautés v4.2
 
-_HUMAN-OSINT v4.1 ULTIMATE LIVE API — version **4.1.0**, 28 endpoints._
+### 2.1 Archive des événements passés
+
+Chaque cycle d'auto-update écrit ses incidents dans l'archive via
+`storage.archive_incidents()`. La colonne `link` porte une contrainte
+`UNIQUE` : un événement déjà connu n'est pas dupliqué, son `first_seen_at`
+est préservé et seul `last_seen_at` avance.
+
+Consultation : `GET /api/incidents/history` accepte `category`, `region`,
+`country`, `source`, `search`, `date`, `date_from`, `date_to`, `min_risk`,
+`order`, `limit` (≤ 2000) et `offset`. `GET /api/history/stats` renvoie les
+agrégats et la chronologie ; `GET /api/history/dates` liste les jours
+disponibles ; `DELETE /api/history/prune?days=N` purge au-delà de la rétention.
+
+> **Contrainte Render.** Le niveau gratuit a un **système de fichiers
+> éphémère** et n'autorise **pas de disque persistant** : un fichier SQLite y
+> est effacé à chaque endormissement et à chaque redéploiement. `render.yaml`
+> déclare donc une instance PostgreSQL et branche `DATABASE_URL`.
+> Attention : le PostgreSQL **gratuit** de Render expire **30 jours** après sa
+> création, avec 14 jours de grâce avant suppression. Pour un historique
+> durable, passez sur une instance payante ou exportez régulièrement.
+>
+> Si la base devient injoignable, l'application **démarre quand même** :
+> `storage.connect()` journalise l'erreur et bascule le processus sur SQLite.
+> Cette bascule est couverte par un test dédié.
+
+### 2.2 Export SIG
+
+`GET /api/export/incidents.<format>` accepte `geojson`, `csv`, `kml` et `gpx`
+et tous les filtres de l'historique : on exporte exactement ce que l'on voit.
+
+| Format | MIME | Destination |
+|---|---|---|
+| GeoJSON | `application/geo+json` | QGIS, ArcGIS, PostGIS, Leaflet |
+| CSV | `text/csv; charset=utf-8` | Excel / tableur (séparateur `;`, BOM inclus) |
+| KML | `application/vnd.google-earth.kml+xml` | Google Earth |
+| GPX | `application/gpx+xml` | GPS, OsmAnd |
+
+Les coordonnées sont en **longitude d'abord** (CRS84), comme l'exige la RFC
+7946. Les lignes sans coordonnées valides — hors plage ou exactement `0,0` —
+sont écartées et comptées dans `metadata.without_coordinates`, jamais émises
+sur `0,0`. Les en-têtes `X-Exported-Rows` et `X-Rows-With-Coordinates`
+résumé le résultat côté client.
+
+Le front-end possède ses propres constructeurs (`buildGeoJSON`, `buildCSV`,
+`buildKML`, `buildGPX`) pour que l'export de la liste affichée fonctionne
+aussi sans backend, en mode démo GitHub Pages.
+
+### 2.3 Fond de carte haute résolution
+
+`📸 CARTE HD` ne fait pas une capture d'écran : la fonction
+`downloadBasemapImage(scale)` recalcule la plage de tuiles couvrant la vue
+courante au niveau `zoom + scale - 1`, les re-télécharge et les assemble dans
+un canvas. Un facteur 2 donne donc **quatre fois** plus de pixels à
+résolution native, un facteur 3 neuf fois plus. Les incidents sont dessinés
+par-dessus et l'attribution incrustée.
+
+Le nombre de tuiles est borné à 900 : au-delà, l'export est refusé avec le
+compte exact plutôt que de saturer la mémoire du navigateur. Le serveur de
+tuiles doit envoyer les en-têtes CORS (Esri, OSM, CARTO et Google le font) ;
+sinon le canvas est « pollué » et l'export est refusé avec un message.
+
+Pour le globe 3D, `Cesium.Viewer` est créé avec
+`contextOptions.requestWebgl.preserveDrawingBuffer` — sans cette option
+`toDataURL()` renvoie une image vide.
+
+### 2.4 Géocodage
+
+`GET /api/geocode?q=...` (direct) et `GET /api/geocode/reverse?lat=...&lon=...`
+(inverse), via OpenStreetMap Nominatim côté backend, avec un débit limité à
+une requête par seconde conformément à leur politique d'usage. Le champ de
+recherche détecte seul une paire « lat, lon » et la route vers le
+géocodage inverse.
+
+### 2.5 Outils d'identité
+
+| Outil | Endpoint | Ce qui est calculé |
+|---|---|---|
+| E-mail | `POST /api/osint/identity/email` | validation, domaine jetable (sous-domaines compris), compte générique, hash Gravatar, pseudos dérivés, **résolution DNS des MX** |
+| Téléphone | `POST /api/osint/identity/phone` | normalisation E.164, pays, type de ligne, opérateur estimé, lien WhatsApp |
+| Pseudo | `POST /api/osint/identity/username` | 23 plateformes + variantes du pseudo |
+| Personne | `POST /api/osint/identity/person` | 9 services, requête composée nom + ville + pays + employeur |
+
+47 services au total, listés par `GET /api/osint/identity/catalog`.
+
+> **Aucune URL inventée.** Les registres ne contiennent que des motifs
+> vérifiés. Les services qui n'exposent pas de lien de recherche direct
+> (Truecaller, Sync.me) portent `deep_link: false` et un champ `copy` que
+> l'interface place dans le presse-papiers : on ouvre le site et on colle.
+
+> **Éthique.** Ces outils n'agrègent que des liens ; ils ne collectent rien.
+> Le croisement d'identités portant sur des personnes réelles est encadré par
+> la loi : restez dans le périmètre confié et documentez vos accès.
+
+---
+
+## 3. Références de l'API
+
+_HUMAN-OSINT v4.2 ULTIMATE LIVE API — version **4.2.0**, 40 endpoints._
 
 | Méthode | Chemin | Paramètres | Résumé |
 |---|---|---|---|
@@ -73,19 +176,31 @@ _HUMAN-OSINT v4.1 ULTIMATE LIVE API — version **4.1.0**, 28 endpoints._
 | `GET` | `/api/dorks/all` | `category`?, `severity`?, `search`? | Get All Dorks |
 | `GET` | `/api/dorks/categories` | — | Dork Categories |
 | `POST` | `/api/dorks/generate` | — | Generate Dork |
+| `GET` | `/api/export/formats` | — | Export Formats |
+| `GET` | `/api/export/incidents.{fmt}` | `fmt`, `category`?, `region`?, `country`?, `source`?, `search`?, `date_from`?, `date_to`?, `min_risk`?, `live_only`?, `limit`? | Export Incidents |
 | `GET` | `/api/feeds/live` | `limit`?, `category`?, `region`?, `country`?, `search`? | Get Live Feeds |
+| `GET` | `/api/geocode` | `q`, `limit`?, `language`? | Geocode Endpoint |
+| `GET` | `/api/geocode/reverse` | `lat`, `lon`, `language`? | Reverse Geocode Endpoint |
 | `GET` | `/api/geozones` | — | Get Geozones |
 | `POST` | `/api/geozones` | — | Create Geozone |
 | `DELETE` | `/api/geozones/{zone_id}` | `zone_id` | Delete Geozone |
 | `GET` | `/api/health` | — | Health |
+| `GET` | `/api/history/dates` | — | History Dates |
+| `DELETE` | `/api/history/prune` | `days`? | History Prune |
+| `GET` | `/api/history/stats` | — | History Stats |
 | `GET` | `/api/humanitarian/actors` | — | Humanitarian Actors |
-| `GET` | `/api/incidents/history` | `category`?, `region`?, `date`?, `limit`? | History |
+| `GET` | `/api/incidents/history` | `category`?, `region`?, `country`?, `source`?, `search`?, `date`?, `date_from`?, `date_to`?, `min_risk`?, `order`?, `limit`?, `offset`? | History |
 | `GET` | `/api/live/combined` | — | Combined |
 | `POST` | `/api/live/refresh` | — | Trigger Refresh |
 | `GET` | `/api/live/stream` | — | Live Stream |
 | `GET` | `/api/osint/comprehensive` | — | Comprehensive |
 | `GET` | `/api/osint/engines` | `category`?, `search`?, `free_only`? | Get Osint Engines |
 | `POST` | `/api/osint/engines/search` | — | Search Osint Engines |
+| `GET` | `/api/osint/identity/catalog` | — | Identity Catalog |
+| `POST` | `/api/osint/identity/email` | — | Identity Email |
+| `POST` | `/api/osint/identity/person` | — | Identity Person |
+| `POST` | `/api/osint/identity/phone` | — | Identity Phone |
+| `POST` | `/api/osint/identity/username` | — | Identity Username |
 | `GET` | `/api/osint/media` | `limit`? | Media Feed |
 | `GET` | `/api/osint/reverse-image/engines` | — | Reverse Image Engines |
 | `POST` | `/api/osint/reverse-image/generate` | — | Reverse Image Generate |
@@ -98,7 +213,7 @@ _HUMAN-OSINT v4.1 ULTIMATE LIVE API — version **4.1.0**, 28 endpoints._
 
 ---
 
-## 3. Backend — fonctions d'API (`main.py`)
+## 4. Backend — fonctions d'API (`main.py`)
 
 ### `health()`
 
@@ -316,18 +431,58 @@ List the supported AI providers and their configuration requirements.
 Returns:
     List of provider descriptors for the settings panel.
 
-### `history(category, region, date, limit)`
+### `history(category, region, country, source, search, date, date_from, date_to, min_risk, order, limit, offset)`
 
-Query the persisted incident archive.
+Query the persisted event archive.
+
+This is what makes past events consultable: every auto-update cycle
+archives its events, so the feed can be browsed by day, by period or by
+any combination of filters, long after the item left the live cache.
 
 Args:
-    category: Category filter.
+    category: Category filter, or ``all`` to disable.
     region: Region filter.
-    date: ISO date to restrict the query to a single day.
-    limit: Maximum number of rows (1-500).
+    country: Country substring filter.
+    source: Source substring filter.
+    search: Free-text filter over title, summary, country and source.
+    date: Restrict to a single day (``YYYY-MM-DD``).
+    date_from: Inclusive start of a period.
+    date_to: Inclusive end of a period.
+    min_risk: Minimum risk level, 1 to 5.
+    order: ``desc`` for newest first, ``asc`` for oldest first.
+    limit: Page size, up to 2000.
+    offset: Rows to skip, for pagination.
 
 Returns:
-    List of archived incident dictionaries.
+    Mapping with the matching ``incidents``, the ``total`` count for the
+    same filters, the pagination echo and the storage backend in use.
+
+### `history_stats()`
+
+Aggregate the archive for the history dashboard.
+
+Returns:
+    Mapping with the archived total, the covered time range, the retention
+    policy and per-category/region/country/source/day breakdowns.
+
+### `history_dates()`
+
+List the days for which the archive holds events.
+
+Returns:
+    Mapping with a ``dates`` list of ``{date, count}``, newest first, so
+    the UI can offer a date picker restricted to days that have data.
+
+### `history_prune(days)`
+
+Delete archived events older than the retention window.
+
+Args:
+    days: Override for the ``OSINT_RETENTION_DAYS`` setting. ``0`` is a
+        no-op, never a full wipe.
+
+Returns:
+    Mapping with the number of deleted rows and the remaining count.
 
 ### `security_assessment()`
 
@@ -362,12 +517,15 @@ Args:
 Returns:
     The stored zone as a :class:`GeozoneResponse`.
 
+Raises:
+    HTTPException: 500 when the row could not be written.
+
 ### `get_geozones()`
 
 Return every persisted geozone.
 
 Returns:
-    List of :class:`GeozoneResponse` objects.
+    List of :class:`GeozoneResponse` objects, newest first.
 
 ### `delete_geozone(zone_id)`
 
@@ -382,6 +540,119 @@ Returns:
 Raises:
     HTTPException: 404 when the identifier is unknown.
 
+### `export_incidents(fmt, category, region, country, source, search, date_from, date_to, min_risk, live_only, limit)`
+
+Export the event list, coordinates included, in a GIS format.
+
+The same filters as :func:`history` apply, so an export always matches
+what the user is looking at on screen.
+
+Args:
+    fmt: One of ``geojson``, ``csv``, ``kml`` or ``gpx``.
+    category: Category filter.
+    region: Region filter.
+    country: Country substring filter.
+    source: Source substring filter.
+    search: Free-text filter.
+    date_from: Inclusive start date.
+    date_to: Inclusive end date.
+    min_risk: Minimum risk level.
+    live_only: Export the live cache instead of the whole archive.
+    limit: Maximum number of rows.
+
+Returns:
+    A downloadable file response with the correct MIME type.
+
+Raises:
+    HTTPException: 400 when the format is not supported.
+
+### `export_formats()`
+
+List the GIS export formats the API can produce.
+
+Returns:
+    Mapping of format key to its MIME type, file extension, description
+    and the software that reads it.
+
+### `geocode_endpoint(q, limit, language)`
+
+Resolve a place name, address or landmark to coordinates.
+
+Proxied through the backend rather than called from the browser so the
+Nominatim usage policy is respected (one request per second, a
+User-Agent identifying the application) and to avoid CORS issues.
+
+Args:
+    q: Free-text query.
+    limit: Maximum number of results.
+    language: Preferred language for the labels.
+
+Returns:
+    Mapping with the results, each carrying coordinates, an address
+    breakdown and a bounding box for zooming.
+
+### `reverse_geocode_endpoint(lat, lon, language)`
+
+Resolve coordinates to an address.
+
+Args:
+    lat: Latitude in decimal degrees.
+    lon: Longitude in decimal degrees.
+    language: Preferred language for the label.
+
+Returns:
+    Mapping with the resolved address and its parts.
+
+### `identity_email(req)`
+
+Analyse an e-mail address and build every related lookup link.
+
+Args:
+    req: Validated :class:`EmailRequest` payload.
+
+Returns:
+    Mapping with the parsing result, flags (disposable, role account,
+    free provider), the Gravatar hash and the engine links. Optionally
+    the MX records proving the domain can receive mail.
+
+### `identity_phone(req)`
+
+Normalise a phone number and build WhatsApp and lookup links.
+
+Args:
+    req: Validated :class:`PhoneRequest` payload.
+
+Returns:
+    Mapping with the E.164 form, country, line type, carrier hint, a
+    direct WhatsApp link and the reverse-lookup engines.
+
+### `identity_username(req)`
+
+Build profile URLs for a username across the monitored platforms.
+
+Args:
+    req: Validated :class:`UsernameRequest` payload.
+
+Returns:
+    Mapping with name variants and one ready-to-open URL per platform.
+
+### `identity_person(req)`
+
+Build people-search queries for a full name.
+
+Args:
+    req: Validated :class:`PersonRequest` payload.
+
+Returns:
+    Mapping with the composed query and the search-engine links.
+
+### `identity_catalog()`
+
+Describe every identity tool so the UI can render its own help.
+
+Returns:
+    Mapping keyed by tool with the engine registries and a usage summary.
+
 ### `serve_index()`
 
 Serve the single-page front-end at the repository root.
@@ -392,7 +663,7 @@ Returns:
 
 ---
 
-## 4. Backend — fonctions internes (`main.py`)
+## 5. Backend — fonctions internes (`main.py`)
 
 ### `compute_content_hash(incidents)`
 
@@ -421,56 +692,21 @@ Returns:
 
 ### `init_db()`
 
-Create the SQLite schema if it does not exist yet.
+Create the archive schema, delegating to the storage layer.
 
-Idempotent: safe to call on every boot. Creates the ``incidents`` and
-``geozones`` tables plus the indexes used by the filter endpoints.
+Kept as a thin wrapper so the rest of the module (and existing callers)
+do not have to know whether the backend is SQLite or PostgreSQL.
 
-### `extract_geo(text)`
+### `get_db_connection()`
 
-Guess a ``(latitude, longitude)`` pair from free text.
+Open a connection to the active storage backend.
 
-Looks for an explicit ``lat,lon`` pattern first, then falls back to a
-coarse region centroid so that every incident can be plotted on the map.
-
-Args:
-    text: Headline or summary to inspect.
+Retained for backwards compatibility with code that still speaks DB-API
+directly. New code should use :mod:`storage`, which handles both SQLite
+and PostgreSQL and never lets a database error reach the API.
 
 Returns:
-    Tuple ``(latitude, longitude)`` as floats.
-
-### `classify(text, source)`
-
-Map a headline onto one of the platform risk categories.
-
-Args:
-    text: Headline or summary.
-    source: Originating source name, used to break ties.
-
-Returns:
-    One of ``conflit``, ``catastrophe``, ``epidemie``, ``energie``,
-    ``cyber`` or ``protest``.
-
-### `actors_from_text(text, region)`
-
-Extract the actors named in a headline.
-
-Args:
-    text: Headline or summary.
-    region: Region label, used to widen the candidate list.
-
-Returns:
-    Deduplicated list of actor names (states, armed groups, agencies).
-
-### `needs_from_cat(cat)`
-
-Derive the humanitarian needs implied by a category.
-
-Args:
-    cat: Category produced by :func:`classify`.
-
-Returns:
-    List of need labels such as ``Abri``, ``Médical`` or ``Eau``.
+    A DB-API connection with mapping-style row access.
 
 ### `fetch_eonet()`
 
@@ -643,7 +879,490 @@ Returns:
 
 ---
 
-## 5. Front-end — fonctions JavaScript (`index.html`)
+## 6. Persistance (`storage.py`)
+
+Couche de stockage à deux backends. Tout le SQL est écrit en dialecte SQLite
+puis adapté à la volée par `_adapt()` : `?` → `%s`, `INTEGER PRIMARY KEY
+AUTOINCREMENT` → `SERIAL PRIMARY KEY`, `REAL` → `DOUBLE PRECISION`,
+`BOOLEAN DEFAULT 0` → `BOOLEAN DEFAULT FALSE`. Les colonnes ajoutées par
+l'archive (`published_ts`, `first_seen_at`, `last_seen_at`) sont créées par
+migration, ce qui rend `init_schema()` idempotent sur une installation
+existante.
+
+Deux règles à ne pas oublier :
+
+- `query()` **ne commit jamais**. Un `INSERT ... RETURNING` passé par
+  `query()` renvoie la ligne puis la déroule silencieusement. Utilisez
+  `execute_returning()`.
+- Les deux backends renvoient des **mappings** (`sqlite3.Row` et
+  `RealDictCursor`). Accédez toujours aux colonnes **par nom** :
+  `RealDictRow` ne supporte pas `row[0]`. Le chemin SQLite accepte les deux,
+  c'est précisément pourquoi le test double backend existe.
+
+### `backend_name()`
+
+Return the active storage backend name.
+
+Returns:
+    ``"postgres"`` or ``"sqlite"``.
+
+### `_adapt(sql)`
+
+Translate ``?`` placeholders into psycopg2's ``%s`` and apply DDL fixes.
+
+Args:
+    sql: SQL written in the SQLite dialect.
+
+Returns:
+    The same statement adapted for the active backend. On SQLite the
+    statement is returned unchanged.
+
+### `connect()`
+
+Open a connection to the active backend.
+
+An unreachable PostgreSQL never takes the API down. The whole process is
+downgraded to SQLite once, at the module level, so every later read and
+write stays on the same engine instead of splitting state across two.
+Render's free PostgreSQL expires 30 days after creation, so this path is
+expected in production rather than exceptional.
+
+Set ``OSINT_DB_STRICT=1`` to re-raise instead, which is what the
+integration tests use to prove a PostgreSQL run really ran on PostgreSQL.
+
+Raises:
+    Exception: The driver's own error, only in strict mode.
+
+Returns:
+    A DB-API connection. Rows are returned as mappings on both backends
+    (``sqlite3.Row`` for SQLite, ``RealDictCursor`` for PostgreSQL), so
+    callers can always use ``dict(row)``.
+
+### `query(sql, params)`
+
+Run a SELECT and return every row as a dictionary.
+
+Args:
+    sql: Statement with ``?`` placeholders.
+    params: Bound parameters.
+
+Returns:
+    List of row dictionaries. Empty list when nothing matches, and on any
+    database error (logged, never raised, so one bad query cannot take the
+    API down).
+
+### `execute(sql, params)`
+
+Run an INSERT/UPDATE/DELETE and commit.
+
+Args:
+    sql: Statement with ``?`` placeholders.
+    params: Bound parameters.
+
+Returns:
+    Number of affected rows, or ``-1`` when the statement failed.
+
+### `execute_returning(sql, params)`
+
+Run a mutating statement with ``RETURNING`` and commit.
+
+:func:`query` never commits, so it must not be used for INSERT/UPDATE:
+the statement would be rolled back when the connection closes even though
+``RETURNING`` appeared to succeed.
+
+Args:
+    sql: Mutating statement with ``?`` placeholders and a RETURNING clause.
+    params: Bound parameters.
+
+Returns:
+    The returned rows as dictionaries, or an empty list on failure.
+
+### `executemany(sql, seq)`
+
+Run the same statement for many parameter tuples in one transaction.
+
+Args:
+    sql: Statement with ``?`` placeholders.
+    seq: Iterable of parameter tuples.
+
+Returns:
+    Number of affected rows, or ``-1`` on failure.
+
+### `_now_iso()`
+
+Return the current UTC time as an ISO-8601 string.
+
+### `to_epoch(value)`
+
+Convert an ISO-8601 timestamp to epoch seconds.
+
+Storing a numeric timestamp alongside the text one is what makes date-range
+queries reliable: ISO strings are only comparable lexicographically when
+every producer uses the same format and timezone offset, which 60+ scraped
+sources do not guarantee.
+
+Args:
+    value: ISO-8601 timestamp, possibly naive.
+
+Returns:
+    Seconds since the epoch as a float, or ``None`` when unparseable.
+
+### `init_schema()`
+
+Create the archive schema if missing and migrate older tables.
+
+Idempotent: safe on every boot. Adds the columns introduced by the archive
+feature (``published_ts``, ``first_seen_at``, ``last_seen_at``) to
+pre-existing installations instead of failing on a duplicate column.
+
+Returns:
+    Diagnostic mapping with the backend, the SQLite path and the archived
+    row count.
+
+### `archive_incidents(incidents)`
+
+Persist a batch of incidents, preserving when each was first seen.
+
+Uses ``ON CONFLICT(link) DO UPDATE`` rather than ``INSERT OR REPLACE``: the
+latter deletes and re-creates the row, which would reset ``first_seen_at``
+on every cycle and destroy the notion of "when did this event appear".
+
+Args:
+    incidents: Normalised incident dictionaries as produced by the
+        collectors in ``main.py``.
+
+Returns:
+    Mapping with ``written`` (rows affected) and ``skipped`` counts.
+
+### `_decode_json_field(raw, default)`
+
+Decode a JSON-encoded TEXT column, tolerating already-decoded values.
+
+### `_row_to_incident(row)`
+
+Normalise a raw archive row into the incident shape the API returns.
+
+### `_build_filters(category, region, country, search, date_from, date_to, source, min_risk)`
+
+Assemble the WHERE clause shared by every archive query.
+
+Args:
+    category: Exact category match; ``"all"`` and ``None`` disable it.
+    region: Exact region match.
+    country: Case-insensitive substring match.
+    search: Case-insensitive match over title, summary, country and source.
+    date_from: Inclusive lower bound, ISO date or timestamp.
+    date_to: Inclusive upper bound, ISO date or timestamp.
+    source: Case-insensitive substring match on the source name.
+    min_risk: Keep only rows with ``risk_level >= min_risk``.
+
+Returns:
+    Tuple ``(sql_fragment, params)`` where the fragment starts with
+    ``WHERE`` or is empty.
+
+### `search_archive(limit, offset, category, region, country, search, date_from, date_to, source, min_risk, order)`
+
+Query the persisted event archive.
+
+Args:
+    limit: Maximum rows to return.
+    offset: Rows to skip, for pagination.
+    category: Category filter.
+    region: Region filter.
+    country: Country substring filter.
+    search: Free-text filter.
+    date_from: Inclusive start date (``YYYY-MM-DD`` or full timestamp).
+    date_to: Inclusive end date.
+    source: Source substring filter.
+    min_risk: Minimum risk level (1-5).
+    order: ``"desc"`` for newest first, ``"asc"`` for oldest first.
+
+Returns:
+    List of incident dictionaries with ``actors`` and ``needs`` decoded.
+
+### `count_archive(category, region, country, search, date_from, date_to, source, min_risk)`
+
+Count archive rows matching the same filters as :func:`search_archive`.
+
+Returns:
+    The matching row count, or ``0`` when nothing matches.
+
+### `archive_stats()`
+
+Aggregate the archive for the history dashboard.
+
+Returns:
+    Mapping with total rows, the covered time range, and per-category,
+    per-region, per-country and per-day breakdowns.
+
+### `archive_dates()`
+
+List the days for which the archive holds events.
+
+Returns:
+    List of ``{"date", "count"}`` mappings, newest day first.
+
+### `prune(days)`
+
+Delete archived events older than the retention window.
+
+Args:
+    days: Override for :data:`RETENTION_DAYS`.
+
+Returns:
+    Number of deleted rows, or ``-1`` on failure.
+
+### `save_geozone(name, geometry_type, geojson_data, area_sqkm)`
+
+Persist a drawn geozone and return it with its new identifier.
+
+Args:
+    name: User-chosen zone name.
+    geometry_type: GeoJSON geometry type.
+    geojson_data: Serialised GeoJSON geometry.
+    area_sqkm: Computed surface in square kilometres.
+
+Returns:
+    The stored zone as a dictionary, or ``None`` on failure.
+
+### `list_geozones()`
+
+Return every persisted geozone, newest first.
+
+Returns:
+    List of geozone dictionaries.
+
+### `delete_geozone(zone_id)`
+
+Delete one geozone.
+
+Args:
+    zone_id: Identifier to remove.
+
+Returns:
+    ``True`` when a row was deleted.
+
+
+---
+
+## 7. Outils OSINT et SIG (`osint_tools.py`)
+
+Les registres de services (`EMAIL_ENGINES`, `USERNAME_ENGINES`,
+`PHONE_ENGINES`, `PERSON_ENGINES`) ne sont **jamais mutés** : `_fill()`
+travaille sur une copie et substitue les espaces réservés dans `url` comme
+dans `copy`. Une mutation du registre corromprait tous les appels suivants.
+
+### `_throttled_get(url, params)`
+
+Perform a GET against a third-party API, respecting a 1 req/s budget.
+
+Args:
+    url: Endpoint to call.
+    params: Query parameters.
+
+Returns:
+    Decoded JSON body.
+
+Raises:
+    RuntimeError: With a human-readable message when the call fails, so
+        callers can surface the reason to the user instead of a stack
+        trace.
+
+### `_coords(inc)`
+
+Return ``[longitude, latitude]`` for an incident, or None if absent.
+
+GeoJSON uses longitude-first ordering, the opposite of almost every other
+geospatial format, so this is centralised to avoid a silent axis swap.
+
+### `incidents_to_geojson(incidents, name)`
+
+Build a GeoJSON FeatureCollection from incidents.
+
+Incidents without usable coordinates are reported in the collection
+metadata rather than silently dropped, so an export never looks complete
+when part of the list had no position.
+
+Args:
+    incidents: Incident dictionaries.
+    name: Collection name recorded in the properties.
+
+Returns:
+    A GeoJSON 1.1 FeatureCollection dictionary.
+
+### `incidents_to_csv(incidents)`
+
+Serialise incidents to CSV with a semicolon delimiter.
+
+Semicolons are used because the data is French and contains many commas;
+Excel in a French locale opens semicolon CSV correctly on double-click.
+
+Args:
+    incidents: Incident dictionaries.
+
+Returns:
+    The CSV document as text, prefixed with a UTF-8 BOM so Excel detects
+    the encoding.
+
+### `incidents_to_kml(incidents, name)`
+
+Build a KML document, colour-coded by category.
+
+Args:
+    incidents: Incident dictionaries.
+    name: Document name shown in Google Earth.
+
+Returns:
+    A KML 2.2 document as text.
+
+### `incidents_to_gpx(incidents, name)`
+
+Build a GPX 1.1 document of waypoints.
+
+Args:
+    incidents: Incident dictionaries.
+    name: Document metadata name.
+
+Returns:
+    A GPX 1.1 document as text.
+
+### `build_export(incidents, fmt, name)`
+
+Serialise incidents in the requested GIS format.
+
+Args:
+    incidents: Incident dictionaries.
+    fmt: One of the keys of :data:`EXPORT_FORMATS`.
+    name: Document/collection name.
+
+Returns:
+    The serialised document as text.
+
+Raises:
+    ValueError: When ``fmt`` is not a supported format.
+
+### `geocode(query, limit, language)`
+
+Resolve a place name or address to coordinates via OSM Nominatim.
+
+Args:
+    query: Free-text place, address or landmark.
+    limit: Maximum number of results (1-10).
+    language: Preferred language for the returned labels.
+
+Returns:
+    Mapping with ``query``, ``count`` and ``results`` (each with
+    ``display_name``, ``latitude``, ``longitude``, ``type``, ``country``,
+    ``boundingbox``), or an ``error`` key when the call failed.
+
+### `reverse_geocode(latitude, longitude, language)`
+
+Resolve coordinates to an address via OSM Nominatim.
+
+Args:
+    latitude: Decimal degrees.
+    longitude: Decimal degrees.
+    language: Preferred language for the returned label.
+
+Returns:
+    Mapping with the resolved ``display_name``, address parts and the
+    input coordinates, or an ``error`` key when the call failed.
+
+### `_shape_nominatim(item)`
+
+Normalise one Nominatim record into the shape the front-end expects.
+
+### `analyze_email(email)`
+
+Validate an email address and build every related lookup link.
+
+No network call is made here: the analysis is purely local so it stays
+fast and works offline. Use :func:`email_mx_records` separately for the
+DNS check.
+
+Args:
+    email: Address to analyse.
+
+Returns:
+    Mapping with the parsing result (``valid``, ``local_part``, ``domain``,
+    ``gravatar_md5``, flags) and the ``engines`` list with ready-to-open
+    URLs.
+
+### `email_mx_records(domain)`
+
+Look up the MX records of a domain to test whether it can receive mail.
+
+Args:
+    domain: Domain name to query.
+
+Returns:
+    Mapping with ``domain``, ``exists``, the ``records`` sorted by
+    preference, and an ``error`` key when DNS resolution failed.
+
+### `_guess_mail_provider(records)`
+
+Infer the mail provider from MX host names.
+
+### `analyze_phone(number, default_region)`
+
+Parse a phone number and build every related lookup link.
+
+Args:
+    number: Number in any common format, with or without country code.
+    default_region: ISO country code assumed when the number has no ``+``.
+        Defaults to Senegal.
+
+Returns:
+    Mapping with the E.164 form, country, number type, national format and
+    the ``engines`` list, or an ``error`` key when the number is unusable.
+
+### `analyze_username(username)`
+
+Build profile URLs for a username across the monitored platforms.
+
+Args:
+    username: Handle to probe.
+
+Returns:
+    Mapping with the normalised username, a few derived variants and the
+    ``engines`` list, or an ``error`` key when the input is unusable.
+
+### `analyze_person(name, extras)`
+
+Build people-search queries for a full name, optionally narrowed.
+
+Args:
+    name: Full name of the person.
+    extras: Optional narrowing hints such as ``city``, ``country``,
+        ``employer`` or ``email``; each is appended to the query.
+
+Returns:
+    Mapping with the composed query and the ``engines`` list, or an
+    ``error`` key when the name is empty.
+
+### `_fill(engine, values)`
+
+Copy an engine descriptor and substitute its URL placeholders.
+
+Args:
+    engine: Descriptor from one of the ``*_ENGINES`` registries.
+    values: Placeholder replacements.
+
+Returns:
+    A new descriptor with ``url`` filled in. The registries are never
+    mutated, so concurrent requests cannot interfere.
+
+### `identity_catalog()`
+
+Describe every identity tool so the UI can render its own help.
+
+Returns:
+    Mapping keyed by tool with the engine lists and a usage summary.
+
+
+---
+
+## 8. Front-end — fonctions JavaScript (`index.html`)
 
 ### `getApiBase()`
 
@@ -670,6 +1389,184 @@ Open the global help panel, optionally focused on one tool.
 ### `closeToolHelp()`
 
 Close the global help panel.
+
+### `loadHistory(resetOffset)`
+
+Load the persisted event archive using the current filter panel.
+
+Reads the date range, category, region, free-text and ordering controls,
+then renders both the statistics header and the result list.
+
+@param {number} [resetOffset] When supplied, the pager is moved to this
+  offset before querying.
+
+### `historyPage(direction)`
+
+Move the archive pager by one page.
+
+@param {number} direction +1 for the next page, -1 for the previous one.
+
+### `renderHistory(rows)`
+
+Render the archive result list.
+
+@param {Array} rows Incident rows returned by the history endpoint.
+
+### `loadHistoryStats()`
+
+Load the archive statistics header and the clickable day chips.
+
+### `pickHistoryDay(date)`
+
+Restrict the archive to a single day and reload it.
+
+@param {string} date Day in YYYY-MM-DD form.
+
+### `showHistoryOnMap()`
+
+Plot the archive rows currently on screen onto the active map.
+
+### `exportHistory(fmt)`
+
+Download the archive as a GIS file, honouring the current filters.
+
+@param {string} fmt One of geojson, csv, kml or gpx.
+
+### `exportLiveList(fmt)`
+
+Download the list currently shown in the LIVE tab as a GIS file.
+
+Uses the client-side builders so it also works without a backend.
+
+@param {string} fmt One of geojson, csv, kml or gpx.
+
+### `buildGeoJSON(rows)`
+
+Build a GeoJSON FeatureCollection client-side (offline-capable twin of
+the backend exporter).
+
+@param {Array} rows Incident rows.
+@returns {object} A GeoJSON FeatureCollection.
+
+### `buildCSV(rows)`
+
+Build semicolon-separated CSV client-side.
+
+@param {Array} rows Incident rows.
+@returns {string} CSV text without the BOM (the caller adds it).
+
+### `buildKML(rows)`
+
+Build a KML document client-side.
+
+@param {Array} rows Incident rows.
+@returns {string} KML text.
+
+### `buildGPX(rows)`
+
+Build a GPX document client-side.
+
+@param {Array} rows Incident rows.
+@returns {string} GPX text.
+
+### `triggerDownload(blob, filename)`
+
+Offer a Blob as a browser download.
+
+@param {Blob} blob Content to download.
+@param {string} filename Suggested file name.
+
+### `runGeocode()`
+
+Geocode the text in the search box and render the candidates.
+
+Accepts a place name, a full address, or a "lat, lon" pair which is
+detected and routed to reverse geocoding instead.
+
+### `runReverseGeocode()`
+
+Resolve the latitude/longitude inputs to an address and centre the map.
+
+### `geocodeFromClipboard()`
+
+Read a "lat, lon" pair from the clipboard and reverse-geocode it.
+
+### `renderGeocodeResults(data)`
+
+Render geocoding candidates with a button to fly to each one.
+
+@param {object} data Response of the geocoding endpoint.
+
+### `goToGeocodeResult(lat, lon, bbox)`
+
+Fly the active map to a geocoding result, fitting its bounding box.
+
+@param {number} lat Target latitude.
+@param {number} lon Target longitude.
+@param {Array|null} bbox Optional [south, north, west, east] box.
+
+### `renderIdentityForm()`
+
+Render the input form matching the selected identity tool.
+
+### `runIdentity()`
+
+Run the selected identity analysis and render the outcome.
+
+### `renderIdentityResult(kind, data)`
+
+Render an identity analysis: parsed facts, flags and engine links.
+
+@param {string} kind The tool that produced the result.
+@param {object} data Analysis payload returned by the backend.
+
+### `computeTileRange(b, zoom)`
+
+Compute the tile index range covering a bounding box at a given zoom.
+
+Standard Web Mercator slippy-map maths, exposed as a pure function so the
+projection can be unit-tested without a browser or a live map.
+
+@param {{south:number,west:number,north:number,east:number}} b Geographic box.
+@param {number} zoom Zoom level.
+@returns {{minX:number,maxX:number,minY:number,maxY:number,count:number}} Tile range.
+
+### `currentBasemapTemplate()`
+
+Resolve the tile URL template of the currently active basemap.
+
+@returns {{url:string,credit:string}|null} Template and attribution.
+
+### `downloadBasemapImage(scale)`
+
+Download the visible basemap as a high-resolution PNG.
+
+Re-fetches the tiles covering the current view at ``currentZoom + scale - 1``
+and stitches them into one canvas, so the output is genuinely sharper than
+a screenshot rather than a scaled-up capture. Incident markers are drawn on
+top and the attribution is burned into the corner.
+
+Requires the tile host to send CORS headers (Esri, OSM, CARTO and Google
+all do); otherwise the canvas is tainted and the export is refused with an
+explanatory message.
+
+@param {number} [scale] Resolution multiplier: 1, 2 or 3 (default 2).
+
+### `exportCesiumImage(factor, say)`
+
+Export the 3D globe view as a PNG.
+
+Cesium only keeps the drawing buffer if the viewer was created with
+``contextOptions.requestWebgl.preserveDrawingBuffer``, which
+{@link initCesiumSatellite} sets; the scene is rendered immediately before
+reading the canvas so the frame is not empty.
+
+@param {number} factor Requested multiplier, used only for the label.
+@param {Function} say Progress reporter.
+
+### `renderManual()`
+
+Render the user-manual tab: a section navigator plus the section bodies.
 
 ### `initClock()`
 
@@ -745,7 +1642,7 @@ dark `globe.baseColor` so an in-flight tile request never looks like the
 old "blue globe" bug, and falls back to OpenStreetMap if the satellite
 provider cannot be constructed.
 
-### `syncCesiumIncidents()`
+### `syncCesiumIncidents(rowsOverride)`
 
 Redraw every incident as an entity on the 3D Cesium globe.
 
@@ -1120,20 +2017,60 @@ Format an ISO timestamp for display.
 
 ---
 
-## 6. Tests
+## 9. Manuel utilisateur intégré
+
+L'onglet **MANUEL** rend la constante `MANUAL`, un registre unique de dix
+sections : démarrage, auto-update, SEARCH, ENGINES, DORKS, GEOINT, HISTORIQUE,
+GÉOCODAGE, IDENTITÉ, REPORT/IA, plus le copyright. Une seule source de vérité
+pour l'onglet, le panneau d'aide en-tête et ce document.
+
+Les trois sections demandées explicitement couvrent :
+
+- **SEARCH** — les opérateurs `site:`, `inurl:`, `intitle:`, `filetype:`,
+  `ext:`, `cache:`, comment composer la requête, et ce que fait *Tout
+  effacer*.
+- **ENGINES** — les 40 moteurs regroupés par famille (infrastructure, fuites,
+  domaines, mobilité), le filtre « gratuit uniquement », et ce que renvoie
+  réellement chaque service.
+- **DORKS** — ce qu'est un dork, le filtrage par catégorie et par sévérité,
+  l'échelle `critical`/`high`/`medium`/`low`, le générateur de variantes, et
+  le cadre légal.
+
+Chaque section suit la même trame : *à quoi ça sert*, *comment s'en servir*,
+*d'où viennent les données*, *limites et cadre légal*.
+
+---
+
+## 10. Tests
 
 ```bash
-# Backend
-python -m py_compile main.py
+# Backend : import réel + schéma de persistance sur SQLite
 python -c "import main"
+python tests/test_storage.py
 
-# Front-end (jsdom) : vérifie le globe 3D, les hints, l'auto-update
+# Le même banc contre un vrai PostgreSQL
+python tests/test_storage.py --postgres postgresql://user@host/db
+
+# Front-end (jsdom) : globe 3D, hints, auto-update, archive, export SIG,
+# géocodage, identité, manuel, export HD
 cd tests && npm install && npm test
 
-# Avec le backend réel en face
+# Avec le backend réel en face (active la section d'intégration live)
 uvicorn main:app --port 8000 &
 cd tests && API_URL=http://127.0.0.1:8000 npm test
 ```
+
+`tests/test_storage.py` rejoue **la suite identique** sur SQLite et sur
+PostgreSQL. Le mode `--postgres` pose `OSINT_DB_STRICT=1`, donc une base
+injoignable fait échouer le banc au lieu de le dégrader silencieusement en
+SQLite : un « PostgreSQL 47/47 » signifie bien que PostgreSQL a tourné.
+
+Le banc jsdom vérifie notamment la projection Web Mercator de
+`computeTileRange()` contre une implémentation indépendante écrite avec la
+forme tangente, les quatre constructeurs d'export côté client, les filtres
+embarqués dans les URL d'export, le routage automatique d'une paire
+« lat, lon » vers le géocodage inverse, et le refus d'un export HD couvrant
+plus de 900 tuiles.
 
 Le test front-end charge la page dans jsdom en remplaçant Leaflet, Cesium,
 turf et ExifReader par des bouchons. Le bouchon Cesium enregistre les options
