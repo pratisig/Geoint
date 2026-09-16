@@ -1,11 +1,39 @@
 {
-  "name": "HUMAN-OSINT V4 POWER",
-  "description": "Plateforme OSINT/GEOINT v4.0 POWER - 70+ sources live, satellite HD 0.3m Esri+Google, 80+ dorks, 40+ moteurs OSINT spécialisés, reverse image search 7 moteurs, advanced search multi-engines, report generator, AI agent avec clés utilisateur",
+  "name": "HUMAN-OSINT V4.2 POWER",
+  "description": "Plateforme OSINT/GEOINT v4.2 POWER - flux d'actualité auto-updatés (61 RSS + 5 API satellite + Reddit + Telegram + GDELT) avec push SSE, archive persistante consultable (SQLite ou PostgreSQL), export SIG (GeoJSON / CSV / KML / GPX), export du fond de carte en haute résolution, géocodage direct et inverse, outils d'identité (e-mail + MX, téléphone + WhatsApp, pseudo, personne), manuel utilisateur intégré, globe 3D Cesium à fond de carte réel, 80+ dorks, 40+ moteurs OSINT",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"],
-  "version": "4.0.0",
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ],
+  "version": "4.2.0",
   "sources": 76,
   "dorks": 80,
   "engines": 40,
-  "features": ["live 70+", "social", "media", "reverse image", "advanced search", "osint engines", "dorks 80+", "geoint satellite HD", "report generator", "security", "actors", "ai agent"]
+  "identity_engines": 47,
+  "features": [
+    "auto-update SSE",
+    "live 70+",
+    "archive persistante (SQLite/PostgreSQL)",
+    "export SIG geojson/csv/kml/gpx",
+    "export fond de carte haute résolution",
+    "géocodage direct et inverse",
+    "identité e-mail + MX",
+    "identité téléphone + WhatsApp",
+    "recherche de pseudo multi-plateformes",
+    "manuel utilisateur intégré",
+    "3D globe real basemap",
+    "osm basemap",
+    "social",
+    "media",
+    "reverse image",
+    "advanced search",
+    "osint engines",
+    "dorks 80+",
+    "geoint satellite HD",
+    "report generator",
+    "security",
+    "actors",
+    "ai agent",
+    "aide outils intégrée"
+  ]
 }

@@ -1,4 +1,85 @@
-# HUMAN-OSINT v4.0 POWER // OSINT/GEOINT ULTIMATE PLATFORM
+# HUMAN-OSINT v4.2 POWER // OSINT/GEOINT ULTIMATE PLATFORM
+
+> ## ✨ Nouveautés v4.2
+>
+> **1. Consultation des événements passés.** Chaque cycle d'auto-update archive
+> ses incidents. L'onglet **HISTORIQUE** les retrouve par période, catégorie,
+> région ou plein texte, avec pagination et pastilles de jours.
+> ⚠️ Le niveau gratuit de Render a un **système de fichiers éphémère** et
+> n'autorise **pas de disque persistant** : un fichier SQLite y est effacé à
+> chaque redémarrage. `render.yaml` déclare donc une **instance PostgreSQL** et
+> branche `DATABASE_URL` — `storage.py` bascule seul de l'un à l'autre, sans
+> changement de code. Le PostgreSQL *gratuit* de Render expire 30 jours après
+> sa création ; pour un historique durable, passez sur une instance payante ou
+> exportez régulièrement.
+>
+> **2. Export SIG.** GeoJSON, CSV, KML et GPX, avec tous les filtres courants :
+> on exporte exactement ce que l'on voit. Coordonnées en longitude d'abord
+> (CRS84), lignes sans coordonnées écartées et comptées, jamais émises sur
+> `0,0`. Export côté serveur (`/api/export/incidents.<fmt>`) **et** côté
+> client, pour que la démo GitHub Pages fonctionne aussi.
+>
+> **3. Fond de carte en haute résolution.** `📸 CARTE HD` n'est pas une capture
+> d'écran : les tuiles de la vue courante sont re-téléchargées au niveau
+> `zoom + facteur - 1` et assemblées. Facteur 2 = 4× les pixels à résolution
+> native, facteur 3 = 9×. Incidents dessinés par-dessus, attribution incrustée,
+> refus explicite au-delà de 900 tuiles.
+>
+> **4. Géocodage.** Adresse → coordonnées et coordonnées → adresse, via OSM
+> Nominatim. Le champ de recherche détecte seul une paire « lat, lon » et la
+> route vers le géocodage inverse.
+>
+> **5. Outils d'identité (47 services).** E-mail (validation, domaine jetable,
+> compte générique, Gravatar, **résolution DNS des MX**), téléphone
+> (normalisation E.164, pays, type de ligne, opérateur, **lien WhatsApp**),
+> pseudo (23 plateformes), nom de personne (9 services).
+> **Aucune URL inventée** : les services sans lien de recherche direct portent
+> `deep_link: false` et un champ `copy` placé dans le presse-papiers.
+>
+> **6. Manuel utilisateur intégré.** Onglet **MANUEL** : dix sections suivant
+> la même trame (*à quoi ça sert*, *comment s'en servir*, *d'où viennent les
+> données*, *limites et cadre légal*). Les sections **SEARCH**, **ENGINES** et
+> **DORKS** détaillent les opérateurs générés, les familles de moteurs et
+> l'échelle de sévérité des dorks.
+>
+> **7. Copyright.** PratiSIG Consulting Services — Youssoupha MBODJI,
+> [pratisg.consulting@gmail.com](mailto:pratisg.consulting@gmail.com),
+> Dakar, Sénégal.
+>
+> 📘 **Documentation complète : [`DOCUMENTATION.md`](DOCUMENTATION.md)** —
+> 10 chapitres, 40 endpoints, régénérable avec `python tools/generate_docs.py`.
+>
+> ✅ **Tests :** `cd tests && npm install && npm test` (108 assertions, jsdom) ·
+> `python tests/test_storage.py` (47 assertions, SQLite **et** PostgreSQL)
+
+> ## ✨ Nouveautés v4.1
+>
+> **1. Flux d'actualité réellement auto-updatés.** Le canal SSE ne comparait que
+> le *nombre* d'incidents : un cycle renvoyant le même nombre d'éléments plus
+> récents ne produisait aucun événement, et l'interface ne se mettait jamais à
+> jour. La détection porte désormais sur une **empreinte du contenu**
+> (`content_hash`), avec heartbeat anti-timeout, backoff de reconnexion,
+> rafraîchissement au retour d'onglet et badge d'âge des données.
+> Diagnostic : `GET /api/auto-update/status`.
+>
+> **2. Globe 3D avec un vrai fond de carte.** `Cesium.Viewer` était construit
+> avec l'option `imageryProvider`, **supprimée dans CesiumJS 1.107** (dépréciée
+> en 1.104). En 1.115 elle est ignorée silencieusement : le globe affichait sa
+> `baseColor` (bleu) et seule la couche de frontières blanches restait visible.
+> Le globe utilise maintenant `baseLayer` + `Cesium.ImageryLayer`, et le
+> sélecteur de fond de carte (Esri 0.3m / Google Sat / **OpenStreetMap** /
+> dark / relief) fonctionne aussi bien en 2D qu'en 3D.
+>
+> **3. Documentation et aide intégrée.** 53 fonctions Python et 86 fonctions
+> JavaScript documentées, une barre d'aide en tête de chacun des 12 outils,
+> des infobulles sur les contrôles, un panneau 📖 AIDE global, et une
+> référence API générée depuis le schéma OpenAPI réel.
+>
+> 📘 **Documentation complète : [`DOCUMENTATION.md`](DOCUMENTATION.md)** —
+> régénérable avec `python tools/generate_docs.py`.
+>
+> ✅ **Tests : `cd tests && npm install && npm test`** (37 assertions, jsdom)
+
 
 Plateforme opérationnelle de renseignement OSINT/GEOINT **EN TEMPS RÉEL V4 POWER** : **70+ sources RSS live, NASA EONET + FIRMS satellite, USGS sismique, GDELT x5, Reddit x6, Telegram x4**, globe **3D satellite réel HD Esri 0.3m + Google Sat**, **80+ Google Dorks**, **40+ moteurs OSINT spécialisés**, **Reverse Image Search 7 moteurs**, **générateur de rapports**, **agent IA avec clés utilisateur**.
 

@@ -1,0 +1,95 @@
+name: Frontend CI
+
+on:
+  push:
+    branches: [ main, arena/01a0aa08-geoint ]
+    paths:
+      - 'index.html'
+      - 'app/src/main/assets/osint/index.html'
+      - 'tests/**'
+      - '.github/workflows/frontend.yml'
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  test-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install backend deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install frontend test deps
+        working-directory: tests
+        run: npm install
+
+      # Without a backend the page falls back to its demo dataset, which is a
+      # valid configuration; the SSE and rendering assertions still apply.
+      - name: Run frontend tests (no backend)
+        working-directory: tests
+        run: node frontend.test.mjs
+
+      - name: Start backend
+        run: |
+          OSINT_REFRESH_INTERVAL=15 uvicorn main:app --host 0.0.0.0 --port 8000 > uvicorn.log 2>&1 &
+          for i in $(seq 1 60); do
+            curl -sf http://127.0.0.1:8000/api/health > /dev/null && echo "backend up" && break
+            sleep 1
+          done
+          curl -sf http://127.0.0.1:8000/api/health || (echo "backend failed"; cat uvicorn.log; exit 1)
+
+      - name: Run frontend tests against the live backend
+        working-directory: tests
+        env:
+          API_URL: http://127.0.0.1:8000
+        run: node frontend.test.mjs
+
+      - name: Verify the Android asset copy is in sync
+        run: |
+          if ! diff -q index.html app/src/main/assets/osint/index.html; then
+            echo "::error::index.html and app/src/main/assets/osint/index.html differ - the Android WebView would ship a stale copy"
+            exit 1
+          fi
+          echo "Android asset copy in sync"
+
+      - name: Verify documentation coverage
+        run: |
+          python - <<'PY'
+          import ast, re, sys
+          src = open("main.py", encoding="utf-8").read()
+          tree = ast.parse(src)
+          missing = [n.name for n in ast.walk(tree)
+                     if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))
+                     and not ast.get_docstring(n)]
+          if missing:
+              print("::error::Python functions without docstring:", missing); sys.exit(1)
+          lines = open("index.html", encoding="utf-8").read().split("\n")
+          undoc = []
+          for i, l in enumerate(lines):
+              if not re.match(r"^\s*(?:async\s+)?function\s+(\w+)", l):
+                  continue
+              j = i - 1
+              while j >= 0 and lines[j].strip() == "":
+                  j -= 1
+              if not (j >= 0 and lines[j].strip().endswith("*/")):
+                  undoc.append(l.strip()[:60])
+          if undoc:
+              print("::error::JS functions without JSDoc:", undoc); sys.exit(1)
+          print("All Python and JavaScript functions are documented")
+          PY

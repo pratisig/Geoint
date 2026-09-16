@@ -23,3 +23,7 @@ osint_database.db-wal
 osint_database.db-shm
 .venv/
 venv/
+
+# Frontend test dependencies
+tests/node_modules/
+tests/package-lock.json

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>HUMAN-OSINT v4.0 ULTIMATE // POWER OSINT/GEOINT PLATFORM</title>
+  <title>HUMAN-OSINT v4.2 ULTIMATE // POWER OSINT/GEOINT PLATFORM</title>
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -38,7 +38,7 @@
     .btn-mode{background:transparent;border:none;color:var(--text-muted);padding:6px 12px;font-family:var(--font-mono);font-size:10px;font-weight:700;cursor:pointer;transition:all 0.2s;}
     .btn-mode.active{background:var(--neon-cyan);color:#05080e;box-shadow:0 0 15px rgba(0,229,255,0.5);}
 
-    .app-workspace{display:flex;flex:1;height:calc(100vh - 64px);position:relative;}
+    .app-workspace{display:flex;flex:1;min-height:0;position:relative;}
     .sidebar{width:560px;min-width:420px;background:var(--bg-panel);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:500;box-shadow:4px 0 25px rgba(0,0,0,0.6);}
     .sidebar-tabs{display:flex;background:#090f18;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:thin;gap:1px;}
     .sidebar-tabs::-webkit-scrollbar{height:4px;} .sidebar-tabs::-webkit-scrollbar-thumb{background:var(--border);}
@@ -49,6 +49,38 @@
     .tab-btn.engine-tab.active{color:var(--neon-violet);border-bottom-color:var(--neon-violet);background:rgba(189,52,254,0.08);}
     .tab-btn.report-tab.active{color:var(--neon-yellow);border-bottom-color:var(--neon-yellow);background:rgba(255,214,0,0.08);}
     .tab-btn.ai-tab.active{color:var(--neon-cyan);border-bottom-color:var(--neon-cyan);background:rgba(0,229,255,0.08);}
+    .tab-btn.history-tab.active{color:var(--neon-cyan);border-bottom-color:var(--neon-cyan);background:rgba(0,229,255,0.08);}
+    .tab-btn.geocode-tab.active{color:var(--neon-yellow);border-bottom-color:var(--neon-yellow);background:rgba(255,214,0,0.08);}
+    .tab-btn.identity-tab.active{color:var(--neon-pink);border-bottom-color:var(--neon-pink);background:rgba(255,0,255,0.08);}
+    .tab-btn.manual-tab.active{color:var(--text);border-bottom-color:var(--text);background:rgba(255,255,255,0.06);}
+    .ident-block{border:1px solid var(--border);border-left:3px solid var(--neon-pink);border-radius:5px;padding:8px 10px;margin-bottom:7px;background:rgba(255,0,255,0.04);}
+    .ident-block h4{margin:0 0 5px;font-size:11px;color:var(--neon-pink);letter-spacing:.4px;}
+    .ident-kv{font-size:10.5px;color:var(--text);line-height:1.7;}
+    .ident-kv b{color:var(--text-muted);font-weight:400;}
+    .ident-link{display:inline-block;margin:2px 4px 2px 0;padding:3px 7px;border:1px solid var(--border);border-radius:4px;
+      font-size:10px;color:var(--neon-cyan);text-decoration:none;background:#0b1220;}
+    .ident-link:hover{border-color:var(--neon-cyan);background:rgba(0,229,255,0.12);}
+    .ident-link.nolink{color:var(--text-muted);border-style:dashed;}
+    .badge-warn{display:inline-block;padding:1px 5px;border-radius:3px;font-size:9px;background:rgba(255,153,0,.18);color:var(--neon-orange);border:1px solid rgba(255,153,0,.4);}
+    .badge-ok{display:inline-block;padding:1px 5px;border-radius:3px;font-size:9px;background:rgba(0,255,157,.14);color:var(--neon-green);border:1px solid rgba(0,255,157,.35);}
+    .hist-row{border:1px solid var(--border);border-left:3px solid var(--neon-cyan);border-radius:5px;padding:7px 9px;margin-bottom:6px;background:#0b1220;}
+    .hist-row .hr-title{font-size:11px;color:var(--text);font-weight:700;line-height:1.4;}
+    .hist-row .hr-meta{font-size:9.5px;color:var(--text-muted);margin-top:3px;line-height:1.5;}
+    .day-chip{padding:2px 6px;border:1px solid var(--border);border-radius:10px;color:var(--neon-cyan);cursor:pointer;background:#0b1220;}
+    .day-chip:hover{border-color:var(--neon-cyan);}
+    .manual-sec{border:1px solid var(--border);border-radius:6px;padding:10px 12px;margin-bottom:8px;background:#0b1220;}
+    .manual-sec h3{margin:0 0 5px;font-size:12px;color:var(--neon-green);letter-spacing:.4px;}
+    .manual-sec h4{margin:9px 0 3px;font-size:10.5px;color:var(--neon-orange);text-transform:uppercase;letter-spacing:.5px;}
+    .manual-sec p{margin:0 0 5px;font-size:11px;line-height:1.65;color:var(--text);}
+    .manual-sec ul{margin:0 0 6px 15px;padding:0;} .manual-sec li{font-size:10.5px;line-height:1.6;color:var(--text-muted);}
+    .manual-sec code{background:#04060a;border:1px solid var(--border);border-radius:3px;padding:1px 4px;font-size:10px;color:var(--neon-orange);}
+    .map-export-bar{position:absolute;top:52px;left:12px;z-index:1002;background:rgba(9,14,23,.92);border:1px solid var(--border);border-radius:5px;padding:6px 7px;display:flex;flex-direction:column;gap:4px;backdrop-filter:blur(6px);max-width:200px;}
+    .map-export-bar .meb-title{font-size:9.5px;color:var(--neon-cyan);letter-spacing:.5px;}
+    .map-export-bar .meb-row{display:flex;gap:3px;flex-wrap:wrap;}
+    .map-export-bar button{font-size:9.5px;padding:3px 5px;}
+    #export-map-status{display:none;font-size:9.5px;color:var(--neon-green);max-width:190px;line-height:1.4;}
+    .app-footer{border-top:1px solid var(--border);background:#090f18;padding:7px 12px;font-size:10px;line-height:1.6;color:var(--text-muted);text-align:center;}
+    .app-footer b{color:var(--neon-cyan);} .app-footer a{color:var(--neon-green);text-decoration:none;}
     .sidebar-content{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:10px;}
     .tab-pane{display:none;flex-direction:column;gap:10px;height:100%;}
     .tab-pane.active{display:flex;}
@@ -143,6 +175,43 @@
     .leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--bg-panel) !important;color:var(--text-bright) !important;border:1px solid var(--border);box-shadow:0 4px 20px rgba(0,0,0,0.8);font-family:var(--font-mono);}
     .report-output{background:#0a0f18;border:1px solid var(--border);border-radius:4px;padding:12px;white-space:pre-wrap;font-size:11px;line-height:1.5;max-height:600px;overflow-y:auto;}
     @media(max-width:1200px){.sidebar{width:100%;position:absolute;height:100%;transform:translateX(-100%);transition:transform 0.3s;}.sidebar.open{transform:translateX(0);}}
+    /* ---- Tool hints & help system ---- */
+    [data-hint]{position:relative;}
+    [data-hint]:hover::after{
+      content:attr(data-hint);
+      position:absolute;left:50%;bottom:calc(100% + 8px);transform:translateX(-50%);
+      background:#0d131f;color:var(--text);border:1px solid var(--neon-cyan);
+      border-radius:5px;padding:7px 10px;font-size:11px;line-height:1.45;font-weight:400;
+      width:max-content;max-width:290px;white-space:normal;text-align:left;z-index:9000;
+      box-shadow:0 6px 22px rgba(0,0,0,.85);pointer-events:none;
+    }
+    [data-hint]:hover::before{
+      content:"";position:absolute;left:50%;bottom:calc(100% + 3px);transform:translateX(-50%);
+      border:5px solid transparent;border-top-color:var(--neon-cyan);z-index:9001;pointer-events:none;
+    }
+    .tool-help-bar{display:flex;align-items:flex-start;gap:8px;margin:0 0 9px;padding:7px 9px;
+      background:rgba(0,229,255,.06);border:1px solid rgba(0,229,255,.28);border-left:3px solid var(--neon-cyan);
+      border-radius:5px;font-size:11px;line-height:1.5;color:var(--text);}
+    .tool-help-bar b{color:var(--neon-cyan);display:block;font-size:11px;margin-bottom:2px;letter-spacing:.4px;}
+    .tool-help-bar .thb-text{flex:1;color:var(--text-muted);}
+    .help-qbtn{flex:0 0 auto;width:19px;height:19px;border-radius:50%;border:1px solid var(--neon-cyan);
+      background:transparent;color:var(--neon-cyan);font-size:11px;font-weight:700;cursor:pointer;line-height:1;padding:0;}
+    .help-qbtn:hover{background:var(--neon-cyan);color:#04060a;}
+    #help-modal{position:fixed;inset:0;background:rgba(2,4,8,.86);backdrop-filter:blur(4px);
+      z-index:10000;display:none;align-items:center;justify-content:center;padding:20px;}
+    #help-modal.open{display:flex;}
+    #help-modal .hm-box{background:#0d131f;border:1px solid var(--neon-cyan);border-radius:8px;
+      max-width:720px;width:100%;max-height:82vh;overflow:auto;padding:20px 22px;box-shadow:0 18px 60px rgba(0,0,0,.9);}
+    #help-modal h2{margin:0 0 4px;font-size:15px;color:var(--neon-cyan);letter-spacing:.6px;}
+    #help-modal .hm-sub{font-size:11px;color:var(--text-muted);margin-bottom:14px;}
+    #help-modal h3{margin:16px 0 5px;font-size:12px;color:var(--neon-green);letter-spacing:.5px;}
+    #help-modal p{margin:0 0 6px;font-size:11.5px;line-height:1.6;color:var(--text);}
+    #help-modal ul{margin:0 0 8px 16px;padding:0;}
+    #help-modal li{font-size:11px;line-height:1.65;color:var(--text-muted);}
+    #help-modal code{background:#04060a;border:1px solid var(--border);border-radius:3px;padding:1px 4px;font-size:10.5px;color:var(--neon-orange);}
+    #help-modal .hm-close{float:right;background:transparent;border:1px solid var(--neon-red);color:var(--neon-red);
+      border-radius:4px;padding:3px 10px;font-size:11px;cursor:pointer;}
+    #help-modal .hm-close:hover{background:var(--neon-red);color:#04060a;}
   </style>
 </head>
 <body>
@@ -150,7 +219,7 @@
 <header>
   <div class="header-left">
     <div class="status-pulse"></div>
-    <div class="brand-title">HUMAN-OSINT v4.0 POWER</div>
+    <div class="brand-title">HUMAN-OSINT v4.2 POWER</div>
     <span class="live-badge">● V4 LIVE</span>
     <span class="stat-badge live">🛰️ SAT HD 0.3m</span>
     <span class="stat-badge live">📡 70+ SOURCES</span>
@@ -161,11 +230,14 @@
     <div class="stat-badge" id="utc-clock">UTC 00:00:00</div>
     <div class="stat-badge live" id="db-status-badge">SYNC V4...</div>
     <div class="stat-badge" id="live-count-badge">0 LIVE</div>
+    <div class="stat-badge" id="update-age-badge" title="Âge des données affichées. Devient orange si le flux n'a pas été rafraîchi depuis plus de 2 cycles." style="color:var(--neon-green)">--</div>
+    <div class="stat-badge" id="sse-badge" title="Canal temps réel (Server-Sent Events) : le serveur pousse chaque mise à jour sans attendre le prochain cycle de polling." style="color:var(--neon-orange)">⚪ SSE OFF</div>
     <div class="stat-badge" id="api-base-badge" style="cursor:pointer;" onclick="setBackendUrl()" title="Cliquez pour configurer backend">🔧 API</div>
     <div class="mode-switch-group">
       <button id="btn-switch-2d" class="btn-mode active" onclick="switchMapMode('2D')">2D SAT HD</button>
-      <button id="btn-switch-3d" class="btn-mode" onclick="switchMapMode('3D')">3D GLOBE SAT RÉEL</button>
+      <button id="btn-switch-3d" class="btn-mode" onclick="switchMapMode('3D')">3D GLOBE</button>
     </div>
+    <div class="stat-badge" id="btn-help" onclick="showToolHelp()" title="Aide : ce que fait chaque outil, comment s'en servir et d'où viennent les données." style="cursor:pointer;border-color:var(--neon-cyan);color:var(--neon-cyan)">📖 AIDE</div>
   </div>
 </header>
 
@@ -184,6 +256,10 @@
       <button class="tab-btn" onclick="switchTab('tab-security')">SÉCURITÉ</button>
       <button class="tab-btn" onclick="switchTab('tab-actors')">ACTEURS</button>
       <button class="tab-btn ai-tab" onclick="switchTab('tab-ai')">AI AGENT</button>
+      <button class="tab-btn history-tab" onclick="switchTab('tab-history')">HISTORIQUE</button>
+      <button class="tab-btn geocode-tab" onclick="switchTab('tab-geocode')">GÉOCODAGE</button>
+      <button class="tab-btn identity-tab" onclick="switchTab('tab-identity')">IDENTITÉ</button>
+      <button class="tab-btn manual-tab" onclick="switchTab('tab-manual')">MANUEL</button>
     </div>
 
     <div class="sidebar-content">
@@ -642,6 +718,96 @@
         </div>
       </div>
 
+      <!-- HISTORIQUE / ARCHIVE -->
+      <div id="tab-history" class="tab-pane">
+        <div class="live-indicator" style="border-left-color:var(--neon-cyan);">
+          <div><span style="color:var(--neon-cyan)">🗄️</span><b style="color:var(--neon-cyan)">ARCHIVE DES ÉVÉNEMENTS PASSÉS</b><br>
+          <span id="history-summary" style="font-size:10px;color:var(--text-muted)">Chargement des statistiques d'archive…</span></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+          <label style="font-size:10px;color:var(--text-muted)">Du<input type="date" id="hist-from" class="filter-select" onchange="loadHistory()"></label>
+          <label style="font-size:10px;color:var(--text-muted)">Au<input type="date" id="hist-to" class="filter-select" onchange="loadHistory()"></label>
+        </div>
+        <select id="hist-category" class="filter-select" onchange="loadHistory()">
+          <option value="all">🗂️ Toutes catégories</option><option value="conflit">Conflit</option>
+          <option value="catastrophe">Catastrophe</option><option value="epidemie">Épidémie</option>
+          <option value="energie">Énergie</option><option value="cyber">Cyber</option><option value="protest">Protestation</option>
+        </select>
+        <select id="hist-region" class="filter-select" onchange="loadHistory()">
+          <option value="all">🌍 Toutes régions</option><option value="Afrique">Afrique</option>
+          <option value="Moyen-Orient">Moyen-Orient</option><option value="Europe">Europe</option>
+          <option value="Asie-Pacifique">Asie-Pacifique</option><option value="Amériques">Amériques</option><option value="Global">Global</option>
+        </select>
+        <input type="text" id="hist-search" class="filter-select" placeholder="🔎 Recherche plein texte…" onkeydown="if(event.key==='Enter')loadHistory()">
+        <select id="hist-order" class="filter-select" onchange="loadHistory()">
+          <option value="desc">⬇️ Plus récents d'abord</option><option value="asc">⬆️ Plus anciens d'abord</option>
+        </select>
+        <div style="display:flex;gap:6px;">
+          <button class="cyber-btn cyber-btn-primary btn-xs" onclick="loadHistory()">🔎 CONSULTER L'ARCHIVE</button>
+          <button class="cyber-btn btn-xs" onclick="showHistoryOnMap()">🗺️ VOIR SUR LA CARTE</button>
+        </div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;">
+          <button class="cyber-btn btn-xs" onclick="exportHistory('geojson')">⬇️ GeoJSON</button>
+          <button class="cyber-btn btn-xs" onclick="exportHistory('csv')">⬇️ CSV</button>
+          <button class="cyber-btn btn-xs" onclick="exportHistory('kml')">⬇️ KML</button>
+          <button class="cyber-btn btn-xs" onclick="exportHistory('gpx')">⬇️ GPX</button>
+        </div>
+        <div id="history-days" style="display:flex;flex-wrap:wrap;gap:4px;font-size:9px;"></div>
+        <div id="history-container" style="max-height:420px;overflow-y:auto;"></div>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <button class="cyber-btn btn-xs" onclick="historyPage(-1)">◀ PRÉC.</button>
+          <span id="history-page-info" style="font-size:10px;color:var(--text-muted);flex:1;text-align:center;">—</span>
+          <button class="cyber-btn btn-xs" onclick="historyPage(1)">SUIV. ▶</button>
+        </div>
+      </div>
+
+      <!-- GÉOCODAGE -->
+      <div id="tab-geocode" class="tab-pane">
+        <div class="live-indicator" style="border-left-color:var(--neon-yellow);">
+          <div><span style="color:var(--neon-yellow)">📍</span><b style="color:var(--neon-yellow)">GÉOCODAGE &amp; RECHERCHE DE LIEU</b><br>
+          <span style="font-size:10px;color:var(--text-muted)">Mot-clé, adresse ou coordonnées → carte. Source OpenStreetMap Nominatim.</span></div>
+        </div>
+        <input type="text" id="geocode-q" class="filter-select" placeholder="Ex : Dakar, Plateau / 14.69, -17.44 / Aéroport AIBD" onkeydown="if(event.key==='Enter')runGeocode()">
+        <div style="display:flex;gap:6px;">
+          <button class="cyber-btn cyber-btn-primary btn-xs" onclick="runGeocode()">🔎 GÉOCODER</button>
+          <button class="cyber-btn btn-xs" onclick="geocodeFromClipboard()">📋 DEPUIS « lat, lon »</button>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+          <input type="text" id="geocode-lat" class="filter-select" placeholder="Latitude ex 14.6928">
+          <input type="text" id="geocode-lon" class="filter-select" placeholder="Longitude ex -17.4467">
+        </div>
+        <button class="cyber-btn btn-xs" onclick="runReverseGeocode()">↩️ GÉOCODAGE INVERSE (adresse depuis coordonnées)</button>
+        <div id="geocode-results" style="max-height:400px;overflow-y:auto;"></div>
+      </div>
+
+      <!-- IDENTITÉ -->
+      <div id="tab-identity" class="tab-pane">
+        <div class="live-indicator" style="border-left-color:var(--neon-pink);">
+          <div><span style="color:var(--neon-pink)">🔍</span><b style="color:var(--neon-pink)">RECHERCHE D'IDENTITÉ</b><br>
+          <span style="font-size:10px;color:var(--text-muted)">E-mail · téléphone · WhatsApp · pseudo · nom de personne</span></div>
+        </div>
+        <select id="identity-kind" class="filter-select" onchange="renderIdentityForm()">
+          <option value="email">✉️ Adresse e-mail</option>
+          <option value="phone">📱 Téléphone / WhatsApp</option>
+          <option value="username">👤 Pseudo / nom d'utilisateur</option>
+          <option value="person">🧑 Nom de personne</option>
+        </select>
+        <div id="identity-form"></div>
+        <button class="cyber-btn cyber-btn-primary btn-xs" onclick="runIdentity()">🔎 ANALYSER</button>
+        <div id="identity-result"></div>
+      </div>
+
+      <!-- MANUEL -->
+      <div id="tab-manual" class="tab-pane">
+        <div class="live-indicator" style="border-left-color:var(--neon-cyan);">
+          <div><span style="color:var(--neon-cyan)">📖</span><b style="color:var(--neon-cyan)">MANUEL UTILISATEUR</b><br>
+          <span style="font-size:10px;color:var(--text-muted)">Tout l'outil expliqué : quoi, comment, d'où viennent les données.</span></div>
+        </div>
+        <div id="manual-nav" style="display:flex;flex-wrap:wrap;gap:4px;"></div>
+        <div id="manual-body"></div>
+      </div>
+
+
     </div>
   </aside>
 
@@ -653,6 +819,21 @@
       <button id="btn-layer-osm" class="btn-layer-opt" onclick="switchBaseLayer('osm')">🗺️ OSM</button>
       <button id="btn-layer-terrain" class="btn-layer-opt" onclick="switchBaseLayer('terrain')">🏔️ RELIEF</button>
     </div>
+    <div class="map-export-bar">
+      <div class="meb-title">📤 EXPORT</div>
+      <div class="meb-row">
+        <button class="cyber-btn btn-xs" onclick="downloadBasemapImage(1)" title="Fond de carte en PNG, résolution native">📸 HD 1×</button>
+        <button class="cyber-btn cyber-btn-primary btn-xs" onclick="downloadBasemapImage(2)" title="Tuiles au zoom +1 : 4× plus de pixels">📸 HD 2×</button>
+        <button class="cyber-btn btn-xs" onclick="downloadBasemapImage(3)" title="Tuiles au zoom +2 : 9× plus de pixels">📸 HD 3×</button>
+      </div>
+      <div class="meb-row">
+        <button class="cyber-btn btn-xs" onclick="exportLiveList('geojson')" title="GeoJSON — QGIS, ArcGIS, PostGIS">GeoJSON</button>
+        <button class="cyber-btn btn-xs" onclick="exportLiveList('csv')" title="CSV point-virgule, compatible Excel">CSV</button>
+        <button class="cyber-btn btn-xs" onclick="exportLiveList('kml')" title="KML — Google Earth">KML</button>
+        <button class="cyber-btn btn-xs" onclick="exportLiveList('gpx')" title="GPX — GPS, OsmAnd">GPX</button>
+      </div>
+      <div id="export-map-status"></div>
+    </div>
     <div id="leaflet-map"></div>
     <div id="cesium-map"></div>
     <div class="map-measurement-overlay" id="measure-overlay">
@@ -660,12 +841,26 @@
       <div id="measure-output" style="font-size:14px;font-weight:700;color:#fff;">0.00 km²</div>
       <button class="cyber-btn cyber-btn-primary btn-xs" onclick="saveActiveMeasurement()">💾 ENREGISTRER ZONE SAT RÉEL</button>
     </div>
-    <div class="satellite-info" id="satellite-info">🛰️ SAT RÉEL Esri 0.3m + Google Sat | 70+ SOURCES LIVE | 80+ DORKS | 40 ENGINES | REVERSE IMAGE | REPORT + AI AGENT | V4.0 POWER | Cesium 3D Globe Satellite Réel HD</div>
+    <div class="satellite-info" id="satellite-info">🛰️ Imagerie réelle au choix : Esri 0.3m / Google Sat / OpenStreetMap / dark / relief | flux auto-updatés + archive | V4.2</div>
+    <div class="stat-badge" id="cesium-tile-status" style="position:absolute;bottom:52px;right:12px;z-index:1001;font-size:10px;background:rgba(13,19,31,0.9);border:1px solid var(--border);border-radius:4px;padding:3px 7px;display:none;">⏳ chargement tuiles…</div>
   </main>
 </div>
 
+<footer class="app-footer">
+  <b>PratiSIG Consulting Services</b> &mdash; HUMAN-OSINT v4.2 &nbsp;|&nbsp;
+  Contact&nbsp;: <b>Youssoupha MBODJI</b> &mdash;
+  <a href="mailto:pratisg.consulting@gmail.com">pratisg.consulting@gmail.com</a> &nbsp;|&nbsp;
+  Dakar, Sénégal
+  <br><span style="opacity:.75">&copy; <span id="footer-year">2026</span> PratiSIG Consulting Services. Tous droits réservés.
+  &nbsp;|&nbsp; Fonds cartographiques&nbsp;: Esri, Google, OpenStreetMap contributors, OpenTopoMap, CARTO &nbsp;|&nbsp; Géocodage&nbsp;: OSM Nominatim</span>
+</footer>
+
 <script>
   // === API BASE CONFIGURABLE POUR GITHUB PAGES + BACKEND EXTERNE + ANDROID ===
+  /**
+   * Resolve the backend base URL from the query string, localStorage or the current origin.
+   * @returns {{any}} The absolute API base URL without a trailing slash.
+   */
   function getApiBase(){
     try{
       const params = new URLSearchParams(window.location.search);
@@ -694,6 +889,9 @@
   const IS_DEMO_MODE = !API_BASE || API_BASE === '' || IS_ANDROID ? false : false; // Android uses bridge, not demo
   const IS_GITHUB_DEMO = window.location.hostname.includes('github.io') && !localStorage.getItem('HUMAN_OSINT_API_BASE');
 
+  /**
+   * Prompt for a backend URL and reload the app against it.
+   */
   function setBackendUrl(){
     const url = prompt('Entrez URL backend FastAPI (ex: https://xxx.onrender.com ou http://localhost:8000). Laissez vide pour mode démo offline V4 (30 incidents):', localStorage.getItem('HUMAN_OSINT_API_BASE')||'');
     if(url===null) return;
@@ -709,21 +907,942 @@
   }
 
   let leafletMap=null, cesiumViewer=null, drawnItems=null, incidentMarkersLayer=null, savedGeozonesLayer=null, weatherOverlay=null, terrainOverlay=null, activeTileLayer=null;
+  /** Currently selected 3D globe basemap key (see {@link BASEMAPS}). */
+  let currentCesiumBaseKey="sat";
   let currentBaseLayerKey="sat";
   let allIncidents=[], allSocial=[], allMedia=[], savedGeozones=[], currentDrawingGeoJSON=null, currentDrawingArea=0, activeMapMode="2D", activeThemeFilter="all";
   let autoRefreshEnabled=true, autoRefreshInterval=null, sseConnection=null;
+  /** Ticker that repaints the "last updated Xs ago" badge every second. */
+  let ageTickerInterval=null;
+  /** Epoch ms of the last successful feed fetch, used for the age badge. */
+  let lastFetchAt=null;
+  /** Content fingerprint of the feed currently on screen (from the SSE stream). */
+  let lastContentHash=null;
+  /** Current SSE reconnect delay in ms; doubles on each failure up to 60s. */
+  let sseRetryDelay=3000;
   let allDorks=[], filteredDorks=[], allEngines=[], filteredEngines=[], reverseEngines=[];
   let lastReportData=null, lastAIResult=null;
 
   window.addEventListener("DOMContentLoaded", () => {
-    initClock(); initLeaflet(); fetchLiveFeeds(); loadSavedGeozones(); fetchSecurityAssessment(); fetchActors(); fetchDorks(); fetchEngines(); fetchReverseEngines(); setupDragAndDrop(); startAutoRefresh(); connectSSE(); loadAIKey(); initAdvEnginesChecklist();
+    initClock(); initLeaflet(); fetchLiveFeeds(); loadSavedGeozones(); fetchSecurityAssessment(); fetchActors(); fetchDorks(); fetchEngines(); fetchReverseEngines(); setupDragAndDrop(); startAutoRefresh(); connectSSE(); loadAIKey(); initAdvEnginesChecklist(); applyToolHints(); renderManual(); renderIdentityForm(); document.getElementById("footer-year").textContent=new Date().getFullYear();
+    document.addEventListener("keydown",e=>{ if(e.key==="Escape") closeToolHelp(); });
   });
 
-  function initClock(){
-    const clockEl=document.getElementById("utc-clock");
-    setInterval(()=>{ const now=new Date(); clockEl.textContent="UTC "+now.toISOString().substring(11,19)+" | V4 POWER LIVE"; },1000);
+  /**
+   * Plain-language documentation for every tool, shown inline and in the help panel.
+   *
+   * Each entry gives the user three things: what the tool is for (`desc`), how
+   * to operate it (`how`) and where the data comes from (`source`). Keeping it
+   * in one registry means the inline hint bar, the hover tooltips and the
+   * global help panel can never drift apart.
+   */
+  const TOOL_HELP={
+    "tab-live":{name:"LIVE 70+",desc:"Flux d'actualité en temps réel agrégé depuis 61 flux RSS, NASA EONET, USGS, GDACS, ReliefWeb, GDELT, Reddit et Telegram. Chaque élément est géolocalisé, catégorisé et scored par niveau de risque.",how:["Le serveur re-scrape toutes les sources toutes les 60 s et pousse chaque changement via le canal SSE : la liste se met à jour seule, sans recharger la page.","⚡ FORCE REFRESH force un re-scrape immédiat côté serveur.","⏸️ PAUSE gèle le rafraîchissement automatique pour lire tranquillement.","Le badge d'âge (en haut) passe en orange si les données ont plus de 2 minutes."],source:"Backend /api/feeds/live — 61 RSS + 5 API satellite + 6 subreddits + 4 canaux Telegram"},
+    "tab-social":{name:"SOCIAL",desc:"Veille réseaux sociaux : Reddit (r/OSINT, r/UkraineConflict, r/Syria, r/Sahel, r/geopolitics, r/humanitarian), aperçus publics Telegram et signaux sociaux GDELT.",how:["Utile pour les signaux faibles et la confirmation terrain avant les dépêches officielles.","Les items sont marqués 📱 SOCIAL sur le globe 3D.","Même cycle d'auto-update que le flux LIVE."],source:"Backend /api/osint/social"},
+    "tab-media":{name:"MEDIA",desc:"Revue de presse : uniquement les articles issus des flux RSS, triés du plus récent au plus ancien.",how:["Filtrez par région ou source avec les listes déroulantes de l'onglet LIVE.","Cliquez un titre pour ouvrir l'article original dans un nouvel onglet."],source:"Backend /api/osint/media"},
+    "tab-image":{name:"IMAGE",desc:"Recherche d'image inversée et extraction EXIF. Déposez une photo : ses coordonnées GPS intégrées sont lues puis placées sur la carte.",how:["Glissez-déposez une image, ou cliquez pour la sélectionner.","Si l'image contient un GPS EXIF, le point est automatiquement centré sur la carte 2D ou le globe 3D.","Le bouton recherche inversée ouvre Google, Yandex, TinEye, Bing, Baidu et KarmaDecay avec votre image."],source:"Lecture EXIF locale (ExifReader) + /api/osint/reverse-image/generate"},
+    "tab-search":{name:"SEARCH",desc:"Recherche avancée multi-opérateurs : construisez une requête combinant mots-clés, domaines, types de fichiers et opérateurs Google.",how:["Saisissez un mot-clé, choisissez les opérateurs, puis générez.","Plusieurs variantes sont produites pour une même intention de recherche.","Chaque variante est copiable ou ouvrable directement."],source:"Backend /api/search/advanced"},
+    "tab-engines":{name:"ENGINES",desc:"Annuaire de 40 moteurs OSINT spécialisés : Shodan, Censys, ZoomEye, Hunter, IntelX, VirusTotal, FlightRadar24, MarineTraffic…",how:["Filtrez par catégorie ou cochez « gratuit uniquement » pour masquer les moteurs nécessitant une clé API.","Cochez plusieurs moteurs puis lancez la recherche : un onglet s'ouvre par moteur avec votre requête pré-remplie."],source:"Backend /api/osint/engines"},
+    "tab-dorks":{name:"DORKS 80+",desc:"Base de 80 Google Dorks classés par catégorie et sévérité, plus un générateur de dorks personnalisés.",how:["Filtrez par catégorie (infrastructure, documents, caméras, bases de données…) ou par sévérité.","Cliquez un dork pour l'ouvrir directement dans Google.","Le générateur construit vos propres variantes à partir d'un mot-clé et d'un domaine."],source:"Backend /api/dorks/all et /api/dorks/generate"},
+    "tab-geoint":{name:"GEOINT",desc:"Cartographie tactique 2D et globe 3D. Dessinez des zones, mesurez des surfaces, exportez en GeoJSON.",how:["2D / 3D : basculez avec les boutons en haut à droite. Le fond de carte (satellite Esri 0.3m, Google Sat, OpenStreetMap, dark, relief) se choisit dans le sélecteur et reste le même dans les deux modes.","Outils de dessin à gauche : polygone, rectangle, cercle, marqueur, règle.","Les zones sont enregistrées localement dans le navigateur et ré-affichées au rechargement.","🌧️ MÉTÉO et 🏔️ RELIEF ajoutent une couche par-dessus le fond choisi."],source:"Leaflet + Cesium, tuiles Esri / Google / OSM / OpenTopoMap / RainViewer"},
+    "tab-report":{name:"REPORT",desc:"Générateur de rapport de renseignement : sélectionnez un sujet, des régions, des catégories et une fenêtre temporelle.",how:["Le rapport compile les incidents filtrés, des statistiques et des recommandations.","Exportable en texte ou en GeoJSON pour ré-importer dans un SIG.","Peut être enrichi par l'agent IA si vous avez renseigné une clé."],source:"Backend /api/report/generate"},
+    "tab-security":{name:"SÉCURITÉ",desc:"Évaluation synthétique de la posture sécuritaire par région : score de risque, tendance et facteurs contributifs.",how:["Les scores sont recalculés à chaque cycle d'auto-update à partir des incidents en cache.","Utilisez-le comme vue d'ensemble avant de descendre dans le détail d'une région."],source:"Backend /api/security/assessment"},
+    "tab-actors":{name:"ACTEURS",desc:"Répertoire des acteurs humanitaires, étatiques et armés référencés par la plateforme, avec leurs zones d'opération.",how:["Cliquez un acteur pour voir ses zones d'opération et le type d'activité."],source:"Backend /api/humanitarian/actors"},
+    "tab-ai":{name:"AI AGENT",desc:"Analyse des incidents en cache par un modèle de langage. Compatible OpenAI, Google Gemini, Anthropic et Mistral.",how:["Renseignez votre propre clé API : elle est stockée uniquement dans votre navigateur (localStorage) et envoyée directement au fournisseur choisi.","⚠ La clé n'est jamais enregistrée côté serveur.","Testez la connexion avec le bouton de test avant de lancer une analyse."],source:"Votre clé, appelée depuis le navigateur ou via /api/ai/analyze"}
+  };
+
+  /**
+   * One-line hints for individual controls, surfaced as hover tooltips.
+   * Keyed by CSS selector so no HTML button has to be edited by hand.
+   */
+  const CONTROL_HINTS={
+    "#btn-switch-2d":"Carte plate Leaflet : plus lisible pour l'analyse, mêmes fonds de carte que le globe.",
+    "#btn-switch-3d":"Globe 3D Cesium avec imagerie réelle. Faites glisser pour tourner, molette pour zoomer.",
+    "#btn-auto-refresh":"Met en pause / reprend le rafraîchissement automatique du flux d'actualité.",
+    "#btn-layer-sat":"Esri World Imagery : photographie satellite réelle, résolution jusqu'à 0.3 m en zone urbaine.",
+    "#btn-layer-google":"Google Satellite : imagerie récente, bonne couverture des zones rurales.",
+    "#btn-layer-dark":"CARTO Dark Matter : fond sombre neutre, idéal pour faire ressortir les marqueurs.",
+    "#btn-layer-osm":"OpenStreetMap : carte vectorielle avec noms de rues et frontières. Aucun compte requis.",
+    "#btn-layer-terrain":"OpenTopoMap : courbes de niveau et relief, utile pour le terrain militaire.",
+    "#api-base-badge":"Cliquez pour pointer l'application vers votre propre backend (ex. votre instance Render).",
+    "#update-age-badge":"Âge des données affichées. Passe en orange au-delà de 2 cycles de rafraîchissement.",
+    "#sse-badge":"Canal temps réel : le serveur pousse chaque mise à jour sans attendre le prochain polling.",
+    "#db-status-badge":"État de la synchronisation avec le backend et nombre d'incidents en cache."
+  };
+
+  /**
+   * Inject the inline hint bar at the top of every tool panel.
+   *
+   * Each pane gets a short description plus a «?» button that opens the full
+   * help panel. Idempotent: running it twice will not duplicate the bars.
+   */
+  function applyToolHints(){
+    Object.keys(TOOL_HELP).forEach(tabId=>{
+      const pane=document.getElementById(tabId);
+      if(!pane||pane.querySelector(".tool-help-bar")) return;
+      const info=TOOL_HELP[tabId];
+      const bar=document.createElement("div");
+      bar.className="tool-help-bar";
+      bar.innerHTML=`<button class="help-qbtn" title="Ouvrir l'aide détaillée de cet outil" onclick="showToolHelp('${tabId}')">?</button>`+
+        `<div class="thb-text"><b>${info.name}</b>${escapeHtml(info.desc)}</div>`;
+      pane.insertBefore(bar,pane.firstChild);
+    });
+    Object.keys(CONTROL_HINTS).forEach(sel=>{
+      document.querySelectorAll(sel).forEach(el=>{
+        el.setAttribute("data-hint",CONTROL_HINTS[sel]);
+        if(!el.getAttribute("title")) el.setAttribute("title",CONTROL_HINTS[sel]);
+      });
+    });
+    // Every remaining action button gets its visible label as a fallback tooltip.
+    document.querySelectorAll(".cyber-btn,.tab-btn,.btn-mode,.btn-layer-opt").forEach(el=>{
+      if(!el.getAttribute("data-hint")&&!el.getAttribute("title")){
+        const label=(el.textContent||"").trim().replace(/\s+/g," ");
+        if(label) el.setAttribute("title",label);
+      }
+    });
   }
 
+  /**
+   * Open the global help panel, optionally focused on one tool.
+   *
+   * @param {string} [tabId] When given, the panel opens scrolled to that tool.
+   */
+  function showToolHelp(tabId){
+    let modal=document.getElementById("help-modal");
+    if(!modal){
+      modal=document.createElement("div");
+      modal.id="help-modal";
+      modal.innerHTML=`<div class="hm-box"><button class="hm-close" onclick="closeToolHelp()">✕ FERMER</button>`+
+        `<h2>📖 AIDE — HUMAN-OSINT V4.1</h2>`+
+        `<div class="hm-sub">Ce que fait chaque outil, comment s'en servir, et d'où viennent les données.</div>`+
+        `<div id="hm-body"></div></div>`;
+      modal.addEventListener("click",e=>{ if(e.target===modal) closeToolHelp(); });
+      document.body.appendChild(modal);
+    }
+    const body=document.getElementById("hm-body");
+    body.innerHTML=Object.keys(TOOL_HELP).map(id=>{
+      const t=TOOL_HELP[id];
+      return `<h3 id="help-${id}">${t.name}</h3><p>${escapeHtml(t.desc)}</p>`+
+        `<ul>${t.how.map(h=>`<li>${escapeHtml(h)}</li>`).join("")}</ul>`+
+        `<p style="color:var(--text-muted);font-size:10.5px;">🔎 ${escapeHtml(t.source)}</p>`;
+    }).join("")+
+    `<h3>🔄 Mise à jour automatique</h3><p>Le flux se met à jour tout seul, de deux façons complémentaires :</p>`+
+    `<ul><li><b>Push (SSE)</b> — le serveur re-scrape toutes les sources puis pousse un événement dès que le contenu change. Le badge <code>SSE LIVE</code> en haut confirme que le canal est actif.</li>`+
+    `<li><b>Polling</b> — toutes les 60 s (30 s sur Android) en filet de sécurité, et immédiatement quand vous revenez sur un onglet laissé en arrière-plan.</li>`+
+    `<li>Le diagnostic complet est disponible sur <code>/api/auto-update/status</code> : prochain cycle, durée du dernier, dernière erreur, santé de chaque source.</li></ul>`;
+    modal.classList.add("open");
+    if(tabId){
+      const target=document.getElementById("help-"+tabId);
+      if(target) target.scrollIntoView({behavior:"smooth",block:"start"});
+    }
+  }
+
+  /**
+   * Close the global help panel.
+   */
+  function closeToolHelp(){
+    const modal=document.getElementById("help-modal");
+    if(modal) modal.classList.remove("open");
+  }
+
+  // =======================================================================
+  // HISTORIQUE / ARCHIVE DES ÉVÉNEMENTS PASSÉS
+  // =======================================================================
+  /** Current page offset used by the archive pager. */
+  let historyOffset=0;
+  /** Page size of the archive pager. */
+  const HISTORY_PAGE_SIZE=25;
+  /** Rows returned by the last archive query, reused for map display and export. */
+  let historyRows=[];
+
+  /**
+   * Load the persisted event archive using the current filter panel.
+   *
+   * Reads the date range, category, region, free-text and ordering controls,
+   * then renders both the statistics header and the result list.
+   *
+   * @param {number} [resetOffset] When supplied, the pager is moved to this
+   *   offset before querying.
+   */
+  async function loadHistory(resetOffset){
+    if(typeof resetOffset==="number") historyOffset=resetOffset;
+    const box=document.getElementById("history-container");
+    const info=document.getElementById("history-page-info");
+    if(box) box.innerHTML=`<div style="color:var(--text-muted);padding:10px;">⏳ Consultation de l'archive…</div>`;
+    const params=new URLSearchParams({
+      limit:String(HISTORY_PAGE_SIZE), offset:String(historyOffset),
+      order:document.getElementById("hist-order")?.value||"desc"
+    });
+    const cat=document.getElementById("hist-category")?.value;
+    const reg=document.getElementById("hist-region")?.value;
+    const from=document.getElementById("hist-from")?.value;
+    const to=document.getElementById("hist-to")?.value;
+    const q=document.getElementById("hist-search")?.value;
+    if(cat&&cat!=="all") params.set("category",cat);
+    if(reg&&reg!=="all") params.set("region",reg);
+    if(from) params.set("date_from",from);
+    if(to) params.set("date_to",to);
+    if(q&&q.trim()) params.set("search",q.trim());
+    try{
+      const res=await fetch(`${API_BASE}/api/incidents/history?${params.toString()}`);
+      if(!res.ok) throw new Error("HTTP "+res.status);
+      const data=await res.json();
+      historyRows=data.incidents||[];
+      renderHistory(historyRows);
+      const total=data.total||0;
+      const first=total===0?0:historyOffset+1;
+      const last=Math.min(total,historyOffset+historyRows.length);
+      if(info) info.textContent=`${first}–${last} sur ${total} événement(s) · backend ${data.backend}`;
+    }catch(e){
+      if(box) box.innerHTML=`<div style="color:var(--neon-red);padding:10px;">Archive indisponible : ${escapeHtml(e.message)}.<br><span style="color:var(--text-muted);font-size:10px;">L'archive nécessite le backend. En mode démo GitHub Pages, utilisez l'onglet LIVE.</span></div>`;
+      if(info) info.textContent="—";
+    }
+  }
+
+  /**
+   * Move the archive pager by one page.
+   *
+   * @param {number} direction +1 for the next page, -1 for the previous one.
+   */
+  function historyPage(direction){
+    const total=parseInt((document.getElementById("history-page-info")?.textContent.match(/sur (\d+)/)||[0,0])[1],10)||0;
+    const next=historyOffset+direction*HISTORY_PAGE_SIZE;
+    if(next<0) return;
+    if(total&&next>=total) return;
+    loadHistory(next);
+  }
+
+  /**
+   * Render the archive result list.
+   *
+   * @param {Array} rows Incident rows returned by the history endpoint.
+   */
+  function renderHistory(rows){
+    const box=document.getElementById("history-container");
+    if(!box) return;
+    if(!rows||rows.length===0){ box.innerHTML=`<div style="color:var(--text-muted);padding:14px;text-align:center;">Aucun événement pour ces critères.</div>`; return; }
+    box.innerHTML=rows.map(inc=>{
+      const risk=inc.risk_level||0;
+      const col=risk>=5?"var(--neon-red)":risk>=4?"var(--neon-orange)":risk>=3?"var(--neon-yellow)":"var(--neon-green)";
+      const date=(inc.published_at||"").substring(0,16).replace("T"," ");
+      return `<div class="hist-row" style="border-left-color:${col}">
+        <div class="hr-title">${escapeHtml(inc.title||"")}</div>
+        <div class="hr-meta">🕒 ${escapeHtml(date)} · <b>${escapeHtml(inc.category||"")}</b> · ${escapeHtml(inc.country||"")} ·
+        <span style="color:${col}">risque ${risk}/5</span><br>
+        📡 ${escapeHtml(inc.source||"")} · 📍 ${(inc.latitude||0).toFixed(4)}, ${(inc.longitude||0).toFixed(4)}
+        ${inc.first_seen_at?`<br>🗄️ archivé le ${escapeHtml((inc.first_seen_at||"").substring(0,16).replace("T"," "))}`:""}
+        ${inc.link?` · <a href="${escapeHtml(inc.link)}" target="_blank" rel="noopener" style="color:var(--neon-cyan)">source ↗</a>`:""}</div>
+      </div>`;
+    }).join("");
+  }
+
+  /**
+   * Load the archive statistics header and the clickable day chips.
+   */
+  async function loadHistoryStats(){
+    const sum=document.getElementById("history-summary");
+    const days=document.getElementById("history-days");
+    try{
+      const res=await fetch(`${API_BASE}/api/history/stats`);
+      if(!res.ok) throw new Error("HTTP "+res.status);
+      const st=await res.json();
+      const oldest=st.oldest_published?new Date(st.oldest_published*1000).toISOString().substring(0,10):"—";
+      const newest=st.newest_published?new Date(st.newest_published*1000).toISOString().substring(0,10):"—";
+      if(sum) sum.innerHTML=`<b style="color:var(--neon-cyan)">${st.total_archived}</b> événements archivés du ${oldest} au ${newest} · rétention ${st.retention_days} j · backend <b>${st.backend}</b>`+
+        (st.backend==="sqlite"&&IS_GITHUB_DEMO===false?` <span class="badge-warn">SQLite : éphémère sur Render, attachez PostgreSQL</span>`:``);
+      if(days){
+        const list=(st.timeline||[]).slice(0,21);
+        days.innerHTML=list.map(d=>`<span class="day-chip" onclick="pickHistoryDay('${d.date}')" title="${d.count} événement(s)">${d.date.substring(5)} (${d.count})</span>`).join("");
+      }
+    }catch(e){
+      if(sum) sum.textContent="Statistiques d'archive indisponibles : "+e.message;
+    }
+  }
+
+  /**
+   * Restrict the archive to a single day and reload it.
+   *
+   * @param {string} date Day in YYYY-MM-DD form.
+   */
+  function pickHistoryDay(date){
+    const f=document.getElementById("hist-from"), t=document.getElementById("hist-to");
+    if(f) f.value=date;
+    if(t) t.value=date;
+    loadHistory(0);
+  }
+
+  /**
+   * Plot the archive rows currently on screen onto the active map.
+   */
+  function showHistoryOnMap(){
+    if(!historyRows||historyRows.length===0){ alert("Consultez d'abord l'archive pour avoir des événements à afficher."); return; }
+    renderMapMarkers(historyRows);
+    if(cesiumViewer) syncCesiumIncidents(historyRows);
+    switchTab("tab-live");
+    if(activeMapMode==="2D"&&leafletMap&&historyRows[0]) centerMapOnCoords(historyRows[0].latitude,historyRows[0].longitude,6);
+  }
+
+  /**
+   * Download the archive as a GIS file, honouring the current filters.
+   *
+   * @param {string} fmt One of geojson, csv, kml or gpx.
+   */
+  function exportHistory(fmt){
+    const params=new URLSearchParams({});
+    const cat=document.getElementById("hist-category")?.value;
+    const reg=document.getElementById("hist-region")?.value;
+    const from=document.getElementById("hist-from")?.value;
+    const to=document.getElementById("hist-to")?.value;
+    const q=document.getElementById("hist-search")?.value;
+    if(cat&&cat!=="all") params.set("category",cat);
+    if(reg&&reg!=="all") params.set("region",reg);
+    if(from) params.set("date_from",from);
+    if(to) params.set("date_to",to);
+    if(q&&q.trim()) params.set("search",q.trim());
+    params.set("limit","5000");
+    const url=`${API_BASE}/api/export/incidents.${fmt}?${params.toString()}`;
+    const a=document.createElement("a");
+    a.href=url; a.download=""; a.target="_blank";
+    document.body.appendChild(a); a.click(); a.remove();
+  }
+
+  /**
+   * Download the list currently shown in the LIVE tab as a GIS file.
+   *
+   * Uses the client-side builders so it also works without a backend.
+   *
+   * @param {string} fmt One of geojson, csv, kml or gpx.
+   */
+  function exportLiveList(fmt){
+    const rows=window.__lastRenderedIncidents||allIncidents||[];
+    if(!rows.length){ alert("Aucun événement à exporter."); return; }
+    let blob,name,mime;
+    if(fmt==="geojson"){ blob=new Blob([JSON.stringify(buildGeoJSON(rows),null,2)],{type:"application/geo+json"}); name="geojson"; mime="application/geo+json"; }
+    else if(fmt==="csv"){ blob=new Blob(["\ufeff"+buildCSV(rows)],{type:"text/csv;charset=utf-8"}); name="csv"; mime="text/csv"; }
+    else if(fmt==="kml"){ blob=new Blob([buildKML(rows)],{type:"application/vnd.google-earth.kml+xml"}); name="kml"; mime="application/vnd.google-earth.kml+xml"; }
+    else { blob=new Blob([buildGPX(rows)],{type:"application/gpx+xml"}); name="gpx"; mime="application/gpx+xml"; }
+    triggerDownload(blob,`human-osint-live.${name}`);
+  }
+
+  /**
+   * Build a GeoJSON FeatureCollection client-side (offline-capable twin of
+   * the backend exporter).
+   *
+   * @param {Array} rows Incident rows.
+   * @returns {object} A GeoJSON FeatureCollection.
+   */
+  function buildGeoJSON(rows){
+    const feats=[]; let skipped=0;
+    rows.forEach(r=>{
+      const lat=parseFloat(r.latitude), lon=parseFloat(r.longitude);
+      if(!isFinite(lat)||!isFinite(lon)||(lat===0&&lon===0)){ skipped++; return; }
+      feats.push({type:"Feature",geometry:{type:"Point",coordinates:[lon,lat]},properties:{
+        id:r.id,title:r.title,summary:r.summary,link:r.link,source:r.source,source_type:r.source_type,
+        category:r.category,region:r.region,country:r.country,severity:r.severity,risk_level:r.risk_level,
+        published_at:r.published_at,
+        actors:(r.actors||[]).join(", "),needs:(r.needs||[]).join(", ")}});
+    });
+    return {type:"FeatureCollection",name:"HUMAN-OSINT",
+      crs:{type:"name",properties:{name:"urn:ogc:def:crs:OGC:1.3:CRS84"}},features:feats,
+      metadata:{generator:"HUMAN-OSINT v4.2 - PratiSIG Consulting Services",generated_at:new Date().toISOString(),
+        total_input:rows.length,with_coordinates:feats.length,without_coordinates:skipped}};
+  }
+
+  /**
+   * Build semicolon-separated CSV client-side.
+   *
+   * @param {Array} rows Incident rows.
+   * @returns {string} CSV text without the BOM (the caller adds it).
+   */
+  function buildCSV(rows){
+    const cols=["id","published_at","title","category","risk_level","severity","country","region","latitude","longitude","source","source_type","actors","needs","summary","link"];
+    const esc=v=>{ const s=(v===null||v===undefined)?"":String(v); return /[;"\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s; };
+    const lines=[cols.join(";")];
+    rows.forEach(r=>{
+      lines.push(cols.map(c=>{
+        const v=r[c];
+        return esc(Array.isArray(v)?v.join(", "):v);
+      }).join(";"));
+    });
+    return lines.join("\n");
+  }
+
+  /**
+   * Build a KML document client-side.
+   *
+   * @param {Array} rows Incident rows.
+   * @returns {string} KML text.
+   */
+  function buildKML(rows){
+    const x=s=>String(s===null||s===undefined?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    const parts=['<?xml version="1.0" encoding="UTF-8"?>','<kml xmlns="http://www.opengis.net/kml/2.2">','<Document>',
+      '<name>HUMAN-OSINT</name>','<description>Généré par HUMAN-OSINT v4.2 - PratiSIG Consulting Services</description>'];
+    rows.forEach(r=>{
+      const lat=parseFloat(r.latitude), lon=parseFloat(r.longitude);
+      if(!isFinite(lat)||!isFinite(lon)||(lat===0&&lon===0)) return;
+      parts.push(`<Placemark><name>${x((r.title||"").substring(0,80))}</name>`+
+        `<description><![CDATA[<b>${x(r.title)}</b><br/>${x(r.summary||"")}<br/>Source: ${x(r.source)}<br/>Risque: ${r.risk_level||0}/5]]></description>`+
+        `<Point><coordinates>${lon},${lat},0</coordinates></Point></Placemark>`);
+    });
+    parts.push("</Document>","</kml>");
+    return parts.join("\n");
+  }
+
+  /**
+   * Build a GPX document client-side.
+   *
+   * @param {Array} rows Incident rows.
+   * @returns {string} GPX text.
+   */
+  function buildGPX(rows){
+    const x=s=>String(s===null||s===undefined?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    const parts=['<?xml version="1.0" encoding="UTF-8"?>',
+      '<gpx version="1.1" creator="HUMAN-OSINT v4.2 - PratiSIG Consulting Services" xmlns="http://www.topografix.com/GPX/1/1">',
+      `<metadata><name>HUMAN-OSINT</name><time>${new Date().toISOString()}</time></metadata>`];
+    rows.forEach(r=>{
+      const lat=parseFloat(r.latitude), lon=parseFloat(r.longitude);
+      if(!isFinite(lat)||!isFinite(lon)||(lat===0&&lon===0)) return;
+      parts.push(`<wpt lat="${lat}" lon="${lon}"><name>${x((r.title||"").substring(0,80))}</name>`+
+        `<desc>${x((r.summary||"").substring(0,300))}</desc><sym>${x(r.category||"")}</sym></wpt>`);
+    });
+    parts.push("</gpx>");
+    return parts.join("\n");
+  }
+
+  /**
+   * Offer a Blob as a browser download.
+   *
+   * @param {Blob} blob Content to download.
+   * @param {string} filename Suggested file name.
+   */
+  function triggerDownload(blob,filename){
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url; a.download=filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),4000);
+  }
+
+  // =======================================================================
+  // GÉOCODAGE
+  // =======================================================================
+  /**
+   * Geocode the text in the search box and render the candidates.
+   *
+   * Accepts a place name, a full address, or a "lat, lon" pair which is
+   * detected and routed to reverse geocoding instead.
+   */
+  async function runGeocode(){
+    const raw=(document.getElementById("geocode-q")?.value||"").trim();
+    if(!raw){ alert("Saisissez un lieu, une adresse ou des coordonnées."); return; }
+    const pair=raw.match(/^\s*(-?\d+(?:[.,]\d+)?)\s*[;,]\s*(-?\d+(?:[.,]\d+)?)\s*$/);
+    if(pair){
+      document.getElementById("geocode-lat").value=pair[1].replace(",",".");
+      document.getElementById("geocode-lon").value=pair[2].replace(",",".");
+      return runReverseGeocode();
+    }
+    const box=document.getElementById("geocode-results");
+    if(box) box.innerHTML=`<div style="color:var(--text-muted);padding:10px;">⏳ Recherche de « ${escapeHtml(raw)} »…</div>`;
+    try{
+      const res=await fetch(`${API_BASE}/api/geocode?q=${encodeURIComponent(raw)}&limit=8`);
+      const data=await res.json();
+      renderGeocodeResults(data);
+    }catch(e){
+      if(box) box.innerHTML=`<div style="color:var(--neon-red);padding:10px;">Géocodage indisponible : ${escapeHtml(e.message)}</div>`;
+    }
+  }
+
+  /**
+   * Resolve the latitude/longitude inputs to an address and centre the map.
+   */
+  async function runReverseGeocode(){
+    const lat=parseFloat((document.getElementById("geocode-lat")?.value||"").replace(",","."));
+    const lon=parseFloat((document.getElementById("geocode-lon")?.value||"").replace(",","."));
+    const box=document.getElementById("geocode-results");
+    if(!isFinite(lat)||!isFinite(lon)){ alert("Saisissez une latitude et une longitude valides."); return; }
+    if(box) box.innerHTML=`<div style="color:var(--text-muted);padding:10px;">⏳ Résolution de ${lat}, ${lon}…</div>`;
+    try{
+      const res=await fetch(`${API_BASE}/api/geocode/reverse?lat=${lat}&lon=${lon}`);
+      const data=await res.json();
+      renderGeocodeResults({count:data.error?0:1,results:data.error?[]:[data],reverse:true,error:data.error});
+    }catch(e){
+      if(box) box.innerHTML=`<div style="color:var(--neon-red);padding:10px;">Géocodage inverse indisponible : ${escapeHtml(e.message)}</div>`;
+    }
+  }
+
+  /**
+   * Read a "lat, lon" pair from the clipboard and reverse-geocode it.
+   */
+  async function geocodeFromClipboard(){
+    try{
+      const txt=(await navigator.clipboard.readText()||"").trim();
+      const m=txt.match(/(-?\d+(?:[.,]\d+)?)[^\d\-]+(-?\d+(?:[.,]\d+)?)/);
+      if(!m) throw new Error("aucune paire de coordonnées trouvée dans le presse-papiers");
+      document.getElementById("geocode-lat").value=m[1].replace(",",".");
+      document.getElementById("geocode-lon").value=m[2].replace(",",".");
+      runReverseGeocode();
+    }catch(e){ alert("Presse-papiers illisible : "+e.message); }
+  }
+
+  /**
+   * Render geocoding candidates with a button to fly to each one.
+   *
+   * @param {object} data Response of the geocoding endpoint.
+   */
+  function renderGeocodeResults(data){
+    const box=document.getElementById("geocode-results");
+    if(!box) return;
+    if(data.error){ box.innerHTML=`<div style="color:var(--neon-orange);padding:10px;">⚠️ ${escapeHtml(data.error)}<br><span style="font-size:10px;color:var(--text-muted)">Le géocodage passe par OpenStreetMap Nominatim via le backend.</span></div>`; return; }
+    const results=data.results||[];
+    if(!results.length){ box.innerHTML=`<div style="color:var(--text-muted);padding:10px;">Aucun résultat.</div>`; return; }
+    box.innerHTML=results.map((r,i)=>`<div class="hist-row" style="border-left-color:var(--neon-yellow)">
+      <div class="hr-title">${escapeHtml(r.display_name||"")}</div>
+      <div class="hr-meta">📍 ${Number(r.latitude).toFixed(5)}, ${Number(r.longitude).toFixed(5)} · ${escapeHtml(r.type||"")} ${r.country?`· ${escapeHtml(r.country)}`:""}</div>
+      <button class="cyber-btn btn-xs" onclick="goToGeocodeResult(${Number(r.latitude)},${Number(r.longitude)},${r.boundingbox&&r.boundingbox.length===4?`[${r.boundingbox.join(",")}]`:"null"})">🎯 Y ALLER</button>
+    </div>`).join("");
+  }
+
+  /**
+   * Fly the active map to a geocoding result, fitting its bounding box.
+   *
+   * @param {number} lat Target latitude.
+   * @param {number} lon Target longitude.
+   * @param {Array|null} bbox Optional [south, north, west, east] box.
+   */
+  function goToGeocodeResult(lat,lon,bbox){
+    if(activeMapMode==="3D"&&cesiumViewer){
+      centerMapOnCoords(lat,lon,10);
+    } else if(leafletMap&&bbox&&bbox.length===4){
+      leafletMap.fitBounds([[bbox[0],bbox[2]],[bbox[1],bbox[3]]],{padding:[20,20]});
+    } else {
+      centerMapOnCoords(lat,lon,12);
+    }
+  }
+
+  // =======================================================================
+  // RECHERCHE D'IDENTITÉ
+  // =======================================================================
+  /**
+   * Render the input form matching the selected identity tool.
+   */
+  function renderIdentityForm(){
+    const kind=document.getElementById("identity-kind")?.value||"email";
+    const host=document.getElementById("identity-form");
+    if(!host) return;
+    const forms={
+      email:`<input type="text" id="id-email" class="filter-select" placeholder="prenom.nom@domaine.com">
+             <label style="font-size:10px;color:var(--text-muted)"><input type="checkbox" id="id-mx" checked> Vérifier les MX (le domaine reçoit-il du courrier ?)</label>`,
+      phone:`<input type="text" id="id-phone" class="filter-select" placeholder="+221 77 123 45 67 ou 771234567">
+             <select id="id-region" class="filter-select"><option value="SN">🇸🇳 Sénégal (par défaut)</option><option value="FR">🇫🇷 France</option><option value="BE">🇧🇪 Belgique</option><option value="MA">🇲🇦 Maroc</option><option value="CI">🇨🇮 Côte d'Ivoire</option><option value="ML">🇲🇱 Mali</option><option value="US">🇺🇸 États-Unis</option></select>`,
+      username:`<input type="text" id="id-username" class="filter-select" placeholder="pseudo_sans_espace">`,
+      person:`<input type="text" id="id-name" class="filter-select" placeholder="Nom complet">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                <input type="text" id="id-city" class="filter-select" placeholder="Ville (facultatif)">
+                <input type="text" id="id-country" class="filter-select" placeholder="Pays (facultatif)">
+              </div>
+              <input type="text" id="id-employer" class="filter-select" placeholder="Employeur (facultatif)">`
+    };
+    host.innerHTML=forms[kind]||forms.email;
+  }
+
+  /**
+   * Run the selected identity analysis and render the outcome.
+   */
+  async function runIdentity(){
+    const kind=document.getElementById("identity-kind")?.value||"email";
+    const out=document.getElementById("identity-result");
+    if(out) out.innerHTML=`<div style="color:var(--text-muted);padding:10px;">⏳ Analyse…</div>`;
+    const endpoints={email:"/api/osint/identity/email",phone:"/api/osint/identity/phone",
+                     username:"/api/osint/identity/username",person:"/api/osint/identity/person"};
+    let payload={};
+    if(kind==="email"){
+      payload={email:(document.getElementById("id-email")?.value||"").trim(),check_mx:!!document.getElementById("id-mx")?.checked};
+    } else if(kind==="phone"){
+      payload={number:(document.getElementById("id-phone")?.value||"").trim(),default_region:document.getElementById("id-region")?.value||"SN"};
+    } else if(kind==="username"){
+      payload={username:(document.getElementById("id-username")?.value||"").trim()};
+    } else {
+      payload={name:(document.getElementById("id-name")?.value||"").trim(),
+               city:(document.getElementById("id-city")?.value||"").trim(),
+               country:(document.getElementById("id-country")?.value||"").trim(),
+               employer:(document.getElementById("id-employer")?.value||"").trim()};
+    }
+    if(!Object.values(payload).some(v=>typeof v==="string"&&v.trim())){
+      if(out) out.innerHTML=`<div style="color:var(--neon-orange);padding:10px;">Saisissez d'abord une valeur.</div>`;
+      return;
+    }
+    try{
+      const res=await fetch(`${API_BASE}${endpoints[kind]}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+      if(!res.ok) throw new Error("HTTP "+res.status);
+      renderIdentityResult(kind,await res.json());
+    }catch(e){
+      if(out) out.innerHTML=`<div style="color:var(--neon-red);padding:10px;">Analyse indisponible : ${escapeHtml(e.message)}<br><span style="font-size:10px;color:var(--text-muted)">Ces outils nécessitent le backend (analyse locale + MX + normalisation téléphonique).</span></div>`;
+    }
+  }
+
+  /**
+   * Render an identity analysis: parsed facts, flags and engine links.
+   *
+   * @param {string} kind The tool that produced the result.
+   * @param {object} data Analysis payload returned by the backend.
+   */
+  function renderIdentityResult(kind,data){
+    const out=document.getElementById("identity-result");
+    if(!out) return;
+    if(data.error){ out.innerHTML=`<div class="ident-block"><h4>⚠️ Entrée refusée</h4><div class="ident-kv">${escapeHtml(data.error)}</div></div>`; return; }
+    const badges=[];
+    if(kind==="email"){
+      badges.push(data.valid?`<span class="badge-ok">format valide</span>`:`<span class="badge-warn">format invalide</span>`);
+      if(data.is_disposable) badges.push(`<span class="badge-warn">domaine jetable</span>`);
+      if(data.is_role_account) badges.push(`<span class="badge-warn">compte générique</span>`);
+      if(data.is_free_provider) badges.push(`<span class="badge-ok">fournisseur grand public</span>`);
+      if(data.mx) badges.push(data.mx.exists?`<span class="badge-ok">MX présents</span>`:`<span class="badge-warn">pas de MX</span>`);
+    }
+    if(kind==="phone"){
+      badges.push(data.valid?`<span class="badge-ok">numéro valide</span>`:`<span class="badge-warn">numéro invalide</span>`);
+      if(data.region) badges.push(`<span class="badge-ok">${escapeHtml(data.region)}</span>`);
+    }
+    let facts="";
+    if(kind==="email"){
+      facts=`<div class="ident-kv"><b>Local :</b> ${escapeHtml(data.local_part||"")}<br><b>Domaine :</b> ${escapeHtml(data.domain||"")}<br>`+
+        `<b>MD5 Gravatar :</b> <code style="font-size:9.5px">${escapeHtml(data.gravatar_md5||"—")}</code><br>`+
+        `<b>Pseudos dérivés :</b> ${escapeHtml((data.derived_usernames||[]).join(", "))}</div>`;
+      if(data.mx){
+        facts+=`<div class="ident-kv" style="margin-top:5px"><b>MX (${escapeHtml(data.mx.domain||"")}) :</b> `+
+          (data.mx.exists?(data.mx.records||[]).map(r=>`${escapeHtml(r.host)} (préf. ${r.preference})`).join("<br>")+" "+
+            (data.mx.provider_guess?`<span class="badge-ok">${escapeHtml(data.mx.provider_guess)}</span>`:"")
+           :`<span class="badge-warn">aucun enregistrement MX${data.mx.error?" ("+escapeHtml(data.mx.error)+")":""}</span>`)+"</div>";
+      }
+      if(data.gravatar_url) facts+=`<div style="margin-top:5px"><img src="${escapeHtml(data.gravatar_url)}" alt="avatar Gravatar" style="width:48px;height:48px;border-radius:4px;border:1px solid var(--border)" onerror="this.style.display='none'"></div>`;
+    }
+    if(kind==="phone"){
+      facts=`<div class="ident-kv"><b>E.164 :</b> ${escapeHtml(data.e164||"")}<br><b>Format national :</b> ${escapeHtml(data.national||"")}<br>`+
+        `<b>Indicatif pays :</b> +${escapeHtml(String(data.country_code||""))} · <b>Région :</b> ${escapeHtml(data.region||"—")}<br>`+
+        `<b>Type de ligne :</b> ${escapeHtml(data.type||"—")}${data.carrier_guess?` · <b>Opérateur (estimé) :</b> ${escapeHtml(data.carrier_guess)}`:""}</div>`;
+    }
+    if(kind==="username"){
+      facts=`<div class="ident-kv"><b>Variantes testées :</b> ${escapeHtml((data.variants||[]).join(", "))}</div>`;
+    }
+    if(kind==="person"){
+      facts=`<div class="ident-kv"><b>Requête composée :</b> ${escapeHtml(data.query||"")}</div>`;
+    }
+    const links=(data.engines||[]).map(e=>{
+      if(e.deep_link===false){
+        return `<a class="ident-link nolink" href="${escapeHtml(e.url)}" target="_blank" rel="noopener" title="${escapeHtml(e.description||e.name)}">${escapeHtml(e.name)} ↗</a>`;
+      }
+      return `<a class="ident-link" href="${escapeHtml(e.url)}" target="_blank" rel="noopener" title="${escapeHtml(e.description||e.name)}">${escapeHtml(e.name)} ↗</a>`;
+    }).join("");
+    out.innerHTML=`<div class="ident-block"><h4>Résultat</h4>${badges.join(" ")}${facts}</div>`+
+      `<div class="ident-block" style="border-left-color:var(--neon-cyan)"><h4>Services de recherche (${(data.engines||[]).length})</h4><div>${links}</div>`+
+      `<div class="ident-kv" style="margin-top:6px;color:var(--text-muted);font-size:10px">Les services marqués d'un pointillé n'acceptent pas de lien direct : ouvrez-les puis collez la valeur.</div></div>`;
+  }
+
+  // =======================================================================
+  // EXPORT HAUTE RÉSOLUTION DU FOND DE CARTE
+  // =======================================================================
+  /**
+   * Compute the tile index range covering a bounding box at a given zoom.
+   *
+   * Standard Web Mercator slippy-map maths, exposed as a pure function so the
+   * projection can be unit-tested without a browser or a live map.
+   *
+   * @param {{south:number,west:number,north:number,east:number}} b Geographic box.
+   * @param {number} zoom Zoom level.
+   * @returns {{minX:number,maxX:number,minY:number,maxY:number,count:number}} Tile range.
+   */
+  function computeTileRange(b,zoom){
+    const n=Math.pow(2,zoom);
+    const toX=lon=>Math.floor((lon+180)/360*n);
+    const toY=lat=>{
+      const s=Math.sin(Math.max(-85.0511,Math.min(85.0511,lat))*Math.PI/180);
+      return Math.floor((0.5-Math.log((1+s)/(1-s))/(4*Math.PI))*n);
+    };
+    const minX=Math.max(0,toX(b.west)), maxX=Math.min(n-1,toX(b.east));
+    const minY=Math.max(0,toY(b.north)), maxY=Math.min(n-1,toY(b.south));
+    return {minX,maxX,minY,maxY,count:(maxX-minX+1)*(maxY-minY+1)};
+  }
+
+  /**
+   * Resolve the tile URL template of the currently active basemap.
+   *
+   * @returns {{url:string,credit:string}|null} Template and attribution.
+   */
+  function currentBasemapTemplate(){
+    const cfg=BASEMAPS[activeMapMode==="3D"?currentCesiumBaseKey:currentBaseLayerKey]||BASEMAPS.sat;
+    return {url:cfg.url,credit:cfg.credit,label:cfg.label};
+  }
+
+  /**
+   * Download the visible basemap as a high-resolution PNG.
+   *
+   * Re-fetches the tiles covering the current view at ``currentZoom + scale - 1``
+   * and stitches them into one canvas, so the output is genuinely sharper than
+   * a screenshot rather than a scaled-up capture. Incident markers are drawn on
+   * top and the attribution is burned into the corner.
+   *
+   * Requires the tile host to send CORS headers (Esri, OSM, CARTO and Google
+   * all do); otherwise the canvas is tainted and the export is refused with an
+   * explanatory message.
+   *
+   * @param {number} [scale] Resolution multiplier: 1, 2 or 3 (default 2).
+   */
+  async function downloadBasemapImage(scale){
+    const factor=Math.max(1,Math.min(3,parseInt(scale,10)||2));
+    const status=document.getElementById("export-map-status");
+    const say=t=>{ if(status){ status.style.display="block"; status.textContent=t; } };
+    try{
+      if(activeMapMode==="3D"&&cesiumViewer){ await exportCesiumImage(factor,say); return; }
+      if(!leafletMap) throw new Error("carte 2D non initialisée");
+      const b=leafletMap.getBounds();
+      const box={south:b.getSouth(),west:b.getWest(),north:b.getNorth(),east:b.getEast()};
+      const zoom=Math.min(19,(leafletMap.getZoom()||3)+factor-1);
+      const range=computeTileRange(box,zoom);
+      if(range.count>900) throw new Error(`zone trop grande à ce niveau de détail (${range.count} tuiles) — dézoomez ou réduisez le facteur`);
+      const tpl=currentBasemapTemplate();
+      say(`⏳ Téléchargement de ${range.count} tuiles au zoom ${zoom}…`);
+      const cols=range.maxX-range.minX+1, rowsN=range.maxY-range.minY+1;
+      const canvas=document.createElement("canvas");
+      canvas.width=cols*256; canvas.height=rowsN*256;
+      const ctx=canvas.getContext("2d");
+      ctx.fillStyle="#0b1220"; ctx.fillRect(0,0,canvas.width,canvas.height);
+      let loaded=0, failed=0;
+      const tasks=[];
+      for(let x=range.minX;x<=range.maxX;x++){
+        for(let y=range.minY;y<=range.maxY;y++){
+          const url=tpl.url.replace("{z}",String(zoom)).replace("{x}",String(x)).replace("{y}",String(y));
+          tasks.push(new Promise(resolve=>{
+            const img=new Image();
+            img.crossOrigin="anonymous";
+            img.onload=()=>{ ctx.drawImage(img,(x-range.minX)*256,(y-range.minY)*256,256,256); loaded++; resolve(); };
+            img.onerror=()=>{ failed++; resolve(); };
+            img.src=url;
+          }));
+        }
+      }
+      await Promise.all(tasks);
+      if(loaded===0) throw new Error("aucune tuile n'a pu être téléchargée (CORS ou réseau)");
+      // Incident markers on top.
+      const n=Math.pow(2,zoom);
+      (window.__lastRenderedIncidents||allIncidents||[]).forEach(inc=>{
+        const lat=parseFloat(inc.latitude), lon=parseFloat(inc.longitude);
+        if(!isFinite(lat)||!isFinite(lon)) return;
+        const px=((lon+180)/360*n-range.minX)*256;
+        const s=Math.sin(Math.max(-85.0511,Math.min(85.0511,lat))*Math.PI/180);
+        const py=((0.5-Math.log((1+s)/(1-s))/(4*Math.PI))*n-range.minY)*256;
+        if(px<0||py<0||px>canvas.width||py>canvas.height) return;
+        ctx.beginPath(); ctx.arc(px,py,6,0,Math.PI*2);
+        ctx.fillStyle=(inc.risk_level||0)>=4?"rgba(255,42,95,.9)":"rgba(0,229,255,.9)";
+        ctx.fill(); ctx.lineWidth=1.5; ctx.strokeStyle="#fff"; ctx.stroke();
+      });
+      ctx.fillStyle="rgba(4,6,10,.75)"; ctx.fillRect(0,canvas.height-22,canvas.width,22);
+      ctx.fillStyle="#cfe6ff"; ctx.font="11px monospace";
+      ctx.fillText(`HUMAN-OSINT v4.2 · ${tpl.label} · zoom ${zoom} · ${loaded} tuiles · PratiSIG Consulting Services`,6,canvas.height-7);
+      say(`✅ ${loaded} tuiles assemblées (${failed} échec(s)) — ${canvas.width}×${canvas.height}px`);
+      canvas.toBlob(blob=>{ if(blob) triggerDownload(blob,`human-osint-carte-z${zoom}.png`); else say("⚠️ export refusé par le navigateur"); },"image/png");
+    }catch(e){
+      say("⚠️ "+e.message);
+    }
+  }
+
+  /**
+   * Export the 3D globe view as a PNG.
+   *
+   * Cesium only keeps the drawing buffer if the viewer was created with
+   * ``contextOptions.requestWebgl.preserveDrawingBuffer``, which
+   * {@link initCesiumSatellite} sets; the scene is rendered immediately before
+   * reading the canvas so the frame is not empty.
+   *
+   * @param {number} factor Requested multiplier, used only for the label.
+   * @param {Function} say Progress reporter.
+   */
+  async function exportCesiumImage(factor,say){
+    say("⏳ Rendu du globe 3D…");
+    cesiumViewer.render();
+    const canvas=cesiumViewer.canvas;
+    const url=canvas.toDataURL("image/png");
+    if(!url||url.length<2000) throw new Error("rendu vide : relancez l'export juste après un déplacement du globe");
+    say(`✅ Globe exporté (${canvas.width}×${canvas.height}px)`);
+    const a=document.createElement("a");
+    a.href=url; a.download=`human-osint-globe-x${factor}.png`;
+    document.body.appendChild(a); a.click(); a.remove();
+  }
+
+  // =======================================================================
+  // MANUEL UTILISATEUR
+  // =======================================================================
+  /**
+   * Structured content of the user manual.
+   *
+   * Kept in one registry so the tab, the header help panel and the printed
+   * documentation can never contradict each other.
+   */
+  const MANUAL={
+    "demarrage":{title:"🚀 Démarrage rapide",body:`
+      <p>HUMAN-OSINT agrège en continu des sources ouvertes (61 flux RSS, NASA EONET, USGS, GDACS, ReliefWeb, GDELT, Reddit, Telegram) et les place sur une carte 2D ou un globe 3D.</p>
+      <h4>Trois modes de fonctionnement</h4>
+      <ul>
+        <li><b>Backend connecté</b> — tout est actif : flux live, archive, géocodage, export, identité.</li>
+        <li><b>Démo GitHub Pages</b> — 30 événements de démonstration, carte et dessin fonctionnent, pas de backend.</li>
+        <li><b>Android</b> — pont natif vers la base SQLite embarquée.</li>
+      </ul>
+      <h4>Configurer votre backend</h4>
+      <p>Cliquez sur le badge <code>🔧 API</code> en haut à droite, ou ajoutez <code>?api=https://votre-instance.onrender.com</code> à l'URL.</p>`},
+    "auto-update":{title:"🔄 Mise à jour automatique",body:`
+      <p>Le flux se met à jour seul, par deux canaux complémentaires :</p>
+      <h4>1. Push temps réel (SSE)</h4>
+      <p>Le serveur re-scrape toutes les sources puis pousse un événement dès que le contenu change. Le badge <code>SSE LIVE</code> en haut confirme que le canal est actif ; il repasse à <code>SSE OFF</code> et se reconnecte seul en cas de coupure.</p>
+      <h4>2. Polling de sécurité</h4>
+      <p>Toutes les 60 s (30 s sur Android), et immédiatement quand vous revenez sur un onglet laissé en arrière-plan.</p>
+      <h4>Contrôles</h4>
+      <ul>
+        <li><code>⚡ FORCE REFRESH</code> — force un re-scraping immédiat côté serveur.</li>
+        <li><code>⏸️ PAUSE</code> — gèle le rafraîchissement pour lire tranquillement.</li>
+        <li>Le badge d'âge passe en orange au-delà de 2 cycles : une panne devient visible.</li>
+        <li>Diagnostic complet : <code>/api/auto-update/status</code>.</li>
+      </ul>`},
+    "search":{title:"🔎 SEARCH — recherche avancée",body:`
+      <p>Construit des requêtes combinant plusieurs opérateurs de recherche en une seule requête exploitable.</p>
+      <h4>À quoi ça sert</h4>
+      <p>Une même intention de recherche se décline en plusieurs variantes d'opérateurs. Plutôt que de les écrire à la main, vous composez la requête une fois et l'outil génère les variantes.</p>
+      <h4>Comment s'en servir</h4>
+      <ul>
+        <li>Saisissez un mot-clé ou une expression.</li>
+        <li>Choisissez les opérateurs : <code>site:</code>, <code>inurl:</code>, <code>intitle:</code>, <code>filetype:</code>, <code>ext:</code>, <code>cache:</code>.</li>
+        <li>Cliquez sur <b>Générer</b> : chaque variante est copiable ou ouvrable directement.</li>
+        <li><b>Tout effacer</b> réinitialise le formulaire.</li>
+      </ul>
+      <h4>D'où viennent les données</h4>
+      <p>Aucune donnée n'est collectée : l'outil compose des URL. La définition des opérateurs vient de <code>/api/search/advanced</code>.</p>
+      <h4>Astuce</h4>
+      <p>Combinez <code>filetype:pdf</code> avec un nom de domaine pour trouver les documents internes exposés d'une organisation.</p>`},
+    "engines":{title:"🧰 ENGINES — 40 moteurs OSINT",body:`
+      <p>Annuaire de moteurs de recherche spécialisés : infrastructure réseau, certificats, fuites de données, maritime, aérien, domaines, réseaux sociaux.</p>
+      <h4>À quoi ça sert</h4>
+      <p>Un moteur généraliste ne voit pas les espaces d'adresses exposés, les certificats TLS, les enregistrements WHOIS ou les transpondeurs AIS. Ces moteurs oui.</p>
+      <h4>Comment s'en servir</h4>
+      <ul>
+        <li>Filtrez par catégorie, ou cochez <b>gratuit uniquement</b> pour masquer ceux qui exigent une clé API.</li>
+        <li>Cochez plusieurs moteurs, saisissez une requête, lancez : un onglet s'ouvre par moteur avec la requête pré-remplie.</li>
+        <li>Chaque fiche indique si le service est gratuit et ce qu'il retourne réellement.</li>
+      </ul>
+      <h4>Exemples par famille</h4>
+      <ul>
+        <li><b>Infrastructure</b> : Shodan, Censys, ZoomEye — appareils exposés par IP, port, service, bannière.</li>
+        <li><b>Fuites</b> : IntelX, Dehashed, Have I Been Pwned — identifiants et documents issus de fuites.</li>
+        <li><b>Domaines</b> : Hunter, WHOIS, DNSlytics — schéma de nommage et historique d'enregistrement.</li>
+        <li><b>Mobilité</b> : FlightRadar24, MarineTraffic, ADS-B Exchange — suivi aérien et maritime.</li>
+      </ul>
+      <h4>D'où viennent les données</h4>
+      <p>L'annuaire vient de <code>/api/osint/engines</code>. Les recherches partent de votre navigateur directement vers le service choisi.</p>`},
+    "dorks":{title:"🎯 DORKS — 80+ Google Dorks",body:`
+      <p>Base de requêtes Google prêtes à l'emploi, classées par catégorie et par sévérité, plus un générateur de dorks personnalisés.</p>
+      <h4>À quoi ça sert</h4>
+      <p>Un « dork » est une requête qui utilise les opérateurs de Google pour atteindre des pages qu'une recherche normale ne montre pas : panneaux d'administration, documents internes, index de répertoires, caméras, bases exposées.</p>
+      <h4>Comment s'en servir</h4>
+      <ul>
+        <li>Filtrez par <b>catégorie</b> (infrastructure, documents, caméras, bases de données, cloud…) ou par <b>sévérité</b>.</li>
+        <li>Cliquez sur un dork : il s'ouvre directement dans Google.</li>
+        <li>L'icône de copie place la requête dans le presse-papiers pour l'adapter.</li>
+        <li>Le <b>générateur</b> compose vos propres variantes à partir d'un mot-clé et d'un domaine.</li>
+      </ul>
+      <h4>Lire la sévérité</h4>
+      <ul>
+        <li><b>critical</b> — exposition directe de données sensibles.</li>
+        <li><b>high</b> — surface d'attaque significative.</li>
+        <li><b>medium</b> — information utile au ciblage.</li>
+        <li><b>low</b> — reconnaissance générale.</li>
+      </ul>
+      <h4>D'où viennent les données</h4>
+      <p>La base vient de <code>/api/dorks/all</code>, le générateur de <code>/api/dorks/generate</code>.</p>
+      <h4>⚠️ Cadre légal</h4>
+      <p>Consulter une page indexée publiquement est licite ; s'y authentifier, exploiter une faille ou extraire des données personnelles ne l'est pas. Restez dans le périmètre qui vous est confié et documentez vos accès.</p>`},
+    "geoint":{title:"🗺️ GEOINT — carte, globe et export",body:`
+      <h4>2D / 3D</h4>
+      <p>Basculez avec les boutons en haut à droite. Le fond de carte se choisit dans le sélecteur et reste le même dans les deux modes.</p>
+      <h4>Fonds de carte disponibles</h4>
+      <ul>
+        <li><b>Esri World Imagery</b> — photographie satellite réelle, jusqu'à 0,3 m en zone urbaine.</li>
+        <li><b>Google Satellite</b> — imagerie récente, bonne couverture rurale.</li>
+        <li><b>OpenStreetMap</b> — carte vectorielle, noms de rues et frontières.</li>
+        <li><b>CARTO dark</b> — fond neutre qui fait ressortir les marqueurs.</li>
+        <li><b>OpenTopoMap</b> — courbes de niveau et relief.</li>
+      </ul>
+      <h4>Dessin et mesure</h4>
+      <p>Outils à gauche de la carte : polygone, rectangle, cercle, marqueur, règle. Les zones sont enregistrées dans le navigateur et ré-affichées au rechargement.</p>
+      <h4>Export haute résolution</h4>
+      <p><code>📸 CARTE HD</code> re-télécharge les tuiles de la vue courante à un niveau de zoom supérieur et les assemble en un seul PNG. Facteurs 1×, 2× et 3×. Les incidents sont dessinés par-dessus et l'attribution est incrustée.</p>
+      <h4>Export SIG</h4>
+      <p>GeoJSON (QGIS, ArcGIS), CSV (Excel), KML (Google Earth) et GPX (GPS), avec les coordonnées et tous les attributs.</p>`},
+    "history":{title:"🗄️ HISTORIQUE — consulter le passé",body:`
+      <p>Chaque cycle de mise à jour archive ses événements. L'onglet HISTORIQUE permet de les retrouver bien après leur sortie du flux live.</p>
+      <h4>Filtrer</h4>
+      <ul>
+        <li>Par <b>période</b> (du / au), ou cliquez directement sur une pastille de jour.</li>
+        <li>Par <b>catégorie</b>, <b>région</b>, <b>recherche plein texte</b>.</li>
+        <li>Ordre chronologique ou antéchronologique, pagination par 25.</li>
+      </ul>
+      <h4>Exporter</h4>
+      <p>Les quatre formats SIG respectent les filtres courants : vous exportez exactement ce que vous voyez.</p>
+      <h4>⚠️ Persistance sur Render</h4>
+      <p>Le niveau gratuit de Render a un <b>système de fichiers éphémère</b> et n'autorise <b>pas de disque persistant</b> : une base SQLite y est effacée à chaque redémarrage. Pour conserver l'histoire dans la durée, attachez une instance <b>PostgreSQL</b> — l'application la détecte automatiquement via <code>DATABASE_URL</code>, sans changement de code.</p>
+      <p>Attention : le PostgreSQL gratuit de Render <b>expire 30 jours</b> après sa création (puis 14 jours de grâce avant suppression). Pour un usage durable, prévoyez une instance payante ou exportez régulièrement en GeoJSON.</p>`},
+    "geocode":{title:"📍 GÉOCODAGE",body:`
+      <h4>Adresse → coordonnées</h4>
+      <p>Saisissez un lieu, une adresse ou un repère (« Dakar, Plateau », « Aéroport AIBD ») puis <b>Géocoder</b>. Chaque résultat peut être atteint d'un clic ; la carte s'ajuste sur son emprise.</p>
+      <h4>Coordonnées → adresse</h4>
+      <p>Renseignez latitude et longitude, ou collez simplement une paire « lat, lon » dans le champ de recherche : elle est détectée automatiquement.</p>
+      <h4>Source et limites</h4>
+      <p>OpenStreetMap Nominatim, via le backend (une requête par seconde, conformément à leur politique d'usage). La couverture est excellente en ville, plus inégale en zone rurale.</p>`},
+    "identity":{title:"🔍 IDENTITÉ",body:`
+      <h4>Adresse e-mail</h4>
+      <p>Validation du format, détection des domaines jetables et des comptes génériques (<code>info@</code>, <code>contact@</code>), hash Gravatar, pseudos dérivés, puis <b>vérification DNS des enregistrements MX</b> pour savoir si le domaine peut réellement recevoir du courrier.</p>
+      <h4>Téléphone et WhatsApp</h4>
+      <p>Normalisation au format E.164, pays, type de ligne (mobile, fixe, VoIP) et opérateur estimé via libphonenumber. Sans préfixe <code>+</code>, le pays par défaut est le Sénégal. Un lien WhatsApp direct est produit, ainsi que les annuaires inverses.</p>
+      <h4>Pseudo</h4>
+      <p>Un même pseudo est très souvent réutilisé : l'outil ouvre le profil correspondant sur 23 plateformes, plus des agrégateurs qui en testent des centaines.</p>
+      <h4>Nom de personne</h4>
+      <p>Recherche exacte du nom, éventuellement restreinte par ville, pays ou employeur.</p>
+      <h4>⚠️ Éthique</h4>
+      <p>Ces outils agrègent des liens vers des services tiers ; ils ne collectent rien. Le croisement d'identités portant sur des personnes réelles est encadré par la loi : limitez-vous aux finalités légitimes et documentées.</p>`},
+    "report":{title:"📄 REPORT & AI AGENT",body:`
+      <h4>Rapport</h4>
+      <p>Sélectionnez un sujet, des régions, des catégories et une fenêtre temporelle. Le rapport compile les incidents filtrés, des statistiques et des recommandations, exportable en texte ou en GeoJSON.</p>
+      <h4>Agent IA</h4>
+      <p>Compatible OpenAI, Google Gemini, Anthropic et Mistral. <b>Votre clé est stockée uniquement dans votre navigateur</b> (localStorage) et n'est jamais enregistrée côté serveur. Sans clé, un mode simulation reste disponible.</p>`}
+  };
+
+  /**
+   * Render the user-manual tab: a section navigator plus the section bodies.
+   */
+  function renderManual(){
+    const nav=document.getElementById("manual-nav");
+    const body=document.getElementById("manual-body");
+    if(!body) return;
+    if(nav){
+      nav.innerHTML=Object.keys(MANUAL).map((k,i)=>
+        `<span class="day-chip" onclick="document.getElementById('man-${k}').scrollIntoView({behavior:'smooth',block:'start'})">${MANUAL[k].title}</span>`).join("");
+    }
+    body.innerHTML=Object.keys(MANUAL).map(k=>
+      `<div class="manual-sec" id="man-${k}"><h3>${MANUAL[k].title}</h3>${MANUAL[k].body}</div>`).join("")+
+      `<div class="manual-sec"><h3>© PratiSIG Consulting Services</h3>
+        <p><b>Contact :</b> Youssoupha MBODJI — <a href="mailto:pratisg.consulting@gmail.com" style="color:var(--neon-green)">pratisg.consulting@gmail.com</a><br>
+        <b>Adresse :</b> Dakar, Sénégal</p>
+        <p style="color:var(--text-muted);font-size:10.5px">Documentation technique complète dans <code>DOCUMENTATION.md</code> à la racine du dépôt, régénérable avec <code>python tools/generate_docs.py</code>.</p></div>`;
+  }
+
+  /**
+   * Start the UTC clock in the header.
+   */
+  function initClock(){
+    const clockEl=document.getElementById("utc-clock");
+    setInterval(()=>{ const now=new Date(); clockEl.textContent="UTC "+now.toISOString().substring(11,19)+" | V4.2 LIVE"; },1000);
+  }
+
+  /**
+   * Show one sidebar tab and hide the others.
+   *
+   * @param {{any}} tabId The id of the pane to activate.
+   */
   function switchTab(tabId){
     document.querySelectorAll(".sidebar-tabs .tab-btn").forEach(btn=>btn.classList.remove("active"));
     document.querySelectorAll(".sidebar-content .tab-pane").forEach(pane=>pane.classList.remove("active"));
@@ -735,8 +1854,14 @@
     if(tabId==="tab-media" && allMedia.length===0) fetchMedia();
     if(tabId==="tab-dorks" && allDorks.length===0) fetchDorks();
     if(tabId==="tab-engines" && allEngines.length===0) fetchEngines();
+    if(tabId==="tab-history"){ loadHistoryStats(); loadHistory(0); }
+    if(tabId==="tab-manual") renderManual();
+    if(tabId==="tab-identity") renderIdentityForm();
   }
 
+  /**
+   * Create the 2D Leaflet map, its drawing tools and the incident layer.
+   */
   function initLeaflet(){
     leafletMap=L.map("leaflet-map",{center:[25.0,30.0],zoom:3,zoomControl:true,attributionControl:false});
     setBaseTileLayer("sat");
@@ -774,10 +1899,16 @@
     });
   }
 
+  /**
+   * Swap the 2D Leaflet basemap and re-order the overlays on top of it.
+   *
+   * @param {{any}} key One of the BASEMAPS keys.
+   */
   function setBaseTileLayer(key){
     if(!leafletMap) return;
     if(activeTileLayer) leafletMap.removeLayer(activeTileLayer);
     currentBaseLayerKey=key;
+    currentCesiumBaseKey=key;   // keep the 3D globe in sync with the 2D choice
     document.querySelectorAll(".map-layer-selector .btn-layer-opt").forEach(btn=>btn.classList.remove("active"));
     const activeBtn=document.getElementById(`btn-layer-${key}`);
     if(activeBtn) activeBtn.classList.add("active");
@@ -799,7 +1930,21 @@
     if(drawnItems) drawnItems.bringToFront();
     if(incidentMarkersLayer) incidentMarkersLayer.bringToFront();
   }
-  function switchBaseLayer(key){ setBaseTileLayer(key); }
+  /**
+   * Change the active basemap, dispatching to the 2D or 3D renderer.
+   *
+   * @param {string} key One of the {@link BASEMAPS} keys
+   *   (`sat`, `google`, `dark`, `osm`, `terrain`).
+   */
+  function switchBaseLayer(key){
+    if(activeMapMode==="3D"){ setCesiumBaseLayer(key); }
+    else { setBaseTileLayer(key); }
+  }
+  /**
+   * Add or remove a weather / terrain overlay on the 2D map.
+   *
+   * @param {{any}} type `weather` or `terrain`.
+   */
   function toggleOverlay(type){
     if(type==="weather"){
       if(weatherOverlay){ leafletMap.removeLayer(weatherOverlay); weatherOverlay=null; }
@@ -810,6 +1955,15 @@
     }
   }
 
+  /**
+   * Switch the map between the 2D Leaflet view and the 3D Cesium globe.
+   *
+   * The basemap selector stays visible in both modes: in 2D it drives Leaflet,
+   * in 3D it drives the Cesium imagery layers. The selected basemap is carried
+   * over between modes so the user keeps the same look and feel.
+   *
+   * @param {"2D"|"3D"} mode Target rendering mode.
+   */
   function switchMapMode(mode){
     activeMapMode=mode;
     const btn2D=document.getElementById("btn-switch-2d");
@@ -822,42 +1976,144 @@
       btn2D.classList.add("active"); btn3D.classList.remove("active");
       leafletEl.style.display="block"; cesiumEl.style.display="none";
       if(layerSelector) layerSelector.style.display="flex";
-      satInfo.innerHTML="🛰️ SAT RÉEL Esri 0.3m + Google Sat | 70+ SOURCES LIVE | 80+ DORKS | 40 ENGINES | V4.0 | 2D SAT HD";
+      satInfo.innerHTML="🛰️ CARTE 2D - imagerie réelle au choix (Esri 0.3m / Google Sat / OSM / dark / relief) | flux auto-updatés | V4.1";
+      setBaseTileLayer(currentCesiumBaseKey);   // carry the basemap over from 3D
       leafletMap.invalidateSize();
     } else {
       btn3D.classList.add("active"); btn2D.classList.remove("active");
       leafletEl.style.display="none"; cesiumEl.style.display="block";
-      if(layerSelector) layerSelector.style.display="none";
-      satInfo.innerHTML="🌐 GLOBE 3D SATELLITE RÉEL HD 0.3m - Rotation, zoom, imagerie vraie Esri + Google | Cesium + Esri World Imagery | V4 POWER";
+      if(layerSelector) layerSelector.style.display="flex";   // stays available in 3D
+      satInfo.innerHTML="🌐 GLOBE 3D - rotation, zoom, imagerie réelle | Cesium + fond de carte au choix (satellite / OSM / dark / relief) | V4.1";
       initCesiumSatellite();
+      // Carry the basemap over from 2D and mark the matching selector button.
+      setCesiumBaseLayer(currentBaseLayerKey);
     }
   }
 
+  /**
+   * Registry of basemaps shared by the 2D (Leaflet) and 3D (Cesium) globes.
+   *
+   * ArcGIS REST serves tiles as /tile/{level}/{row}/{column}, i.e. {z}/{y}/{x},
+   * while standard XYZ slippy-map providers use {z}/{x}/{y}. Mixing the two is
+   * the classic cause of a scrambled or empty globe, so the order is stored
+   * per entry instead of being guessed at call time.
+   */
+  const BASEMAPS={
+    sat:{label:"Esri World Imagery 0.3m",url:"https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",maxLevel:19,credit:"Esri, Maxar, Earthstar Geographics",labels:true},
+    google:{label:"Google Satellite",url:"https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",maxLevel:20,credit:"Google",labels:true},
+    dark:{label:"CARTO Dark Matter",url:"https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",maxLevel:19,credit:"CARTO, OpenStreetMap contributors",labels:false},
+    osm:{label:"OpenStreetMap",url:"https://tile.openstreetmap.org/{z}/{x}/{y}.png",maxLevel:19,credit:"OpenStreetMap contributors",labels:false},
+    terrain:{label:"OpenTopoMap relief",url:"https://a.tile.opentopomap.org/{z}/{x}/{y}.png",maxLevel:17,credit:"OpenTopoMap, SRTM",labels:false}
+  };
+
+  /**
+   * Build a Cesium imagery layer (plus its labels overlay) for a basemap key.
+   *
+   * CesiumJS removed the `Viewer` constructor option `imageryProvider` in
+   * 1.107 (deprecated in 1.104). Passing it on 1.115 is silently ignored, the
+   * globe then shows its default `baseColor` (blue) and only the boundaries
+   * overlay is visible. Every layer must therefore be wrapped in an
+   * `ImageryLayer` and handed over through `baseLayer` / `imageryLayers.add`.
+   *
+   * @param {string} key One of the {@link BASEMAPS} keys.
+   * @returns {Cesium.ImageryLayer} The ready-to-add base imagery layer.
+   */
+  function buildCesiumLayer(key){
+    const cfg=BASEMAPS[key]||BASEMAPS.sat;
+    const provider=new Cesium.UrlTemplateImageryProvider({
+      url:cfg.url,
+      maximumLevel:cfg.maxLevel,
+      credit:cfg.credit
+    });
+    return new Cesium.ImageryLayer(provider);
+  }
+
+  /**
+   * Swap the 3D globe basemap at runtime, keeping incident markers intact.
+   *
+   * Removes every existing imagery layer and re-adds the requested basemap
+   * followed by the labels overlay when the basemap needs one.
+   *
+   * @param {string} key One of the {@link BASEMAPS} keys.
+   */
+  function setCesiumBaseLayer(key){
+    currentCesiumBaseKey=(BASEMAPS[key]?key:"sat");
+    currentBaseLayerKey=currentCesiumBaseKey;   // keep 2D and 3D in sync
+    const cfg=BASEMAPS[currentCesiumBaseKey];
+    document.querySelectorAll(".map-layer-selector .btn-layer-opt").forEach(btn=>btn.classList.remove("active"));
+    const activeBtn=document.getElementById(`btn-layer-${currentCesiumBaseKey}`);
+    if(activeBtn) activeBtn.classList.add("active");
+    if(!cesiumViewer) return;
+    try{
+      cesiumViewer.imageryLayers.removeAll();
+      cesiumViewer.imageryLayers.add(buildCesiumLayer(currentCesiumBaseKey));
+      if(cfg.labels){
+        cesiumViewer.imageryLayers.add(new Cesium.ImageryLayer(new Cesium.UrlTemplateImageryProvider({
+          url:"https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
+          maximumLevel:19,
+          credit:"Esri boundaries and places"
+        })));
+      }
+      const info=document.getElementById("satellite-info");
+      if(info) info.innerHTML=`🌐 GLOBE 3D - fond de carte <b>${cfg.label}</b> | ${cfg.credit} | rotation + zoom, imagerie réelle`;
+      console.log(`✅ Cesium basemap -> ${cfg.label}`);
+    }catch(e){
+      console.warn("Cesium basemap switch failed:",e);
+    }
+  }
+
+  /**
+   * Create the Cesium 3D viewer with a real (non-blue) imagery basemap.
+   *
+   * Uses `baseLayer` instead of the option removed in CesiumJS 1.107, sets a
+   * dark `globe.baseColor` so an in-flight tile request never looks like the
+   * old "blue globe" bug, and falls back to OpenStreetMap if the satellite
+   * provider cannot be constructed.
+   */
   function initCesiumSatellite(){
     if(cesiumViewer){ syncCesiumIncidents(); return; }
     try{
       if(typeof Cesium!=='undefined'){
-        Cesium.Ion.defaultAccessToken=undefined;
-        const esriImagery=new Cesium.UrlTemplateImageryProvider({
-          url:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-          maximumLevel:19,credit:'Esri World Imagery - Satellite Réel HD 0.3m V4'
-        });
+        // No Cesium Ion account is used: every basemap is a plain XYZ/ArcGIS
+        // template, so the default Ion token must not be requested.
+        Cesium.Ion.defaultAccessToken="";
+        let baseLayer;
+        try{
+          baseLayer=buildCesiumLayer(currentCesiumBaseKey);
+        }catch(providerErr){
+          console.warn("Basemap '"+currentCesiumBaseKey+"' unavailable, falling back to OSM:",providerErr);
+          currentCesiumBaseKey="osm";
+          baseLayer=buildCesiumLayer("osm");
+        }
         cesiumViewer=new Cesium.Viewer("cesium-map",{
-          imageryProvider:esriImagery,
+          baseLayer:baseLayer,
+          // Needed for the "CARTE HD" PNG export of the 3D globe: without it
+          // toDataURL() returns a blank frame.
+          contextOptions:{requestWebgl:{preserveDrawingBuffer:true}},
           terrainProvider:new Cesium.EllipsoidTerrainProvider(),
           animation:false,baseLayerPicker:false,fullscreenButton:false,geocoder:false,homeButton:true,infoBox:true,sceneModePicker:true,selectionIndicator:true,timeline:false,navigationHelpButton:false,shadows:false,shouldAnimate:true
         });
         cesiumViewer.scene.globe.enableLighting=false;
         cesiumViewer.scene.globe.showGroundAtmosphere=true;
-        cesiumViewer.scene.backgroundColor=Cesium.Color.BLACK;
-        // Add labels overlay - satellite + labels = real satellite view
-        const labelsProvider=new Cesium.UrlTemplateImageryProvider({
-          url:'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',maximumLevel:19
+        // Dark, not blue: this is the colour shown while tiles are loading.
+        cesiumViewer.scene.globe.baseColor=Cesium.Color.fromCssColorString("#0b1220");
+        cesiumViewer.scene.backgroundColor=Cesium.Color.fromCssColorString("#04060a");
+        if(BASEMAPS[currentCesiumBaseKey].labels){
+          cesiumViewer.imageryLayers.add(new Cesium.ImageryLayer(new Cesium.UrlTemplateImageryProvider({
+            url:"https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
+            maximumLevel:19,credit:"Esri boundaries and places"
+          })));
+        }
+        // Surface tile-load failures instead of leaving a silent blue globe.
+        cesiumViewer.scene.globe.tileLoadProgressEvent.addEventListener(remaining=>{
+          const info=document.getElementById("cesium-tile-status");
+          if(!info) return;
+          if(remaining>0){ info.style.display="block"; info.textContent=`⏳ chargement tuiles (${remaining})…`; }
+          else { info.textContent="✅ imagerie chargée"; setTimeout(()=>{ info.style.display="none"; },1800); }
         });
-        cesiumViewer.imageryLayers.addImageryProvider(labelsProvider);
         cesiumViewer.camera.flyTo({destination:Cesium.Cartesian3.fromDegrees(30.0,25.0,12000000),duration:2.5});
         syncCesiumIncidents();
-        console.log("✅ Cesium V4 satellite réel HD initialisé - Esri 0.3m");
+        console.log("✅ Cesium V4.1 initialisé - basemap "+BASEMAPS[currentCesiumBaseKey].label);
       }
     } catch(e){
       console.warn("Cesium error:",e);
@@ -865,10 +2121,15 @@
     }
   }
 
-  function syncCesiumIncidents(){
+  /**
+   * Redraw every incident as an entity on the 3D Cesium globe.
+   */
+  function syncCesiumIncidents(rowsOverride){
     if(!cesiumViewer) return;
     cesiumViewer.entities.removeAll();
-    const all = [...allIncidents, ...allSocial, ...allMedia].slice(0,100);
+    const all = rowsOverride
+      ? [...rowsOverride].slice(0,100)
+      : [...allIncidents, ...allSocial, ...allMedia].slice(0,100);
     all.forEach(inc=>{
       let color=Cesium.Color.fromCssColorString("#00e5ff");
       if(inc.category==="conflit") color=Cesium.Color.fromCssColorString("#ff2a5f");
@@ -889,6 +2150,10 @@
   }
 
   // Demo V4 - 30 incidents
+  /**
+   * Return the built-in offline demo dataset used when no backend is configured.
+   * @returns {{any}} An array of 30 demo incidents.
+   */
   function getDemoIncidents(){
     const now = new Date();
     const iso = now.toISOString();
@@ -927,6 +2192,15 @@
     return base;
   }
 
+  /**
+   * Fetch and render the live incident feed.
+   *
+   *    * Three modes are handled: the Android native bridge, the offline GitHub
+   *    * Pages demo, and the normal HTTP backend. In the last case `force=true`
+   *    * first asks the server to re-scrape every source before reading the cache.
+   *
+   * @param {{any}} force When true, trigger a server-side re-scrape before reading.
+   */
   async function fetchLiveFeeds(force=false){
     const statusBadge=document.getElementById("db-status-badge");
     const liveCountBadge=document.getElementById("live-count-badge");
@@ -957,6 +2231,7 @@
           published_at: d.published_at||new Date().toISOString(), summary: d.summary||'',
           severity: 'medium', actors: [], needs: [], risk_level: 3
         }));
+        lastFetchAt=Date.now();
         renderIncidents(allIncidents);
         renderMapMarkers(allIncidents);
         if(cesiumViewer) syncCesiumIncidents();
@@ -975,6 +2250,7 @@
         statusBadge.style.color="var(--neon-red)";
         const demo = getDemoIncidents();
         allIncidents=demo;
+        lastFetchAt=Date.now();
         renderIncidents(demo);
         renderMapMarkers(demo);
         if(cesiumViewer) syncCesiumIncidents();
@@ -987,6 +2263,7 @@
     if(IS_GITHUB_DEMO){
       const demo = getDemoIncidents();
       allIncidents=demo;
+      lastFetchAt=Date.now();
       renderIncidents(demo);
       renderMapMarkers(demo);
       if(cesiumViewer) syncCesiumIncidents();
@@ -1005,6 +2282,7 @@
       if(!response.ok) throw new Error("Network");
       const incidents=await response.json();
       allIncidents=incidents;
+      lastFetchAt=Date.now();
       renderIncidents(incidents);
       renderMapMarkers(incidents);
       if(cesiumViewer) syncCesiumIncidents();
@@ -1027,6 +2305,7 @@
       if(window.location.hostname.includes('github.io') || API_BASE.includes('localhost')){
         const demo = getDemoIncidents();
         allIncidents=demo;
+        lastFetchAt=Date.now();
         renderIncidents(demo);
         renderMapMarkers(demo);
         if(cesiumViewer) syncCesiumIncidents();
@@ -1036,6 +2315,9 @@
     }
   }
 
+  /**
+   * Load the social-media tab from the backend.
+   */
   async function fetchSocial(){
     const container=document.getElementById("social-container");
     if(IS_ANDROID){
@@ -1120,6 +2402,9 @@
     } catch(e){ container.innerHTML=`<div style="color:var(--neon-red);padding:10px;">Erreur social: ${e.message}</div>`; }
   }
 
+  /**
+   * Load the press/media tab from the backend.
+   */
   async function fetchMedia(){
     const container=document.getElementById("media-container");
     if(IS_ANDROID || IS_GITHUB_DEMO){
@@ -1178,31 +2463,96 @@
     } catch(e){ container.innerHTML=`<div style="color:var(--neon-red);padding:10px;">Erreur media: ${e.message}</div>`; }
   }
 
+  /**
+   * Start (or restart) the polling timer and the "age of last update" ticker.
+   *
+   * Polling is the safety net; the SSE stream is the fast path. The ticker
+   * repaints the header every second so the user can always see how stale the
+   * displayed feed is, which is what makes a stalled auto-update visible.
+   */
   function startAutoRefresh(){
     if(autoRefreshInterval) clearInterval(autoRefreshInterval);
-    autoRefreshInterval=setInterval(()=>{ if(autoRefreshEnabled) fetchLiveFeeds(); }, IS_ANDROID ? 30000 : 60000);
+    autoRefreshInterval=setInterval(()=>{ if(autoRefreshEnabled && document.visibilityState==="visible") fetchLiveFeeds(); }, IS_ANDROID ? 30000 : 60000);
+    if(ageTickerInterval) clearInterval(ageTickerInterval);
+    ageTickerInterval=setInterval(paintUpdateAge,1000);
+    // A tab that was backgrounded comes back with a stale feed: refresh at once.
+    document.addEventListener("visibilitychange",()=>{
+      if(document.visibilityState==="visible" && autoRefreshEnabled && !IS_GITHUB_DEMO){
+        const staleMs=lastFetchAt?Date.now()-lastFetchAt:Infinity;
+        if(staleMs>45000){ console.log("↩️ onglet visible + flux périmé -> refresh"); fetchLiveFeeds(); }
+      }
+    });
   }
+
+  /**
+   * Repaint the "last updated Xs ago" badge from {@link lastFetchAt}.
+   */
+  function paintUpdateAge(){
+    const el=document.getElementById("db-status-badge");
+    if(!el||!lastFetchAt) return;
+    const age=Math.max(0,Math.round((Date.now()-lastFetchAt)/1000));
+    const ageEl=document.getElementById("update-age-badge");
+    if(ageEl){
+      ageEl.textContent = age<60 ? `il y a ${age}s` : `il y a ${Math.floor(age/60)}min`;
+      // Turn amber when the feed is older than two refresh cycles.
+      ageEl.style.color = age>120 ? "var(--neon-orange)" : "var(--neon-green)";
+    }
+  }
+
+  /**
+   * Pause or resume the automatic refresh of the news feeds.
+   */
   function toggleAutoRefresh(){
     autoRefreshEnabled=!autoRefreshEnabled;
     const btn=document.getElementById("btn-auto-refresh");
     btn.textContent=autoRefreshEnabled?"⏸️ PAUSE":"▶️ REPRENDRE";
     if(autoRefreshEnabled) fetchLiveFeeds();
   }
+
+  /**
+   * Open the Server-Sent Events stream that pushes server-side auto-updates.
+   *
+   * The server emits an ``update`` frame whenever the content fingerprint
+   * changes (not merely when the item count changes) plus a periodic
+   * heartbeat. On error the connection is closed and retried with an
+   * exponential backoff capped at 60s, so a Render cold start or a proxy
+   * timeout cannot permanently kill the live updates.
+   */
   function connectSSE(){
-    if(IS_GITHUB_DEMO || IS_ANDROID){ console.log("DEMO/ANDROID - SSE disabled"); return; }
+    if(IS_GITHUB_DEMO || IS_ANDROID){ console.log("DEMO/ANDROID - SSE disabled (polling only)"); return; }
+    if(sseConnection){ try{ sseConnection.close(); }catch(e){} sseConnection=null; }
     try{
       const es=new EventSource(`${API_BASE}/api/live/stream`);
       sseConnection=es;
+      es.onopen=()=>{ sseRetryDelay=3000; const b=document.getElementById("sse-badge"); if(b){ b.textContent="🔴 SSE LIVE"; b.style.color="var(--neon-green)"; } };
       es.onmessage=(event)=>{
         try{
           const data=JSON.parse(event.data);
-          if(data.type==="update"){ console.log("🔴 V4 SSE",data.count); fetchLiveFeeds(); }
+          if(data.type==="update"){
+            // Skip the refetch when we already hold this exact content.
+            if(data.content_hash && data.content_hash===lastContentHash) return;
+            lastContentHash=data.content_hash||null;
+            console.log("🔴 SSE update - hash",data.content_hash,"count",data.count);
+            fetchLiveFeeds();
+          }
         }catch(e){}
       };
-      es.onerror=()=>{ es.close(); setTimeout(connectSSE,15000); };
-    }catch(e){ console.warn("SSE not supported"); }
+      es.onerror=()=>{
+        try{ es.close(); }catch(e){}
+        sseConnection=null;
+        const b=document.getElementById("sse-badge"); if(b){ b.textContent="⚪ SSE OFF"; b.style.color="var(--neon-orange)"; }
+        console.warn(`SSE closed - retry in ${sseRetryDelay/1000}s`);
+        setTimeout(connectSSE,sseRetryDelay);
+        sseRetryDelay=Math.min(60000,sseRetryDelay*2);   // exponential backoff
+      };
+    }catch(e){ console.warn("SSE not supported:",e); }
   }
 
+  /**
+   * Render the incident list into the LIVE panel.
+   *
+   * @param {{any}} incidents Array of incident objects.
+   */
   function renderIncidents(incidents){
     const container=document.getElementById("incident-container");
     container.innerHTML="";
@@ -1232,8 +2582,15 @@
     document.getElementById("filtered-count-label").textContent=`${incidents.length} événements V4 LIVE`;
   }
 
+  /**
+   * Draw incident markers on the 2D Leaflet map.
+   *
+   * @param {{any}} incidents Array of incident objects.
+   */
   function renderMapMarkers(incidents){
     if(!leafletMap||!incidentMarkersLayer) return;
+    // Remember what is actually on screen: GIS export and the HD image use it.
+    window.__lastRenderedIncidents=incidents||[];
     incidentMarkersLayer.clearLayers();
     incidents.forEach(inc=>{
       let color="#00e5ff";
@@ -1262,11 +2619,20 @@
     });
   }
 
+  /**
+   * Fly the active map (2D or 3D) to a latitude/longitude pair.
+   *
+   * @param {{any}} lat Target latitude.
+   * @param {{any}} lng Target longitude.
+   */
   function centerMapOnCoords(lat,lng){
     if(activeMapMode==="2D"){ leafletMap.flyTo([lat,lng],8,{duration:1.2}); }
     else if(cesiumViewer){ cesiumViewer.camera.flyTo({destination:Cesium.Cartesian3.fromDegrees(lng,lat,500000),duration:1.5}); }
   }
 
+  /**
+   * Re-apply every active filter (region, source, category, theme, free text) to the cached feed.
+   */
   function applyAllFilters(){
     const searchTxt=(document.getElementById("filter-search-input")?.value||"").toLowerCase().trim();
     const regionVal=document.getElementById("filter-region-select")?.value||"all";
@@ -1296,6 +2662,12 @@
     renderIncidents(filtered); renderMapMarkers(filtered);
     document.getElementById("filtered-count-label").textContent=`${filtered.length} / ${allIncidents.length} V4 filtrés`;
   }
+  /**
+   * Set the active thematic filter and re-render.
+   *
+   * @param {{any}} theme Theme key, or `all`.
+   * @param {{any}} btn
+   */
   function filterByTheme(theme,btn){
     activeThemeFilter=theme;
     document.querySelectorAll(".category-filters .filter-chip").forEach(chip=>chip.classList.remove("active"));
@@ -1304,6 +2676,9 @@
   }
 
   // === REVERSE IMAGE ===
+  /**
+   * Load the reverse-image-search engine list.
+   */
   async function fetchReverseEngines(){
     if(IS_GITHUB_DEMO || IS_ANDROID){
       reverseEngines=[
@@ -1322,6 +2697,9 @@
     }catch(e){ console.warn(e); }
   }
 
+  /**
+   * Build reverse-image-search URLs for the supplied image URL.
+   */
   async function generateReverseImage(){
     const url=document.getElementById("reverse-image-url")?.value||"";
     const desc=document.getElementById("reverse-image-desc")?.value||"";
@@ -1346,6 +2724,12 @@
     }
   }
 
+  /**
+   * Render the reverse-image-search engine links.
+   *
+   * @param {{any}} results Engine-to-URL mapping.
+   * @param {{any}} originalUrl
+   */
   function renderReverseResults(results, originalUrl){
     const container=document.getElementById("reverse-image-results");
     container.innerHTML=`
@@ -1364,9 +2748,20 @@
 
   let lastExifLocationImage=null;
   let lastImageFile=null;
+  /**
+   * Handle an image chosen for EXIF extraction.
+   *
+   * @param {{any}} e
+   */
   function handleImageFileSelect(e){
     const files=e.target.files; if(files.length) processImageFileV4(files[0], true);
   }
+  /**
+   * V4 image pipeline: EXIF extraction plus reverse-search links.
+   *
+   * @param {{any}} file The image File object.
+   * @param {{any}} isImageTab
+   */
   async function processImageFileV4(file, isImageTab){
     const exifCardId=isImageTab?"exif-card-image":"exif-card";
     const detailsId=isImageTab?"exif-details-image":"exif-details";
@@ -1395,6 +2790,9 @@
       exifCard.style.display="flex"; details.innerHTML=`<b>Fichier:</b> ${escapeHtml(file.name)}<br><span style="color:var(--neon-red)">Erreur EXIF: ${err.message}</span>`;
     }
   }
+  /**
+   * Read an image file's EXIF GPS tags and centre the map on them.
+   */
   function locateExifOnMapImage(){
     const loc=lastExifLocationImage||lastExifLocation;
     if(!loc) return;
@@ -1404,6 +2802,9 @@
     marker.bindPopup(`<div style="font-weight:700;color:var(--neon-pink);">🎯 ORIGINE PHOTO EXIF V4</div><div>Lat: ${lat.toFixed(6)}</div><div>Lng: ${lng.toFixed(6)}</div>`).openPopup();
     leafletMap.flyTo([lat,lng],14,{duration:2});
   }
+  /**
+   * Launch a reverse image search for the loaded image file.
+   */
   function reverseFromExifImage(){
     const loc=lastExifLocationImage||lastExifLocation;
     if(loc){
@@ -1414,9 +2815,15 @@
       switchTab('tab-image');
     }
   }
+  /**
+   * Launch a reverse image search from coordinates found in EXIF data.
+   */
   function reverseFromExif(){ reverseFromExifImage(); }
 
   // === ADVANCED SEARCH ===
+  /**
+   * Build the advanced-search engine checklist from the loaded engine list.
+   */
   function initAdvEnginesChecklist(){
     const container=document.getElementById("adv-engines-checklist");
     if(!container) return;
@@ -1445,6 +2852,9 @@
     }, 1000);
   }
 
+  /**
+   * Build the multi-engine advanced-search URLs and render them.
+   */
   async function generateAdvancedSearch(){
     const query=document.getElementById("adv-query")?.value||"";
     const site=document.getElementById("adv-site")?.value||"";
@@ -1487,6 +2897,13 @@
     }
   }
 
+  /**
+   * Render the advanced-search result links.
+   *
+   * @param {{any}} results Engine-to-URL mapping.
+   * @param {{any}} query
+   * @param {{any}} variants
+   */
   function renderAdvResults(results, query, variants){
     const container=document.getElementById("adv-results-container");
     container.innerHTML=`
@@ -1502,6 +2919,9 @@
       `).join('')}
     `;
   }
+  /**
+   * Reset the advanced-search form to its defaults.
+   */
   function clearAdvancedSearch(){
     document.getElementById("adv-query").value="";
     document.getElementById("adv-site").value="";
@@ -1512,6 +2932,9 @@
   }
 
   // === ENGINES ===
+  /**
+   * Load the OSINT engine directory from the backend.
+   */
   async function fetchEngines(){
     const container=document.getElementById("engine-container");
     container.innerHTML=`<div style="color:var(--text-muted);text-align:center;padding:20px;">Chargement 40+ moteurs OSINT V4...</div>`;
@@ -1553,6 +2976,11 @@
     }
   }
 
+  /**
+   * Render the OSINT engine directory.
+   *
+   * @param {{any}} engines Array of engine objects.
+   */
   function renderEngines(engines){
     const container=document.getElementById("engine-container");
     container.innerHTML="";
@@ -1575,6 +3003,9 @@
     });
   }
 
+  /**
+   * Filter the engine list by category and free text.
+   */
   function filterEngines(){
     const search=(document.getElementById("engine-search-input")?.value||"").toLowerCase().trim();
     const cat=document.getElementById("engine-category-filter")?.value||"all";
@@ -1595,6 +3026,9 @@
   }
 
   // === DORKS V4 ===
+  /**
+   * Load the Google-dork database from the backend.
+   */
   async function fetchDorks(){
     const container=document.getElementById("dork-container");
     container.innerHTML=`<div style="color:var(--text-muted);text-align:center;padding:20px;">Chargement base dorks V4 80+...</div>`;
@@ -1633,6 +3067,11 @@
     }
   }
 
+  /**
+   * Render the dork list into its container.
+   *
+   * @param {{any}} dorks Array of dork objects.
+   */
   function renderDorks(dorks){
     const container=document.getElementById("dork-container");
     container.innerHTML="";
@@ -1662,6 +3101,9 @@
     });
   }
 
+  /**
+   * Filter the dork list by category, severity and free text.
+   */
   function filterDorks(){
     const search=(document.getElementById("dork-search-input")?.value||"").toLowerCase().trim();
     const cat=document.getElementById("dork-category-filter")?.value||"all";
@@ -1682,6 +3124,16 @@
     document.getElementById("dork-count-label").textContent=`${filteredDorks.length} / ${allDorks.length} dorks filtrés V4`;
   }
 
+  /**
+   * Build a Google dork string entirely in the browser, without calling the backend.
+   *
+   * @param {{any}} keywords
+   * @param {{any}} country
+   * @param {{any}} site Optional site: operator value.
+   * @param {{any}} filetype
+   * @param {{any}} exclude
+   * @returns {{any}} The composed dork string.
+   */
   function buildLocalDork(keywords,country,site,filetype,exclude){
     let dork = `"${keywords}"`;
     if(country) dork += ` "${country}"`;
@@ -1699,6 +3151,9 @@
     return dork;
   }
 
+  /**
+   * Ask the backend to generate custom dork variants.
+   */
   async function generateCustomDork(){
     const keywords=document.getElementById("dork-keywords")?.value||"";
     const country=document.getElementById("dork-country")?.value||"";
@@ -1780,6 +3235,9 @@
     }
   }
 
+  /**
+   * Reset the custom dork builder form.
+   */
   function clearDorkBuilder(){
     document.getElementById("dork-keywords").value="";
     document.getElementById("dork-country").value="";
@@ -1789,10 +3247,25 @@
     document.getElementById("dork-exclude").value="";
     document.getElementById("dork-generated-container").style.display="none";
   }
+  /**
+   * Update the live preview while the user edits the dork builder.
+   *
+   * @param {{any}} query
+   */
   function editDorkBuilder(query){ document.getElementById("dork-keywords").value=query; switchTab('tab-dorks'); document.getElementById("dork-keywords").scrollIntoView({behavior:"smooth"}); }
+  /**
+   * Copy a dork string to the clipboard.
+   *
+   * @param {{any}} query
+   */
   function copyDork(query){ navigator.clipboard.writeText(query).then(()=>{ alert("Dork copié: "+query.substring(0,80)+"..."); }).catch(()=>{ prompt("Copiez ce dork:",query); }); }
 
   // === REPORT ===
+  /**
+   * Add the selected incident to the report basket.
+   *
+   * @param {{any}} title Incident title or object to add.
+   */
   function addToReport(title){
     const topicEl=document.getElementById("report-topic");
     if(!topicEl.value) topicEl.value=title.substring(0,60);
@@ -1800,6 +3273,9 @@
     switchTab('tab-report');
   }
 
+  /**
+   * Request a full intelligence report from the backend.
+   */
   async function generateReport(){
     const topic=document.getElementById("report-topic")?.value||"";
     if(!topic.trim()){ alert("Entrez sujet rapport !"); return; }
@@ -1848,6 +3324,16 @@
     }
   }
 
+  /**
+   * Select the incidents matching the report form, client-side.
+   *
+   * @param {{any}} topic
+   * @param {{any}} regions
+   * @param {{any}} categories
+   * @param {{any}} timeRange
+   * @param {{any}} maxInc
+   * @returns {{any}} List of matching incidents.
+   */
   function filterIncidentsForReportLocal(topic, regions, categories, timeRange, maxInc){
     let incidents=[...allIncidents];
     if(topic){
@@ -1863,6 +3349,17 @@
     return incidents.slice(0,maxInc);
   }
 
+  /**
+   * Assemble a report from the cached incidents when no backend is reachable.
+   *
+   * @param {{any}} topic
+   * @param {{any}} incidents
+   * @param {{any}} regions
+   * @param {{any}} categories
+   * @param {{any}} timeRange
+   * @param {{any}} sections
+   * @returns {{any}} A report object mirroring the backend response shape.
+   */
   function buildReportLocal(topic, incidents, regions, categories, timeRange, sections){
     let md=`# Rapport OSINT/GEOINT V4 - ${topic}\n\nGénéré: ${new Date().toISOString()} | V4 POWER\nSujet: ${topic} | Période: ${timeRange} | Incidents: ${incidents.length}\nFiltres: Régions=${regions.join(',')||'Toutes'} | Catégories=${categories.join(',')||'Toutes'}\n\n---\n\n`;
     if(sections.includes("summary")){
@@ -1884,19 +3381,31 @@
     return md;
   }
 
+  /**
+   * Copy the generated report to the clipboard.
+   */
   function copyReport(){ if(lastReportData) navigator.clipboard.writeText(lastReportData.markdown||"").then(()=>alert("Rapport copié")); }
+  /**
+   * Download the generated report as a text file.
+   */
   function downloadReport(){
     if(!lastReportData) return;
     const blob=new Blob([lastReportData.markdown||""],{type:"text/markdown"});
     const url=URL.createObjectURL(blob);
     const a=document.createElement("a"); a.href=url; a.download=`rapport_osint_${Date.now()}.md`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
   }
+  /**
+   * Download the saved geozones as a GeoJSON FeatureCollection.
+   */
   function downloadGeoJSONReport(){
     if(!lastReportData) return;
     const blob=new Blob([JSON.stringify(lastReportData.geojson||{},null,2)],{type:"application/json"});
     const url=URL.createObjectURL(blob);
     const a=document.createElement("a"); a.href=url; a.download=`rapport_osint_${Date.now()}.geojson`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
   }
+  /**
+   * Empty the report basket and its preview.
+   */
   function clearReport(){
     document.getElementById("report-topic").value="";
     document.getElementById("report-regions").value="";
@@ -1905,6 +3414,9 @@
   }
 
   // === AI AGENT ===
+  /**
+   * Restore the saved AI provider and API key from localStorage.
+   */
   function loadAIKey(){
     try{
       const provider=localStorage.getItem('HUMAN_OSINT_AI_PROVIDER')||'openai';
@@ -1918,6 +3430,9 @@
       updateAIKeyStatus();
     }catch(e){}
   }
+  /**
+   * Persist the AI provider and API key to localStorage.
+   */
   function saveAIKey(){
     const provider=document.getElementById("ai-provider")?.value||'openai';
     const model=document.getElementById("ai-model")?.value||'';
@@ -1932,6 +3447,9 @@
     updateAIKeyStatus();
     alert(`Clé ${provider} sauvegardée localement !`);
   }
+  /**
+   * Remove the stored AI API key from localStorage.
+   */
   function clearAIKey(){
     localStorage.removeItem('HUMAN_OSINT_AI_KEY');
     localStorage.removeItem('HUMAN_OSINT_AI_PROVIDER');
@@ -1940,6 +3458,9 @@
     document.getElementById("report-ai-key").value="";
     updateAIKeyStatus();
   }
+  /**
+   * Refresh the AI key status indicator.
+   */
   function updateAIKeyStatus(){
     const status=document.getElementById("ai-key-status");
     const key=localStorage.getItem('HUMAN_OSINT_AI_KEY')||'';
@@ -1948,6 +3469,9 @@
     if(key) status.innerHTML=`✅ Clé configurée: <b style="color:var(--neon-green)">${provider} / ${model}</b> | Longueur: ${key.length} chars | Stockage: localStorage (jamais serveur)`;
     else status.innerHTML=`⚠️ Aucune clé - Mode simulation template. Configurez OpenAI/Gemini/Anthropic pour analyse réelle.`;
   }
+  /**
+   * Validate the stored AI API key with a minimal request.
+   */
   async function testAIKey(){
     const provider=document.getElementById("ai-provider")?.value||'openai';
     const key=document.getElementById("ai-api-key")?.value||'';
@@ -1965,6 +3489,9 @@
       else status.innerHTML=`❌ Erreur test: ${e.message}`;
     }
   }
+  /**
+   * Send the current context to the configured AI provider and render the answer.
+   */
   async function runAIAnalysis(){
     const prompt=document.getElementById("ai-prompt")?.value||"";
     if(!prompt.trim()){ alert("Entrez prompt !"); return; }
@@ -2007,7 +3534,13 @@
       lastAIResult=output.textContent;
     }
   }
+  /**
+   * Copy the AI analysis result to the clipboard.
+   */
   function copyAIResult(){ if(lastAIResult) navigator.clipboard.writeText(lastAIResult).then(()=>alert("IA result copié")); }
+  /**
+   * Download the AI analysis as a text file.
+   */
   function downloadAIResult(){
     if(!lastAIResult) return;
     const blob=new Blob([lastAIResult],{type:"text/markdown"});
@@ -2016,6 +3549,9 @@
   }
 
   // === SECURITY & ACTORS ===
+  /**
+   * Load the regional security assessment.
+   */
   async function fetchSecurityAssessment(){
     const container=document.getElementById("security-container");
     if(IS_GITHUB_DEMO || IS_ANDROID){
@@ -2076,6 +3612,9 @@
     } catch(e){ container.innerHTML=`<div style="color:var(--neon-red);padding:10px;">Erreur sécurité: ${e.message} <button class="cyber-btn btn-xs" onclick="setBackendUrl()">🔧 CONFIG API</button></div>`; }
   }
 
+  /**
+   * Load the humanitarian actor directory from the backend.
+   */
   async function fetchActors(){
     const container=document.getElementById("actors-container");
     if(IS_GITHUB_DEMO || IS_ANDROID){
@@ -2161,6 +3700,9 @@
   }
 
   // Geozones
+  /**
+   * Load the persisted geozones from localStorage and draw them.
+   */
   async function loadSavedGeozones(){
     if(IS_GITHUB_DEMO || IS_ANDROID){
       if(IS_ANDROID && window.AndroidOSINT && typeof AndroidOSINT.getGeozones === 'function'){
@@ -2178,9 +3720,15 @@
     }
     try{ const res=await fetch(`${API_BASE}/api/geozones`); savedGeozones=await res.json(); renderSavedGeozonesUI(); displaySavedGeozonesOnMap(); }catch(err){ console.warn(err); }
   }
+  /**
+   * Write the geozone list to localStorage.
+   */
   function saveGeozonesLocal(){
     try{ localStorage.setItem('HUMAN_OSINT_GEOZONES', JSON.stringify(savedGeozones)); }catch(e){}
   }
+  /**
+   * Render the saved-geozone list in the GEOINT panel.
+   */
   function renderSavedGeozonesUI(){
     const container=document.getElementById("geozone-container");
     const countEl=document.getElementById("total-zones-count");
@@ -2198,6 +3746,9 @@
     });
     sumEl.textContent=`${totalArea.toFixed(1)} km²`;
   }
+  /**
+   * Re-draw every saved geozone on the Leaflet map.
+   */
   function displaySavedGeozonesOnMap(){
     if(!savedGeozonesLayer) return;
     savedGeozonesLayer.clearLayers();
@@ -2210,6 +3761,9 @@
       }catch(e){}
     });
   }
+  /**
+   * Ask for a name and persist the currently drawn shape as a geozone.
+   */
   async function promptSaveCurrentDrawn(){
     if(!currentDrawingGeoJSON){ alert("Tracer d'abord une zone sur la carte satellite réel HD !"); return; }
     const defaultName="Zone-SAT-V4-"+new Date().toLocaleTimeString().replace(/:/g,"");
@@ -2241,7 +3795,15 @@
       document.getElementById("measure-overlay").style.display="none"; currentDrawingGeoJSON=null; drawnItems.clearLayers(); await loadSavedGeozones(); alert(`Zone "${name}" sauvegardée satellite réel V4 !`);
     }catch(err){ alert("Erreur: "+err.message); }
   }
+  /**
+   * Persist the last measurement drawn on the map.
+   */
   async function saveActiveMeasurement(){ promptSaveCurrentDrawn(); }
+  /**
+   * Delete a saved geozone from local storage and from the map.
+   *
+   * @param {{any}} zoneId
+   */
   async function deleteGeozone(zoneId){
     if(!confirm(`Supprimer zone ${zoneId} ?`)) return;
     if(IS_GITHUB_DEMO || IS_ANDROID){
@@ -2255,7 +3817,16 @@
     }
     try{ await fetch(`${API_BASE}/api/geozones/${zoneId}`,{method:"DELETE"}); await loadSavedGeozones(); }catch(err){ alert(err.message); }
   }
+  /**
+   * Fit the map to the bounds of one saved geozone.
+   *
+   * @param {{any}} zoneId
+   */
   function zoomToZone(zoneId){ const zone=savedGeozones.find(z=>z.id===zoneId); if(!zone) return; try{ const geo=typeof zone.geojson_data==="string"?JSON.parse(zone.geojson_data):zone.geojson_data; const tempLayer=L.geoJSON(geo); leafletMap.fitBounds(tempLayer.getBounds(),{padding:[50,50]}); }catch(e){} }
+  /**
+   * Serialise the drawn and saved geozones to GeoJSON.
+   * @returns {{any}} A GeoJSON FeatureCollection object.
+   */
   function exportGeoJSON(){
     if(savedGeozones.length===0){ alert("Aucune zone"); return; }
     const featureCollection={type:"FeatureCollection",features:savedGeozones.map(z=>{ const geo=typeof z.geojson_data==="string"?JSON.parse(z.geojson_data):z.geojson_data; return {type:"Feature",properties:{id:z.id,name:z.name,area_sqkm:z.area_sqkm},geometry:geo.geometry||geo}; })};
@@ -2263,6 +3834,9 @@
     const a=document.createElement("a"); a.setAttribute("href",dataStr); a.setAttribute("download",`human_osint_v4_sat_${Date.now()}.geojson`); document.body.appendChild(a); a.click(); a.remove();
   }
 
+  /**
+   * Wire up drag-and-drop of image files onto the IMAGE panel.
+   */
   function setupDragAndDrop(){
     const dropZone=document.getElementById("drop-zone");
     const dropZoneImage=document.getElementById("drop-zone-image");
@@ -2279,7 +3853,17 @@
       dropZoneImage.addEventListener("drop",(e)=>{ dropZoneImage.classList.remove("drag-over"); const files=e.dataTransfer.files; if(files.length) processImageFileV4(files[0], true); });
     }
   }
+  /**
+   * Handle a file chosen through the file input.
+   *
+   * @param {{any}} e
+   */
   function handleFileSelect(e){ const files=e.target.files; if(files.length) processImageFile(files[0]); }
+  /**
+   * Read an image file and extract its EXIF metadata.
+   *
+   * @param {{any}} file The image File object.
+   */
   async function processImageFile(file){
     const exifCard=document.getElementById("exif-card"); const details=document.getElementById("exif-details");
     try{
@@ -2291,6 +3875,9 @@
     }catch(err){ alert("Erreur EXIF: "+err.message); }
   }
   let lastExifLocation=null;
+  /**
+   * Centre the map on the GPS coordinates read from an image's EXIF data.
+   */
   function locateExifOnMap(){
     if(!lastExifLocation) return;
     const {lat,lng}=lastExifLocation;
@@ -2299,8 +3886,25 @@
     marker.bindPopup(`<div style="font-weight:700;color:var(--neon-red);">🎯 ORIGINE PHOTO EXIF SAT HD V4</div><div>Lat: ${lat.toFixed(6)}</div><div>Lng: ${lng.toFixed(6)}</div>`).openPopup();
     leafletMap.flyTo([lat,lng],14,{duration:2});
   }
+  /**
+   * Open a dork in a new browser tab as a Google search.
+   *
+   * @param {{any}} query The dork string.
+   */
   function openDork(query){ const url=`https://www.google.com/search?q=${encodeURIComponent(query)}`; window.open(url,"_blank"); }
+  /**
+   * Escape HTML special characters so untrusted feed text cannot inject markup.
+   *
+   * @param {{any}} text
+   * @returns {{any}} The escaped string, safe to insert with innerHTML.
+   */
   function escapeHtml(text){ if(!text) return ""; const div=document.createElement("div"); div.textContent=text; return div.innerHTML; }
+  /**
+   * Format an ISO timestamp for display.
+   *
+   * @param {{any}} dateString
+   * @returns {{any}} A short human-readable date string.
+   */
   function formatDate(dateString){ if(!dateString) return ""; try{ const d=new Date(dateString); return d.toLocaleDateString("fr-FR",{hour:"2-digit",minute:"2-digit"}); }catch{ return dateString; } }
 
   // Android bridge hook for data updates
